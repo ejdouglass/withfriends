@@ -1,9 +1,34 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useRef, useCallback } from 'react';
 import { Context } from '../context/context';
 import { Container } from './styled';
 
 const Keyboard = () => {
     const [state, dispatch] = useContext(Context);
+    const keysDown = useRef({});
+    const keyDownCB = useCallback(keyevent => handleKeyDown(keyevent), [handleKeyDown]);
+    const keyUpCB = useCallback(keyevent => handleKeyUp(keyevent), [handleKeyUp]);
+
+    function handleKeyDown(e) {
+        // console.log(`Pressed ${e.key}`);
+        if (!keysDown.current[e.key]) {
+            keysDown.current[e.key] = true;
+        }
+    }
+
+    function handleKeyUp(e) {
+        // console.log(`Released ${e.key}`);
+        keysDown.current[e.key] = false;
+    }
+
+    useEffect(() => {
+        window.addEventListener('keydown', keyDownCB);
+        window.addEventListener('keyup', keyUpCB);
+
+        return () => {
+            window.removeEventListener('keydown', keyDownCB);
+            window.removeEventListener('keyup', keyUpCB);
+        }
+    }, [keyDownCB, keyUpCB]);
 
     return (
         <Container></Container>
