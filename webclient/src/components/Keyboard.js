@@ -8,6 +8,7 @@ const Keyboard = () => {
     const keyDownCB = useCallback(keyevent => handleKeyDown(keyevent), [handleKeyDown]);
     const keyUpCB = useCallback(keyevent => handleKeyUp(keyevent), [handleKeyUp]);
 
+    // Down here we're going to be paying attention to the state, which should tell us what we're currently up to for proper reactions to keyevent(s)
     function handleKeyDown(e) {
         // console.log(`Pressed ${e.key}`);
         if (!keysDown.current[e.key]) {

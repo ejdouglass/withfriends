@@ -1,6 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 import { Store } from './context/context';
+import CharSheet from './components/CharSheet';
+import Backpack from './components/Backpack';
+import Status from './components/Status';
 import Keyboard from './components/Keyboard';
 import Cutscene from './components/Cutscene';
 import GameScreen from './pages/GameScreen';
@@ -13,6 +16,9 @@ const App = () => {
       <Router>
         <Keyboard />
         <Cutscene />
+        <CharSheet />
+        <Backpack />
+        <Status />
         <Route exact path='/' component={GameScreen} />
       </Router>
     </Store>
@@ -24,23 +30,14 @@ export default App;
 /*
 
   DRAFTUS
-  ... just realized that the ROUTE is laaargely unnecessary, but it's already there, so eh, character creation/login screens, cool, done
-
-  -- This is a little tricky, because there's a big difference between "fast mode" and "ideal mode" in my mind.
-
-  Let's outline both real quick...
- 
-  Ok, let's reframe.
-  MUDmode
-  -- Not fully 'MUD' of course; the graphics are just a semi-abstract framework to help users grok what's happening at-a-glance
-  -- Main navigation mode is DR-esque; the 'screen' would show a background relevant to the current physical context, plus a block for text
-  -- Fastest initial turnaround, can capitalize on 'chat room' functionality for websocket shenanigans
-  -- Yeahhhh ok this is probably our best bet, don't get ahead of yourself
-
-
-  MIXmode
-  -- I dunno where the intersection would be. Hm. 
   
+  Okie-doodle! Let's plan out the arc of the thing.
+  -- basic frontend stuff: a basic layout and interactivity (open and close backpack, 'look around,' etc.)
+  -- basic backend stuff: mostly for account and character creation and loading, below
+  -- login/auth implementation
+  -- character creation (basic) -- mostly so we can see how sockets work, below
+  -- implement and test sockets ... backend/server 'events' (oh noes a GOBLIN), and multiple users (easiest way: probably one Chrome, one Safari)
   
+  -- also, at some point, a 'game loop' needs to exist somewhere, possibly multiple somewheres
 
 */
