@@ -1,7 +1,16 @@
 import React, { createContext, useReducer } from 'react';
 
+export const actions = {
+    OPEN_BACKPACK: 'open_backpack',
+    CLOSE_BACKPACK: 'close_backpack',
+    TOGGLE_BACKPACK: 'toggle_backpack'
+}
+
 export const Reducer = (state, action) => {
     switch (action.type) {
+        case actions.TOGGLE_BACKPACK: {
+            return {...state, backpack: {...state.backpack, open: !state.backpack.open}};
+        }
         default: {
             return state;
         }
@@ -9,7 +18,13 @@ export const Reducer = (state, action) => {
 }
 
 const initialState = {
-
+    sky: {
+        color: 'bright blue'
+    },
+    backpack: {
+        open: false,
+        contents: []
+    }
 }
 
 export const Context = createContext(initialState);

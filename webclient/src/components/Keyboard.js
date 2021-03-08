@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useCallback } from 'react';
-import { Context } from '../context/context';
+import { Context, actions } from '../context/context';
 import { Container } from './styled';
 
 const Keyboard = () => {
@@ -13,6 +13,11 @@ const Keyboard = () => {
         // console.log(`Pressed ${e.key}`);
         if (!keysDown.current[e.key]) {
             keysDown.current[e.key] = true;
+        }
+        switch (e.key) {
+            case 'b': {
+                if (keysDown.current['Meta']) dispatch({type: actions.TOGGLE_BACKPACK});
+            }
         }
     }
 
