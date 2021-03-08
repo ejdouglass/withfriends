@@ -1,8 +1,6 @@
 import React, { createContext, useReducer } from 'react';
 
 export const actions = {
-    OPEN_BACKPACK: 'open_backpack',
-    CLOSE_BACKPACK: 'close_backpack',
     TOGGLE_BACKPACK: 'toggle_backpack'
 }
 
@@ -18,8 +16,16 @@ export const Reducer = (state, action) => {
 }
 
 const initialState = {
-    sky: {
-        color: 'bright blue'
+    above: {
+        type: 'sky',
+        color: 'hsl(215, 90%, 75%)'
+    },
+    around: {
+        type: 'field'
+    },
+    below: {
+        type: 'grass',
+        color: 'hsl(125, 80%, 30%)'
     },
     backpack: {
         open: false,

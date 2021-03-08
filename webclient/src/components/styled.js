@@ -7,7 +7,18 @@ const color = {
     dark: '',
     blackish: '',
     bold: '',
-}
+};
+
+const animateBackpackOpening = keyframes`
+    from {
+        transform: translate(10px, -10px);
+        opacity: 0;
+    }
+    to {
+        transform: translate(0, 0);
+        opacity: 1;
+    }
+`;
 
 export const Container = styled.div`
     display: flex;
@@ -72,6 +83,39 @@ export const PageContainer = styled(Container)`
     padding: 1rem;
 `;
 
-export const Card = styled(Container)`
+export const Card = styled(Container)``;
 
+export const SkyBox = styled.div`
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 0;
+    width: 100vw;
+    height: 150px;
+    background-color: ${props => props.color};
+`;
+
+export const GroundBox = styled.div`
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    width: 100vw;
+    height: 150px;
+    background-color: ${props => props.color};
+`;
+
+export const BackpackContainer = styled.div`
+    display: flex;
+    position: fixed;
+    z-index: 20;
+    top: 150px;
+    left: 10%;
+    width: 80vw;
+    height: calc(100vh - 300px);
+    background-color: brown;
+    border: 1px solid black;
+    animation: ${animateBackpackOpening} 0.1s linear;
 `;

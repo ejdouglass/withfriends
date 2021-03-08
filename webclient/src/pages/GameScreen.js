@@ -1,14 +1,13 @@
 import React, { useContext } from 'react';
 import { Context } from '../context/context';
-import { PageContainer, Title } from '../components/styled';
 
 const GameScreen = () => {
-    const [state, dispatch] = useContext(Context);
+    // Not clear that I even need this much here. But for now, it'll stick around. Keep an eye on things. 
+    const [state] = useContext(Context);
 
     return (
-        <PageContainer>
-            <Title>I am GAME SCREEN (turnt on).</Title>
-        </PageContainer>
+        <>
+        </>
     )
 }
 

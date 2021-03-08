@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Context } from '../context/context';
-import { Container, Title } from './styled';
+import { BackpackContainer, Title } from './styled';
 
 const Backpack = () => {
     const [state, dispatch] = useContext(Context);
@@ -8,9 +8,9 @@ const Backpack = () => {
     return (
     <>
         {state.backpack.open ? (
-            <Container>
+            <BackpackContainer>
                 <Title>BACKPACK HERE!</Title>
-            </Container>
+            </BackpackContainer>
         ) : (
             <></>
         )}

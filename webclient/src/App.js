@@ -1,7 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 import { Store } from './context/context';
-import Sky from './components/Sky';
+import Above from './components/Above';
+import Below from './components/Below';
 import CharSheet from './components/CharSheet';
 import Backpack from './components/Backpack';
 import Status from './components/Status';
@@ -16,7 +17,8 @@ const App = () => {
     <Store>
       <Router>
         <Keyboard />
-        <Sky />
+        <Above />
+        <Below />
         <Cutscene />
         <CharSheet />
         <Backpack />

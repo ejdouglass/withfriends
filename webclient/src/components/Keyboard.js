@@ -11,6 +11,7 @@ const Keyboard = () => {
     // Down here we're going to be paying attention to the state, which should tell us what we're currently up to for proper reactions to keyevent(s)
     function handleKeyDown(e) {
         // console.log(`Pressed ${e.key}`);
+        // NOTE: Currently NOT preventing default, but we may wish to in some cases.
         if (!keysDown.current[e.key]) {
             keysDown.current[e.key] = true;
         }
