@@ -1,12 +1,14 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { Context } from '../context/context';
 import { SkyBox } from './styled';
+import basicSky from '../assets/skyboxes/bluesky.jpg';
 
 const Sky = () => {
     const [state] = useContext(Context);
+    const [skyImageSrc, setSkyImageSrc] = useState(); // Alternatively, the CONTEXT page might be able to handle the 'basicSky' import above? Hm.
 
     return (
-        <SkyBox color={state.above.color}>
+        <SkyBox color={state.above.color} bg={basicSky}>
         </SkyBox>
     )
 }

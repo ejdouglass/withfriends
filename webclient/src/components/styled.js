@@ -20,6 +20,24 @@ const animateBackpackOpening = keyframes`
     }
 `;
 
+const floatingClouds = keyframes`
+    0% {
+        background-position: 50% 25%;
+    }
+    25% {
+        background-position: 75% 50%;
+    }
+    50% {
+        background-position: 50% 75%;
+    }
+    75% {
+        background-position: 25% 50%;
+    }
+    100% {
+        background-position: 50% 25%;
+    }
+`;
+
 export const Container = styled.div`
     display: flex;
     padding: 1rem;
@@ -94,6 +112,16 @@ export const SkyBox = styled.div`
     width: 100vw;
     height: 150px;
     background-color: ${props => props.color};
+    &:before {
+        content: "";
+        background-image: url(${props => props.bg});
+        background-size: contain no-repeat;
+        background-position: middle;
+        animation: ${floatingClouds} 40s linear 0s infinite;
+        width: 100%;
+        height: 100%;
+        opacity: 0.5;
+    }
 `;
 
 export const GroundBox = styled.div`
@@ -105,6 +133,15 @@ export const GroundBox = styled.div`
     width: 100vw;
     height: 150px;
     background-color: ${props => props.color};
+    &:before {
+        content: "";
+        background-image: url(${props => props.bg});
+        background-size: contain no-repeat;
+        background-position: bottom;
+        width: 100%;
+        height: 100%;
+        opacity: 0.5;
+    }
 `;
 
 export const BackpackContainer = styled.div`
@@ -112,10 +149,12 @@ export const BackpackContainer = styled.div`
     position: fixed;
     z-index: 20;
     top: 150px;
+    padding: 15px;
+    box-sizing: border-box;
     left: 10%;
     width: 80vw;
     height: calc(100vh - 300px);
-    background-color: brown;
-    border: 1px solid black;
+    background-color: tan;
+    border: 3px solid brown;
     animation: ${animateBackpackOpening} 0.1s linear;
 `;

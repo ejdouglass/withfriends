@@ -9,7 +9,7 @@ const Backpack = () => {
     <>
         {state.backpack.open ? (
             <BackpackContainer>
-                <Title>BACKPACK HERE!</Title>
+                <Title>Your backpack is, sadly, rather empty at the moment. Go get some STUFF!</Title>
             </BackpackContainer>
         ) : (
             <></>

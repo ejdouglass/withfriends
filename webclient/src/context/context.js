@@ -15,10 +15,12 @@ export const Reducer = (state, action) => {
     }
 }
 
+// Hm. Lots of ways to set up the copious data... state.user.stat.strength vs state.strength, for example. Let's figure out a good balance.
 const initialState = {
     above: {
         type: 'sky',
-        color: 'hsl(215, 90%, 75%)'
+        imgsrc: '../assets/skyboxes/bluesky.jpg',
+        color: 'hsla(215, 90%, 75%, 1)'
     },
     around: {
         type: 'field'
@@ -30,6 +32,13 @@ const initialState = {
     backpack: {
         open: false,
         contents: []
+    },
+    position: 'standing',
+    healthStatus: 'fine',
+    mindStatus: 'clear',
+    location: {
+        coords: [0, 0, 0],
+        room: {}
     }
 }
 
