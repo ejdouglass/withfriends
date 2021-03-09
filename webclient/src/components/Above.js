@@ -5,7 +5,10 @@ import basicSky from '../assets/skyboxes/bluesky.jpg';
 
 const Sky = () => {
     const [state] = useContext(Context);
-    const [skyImageSrc, setSkyImageSrc] = useState(); // Alternatively, the CONTEXT page might be able to handle the 'basicSky' import above? Hm.
+    const [skyImageSrc, setSkyImageSrc] = useState();
+    // Dunno if we actually need to havee the skyImageSrc state object? Having all the skies in this file makes sense,
+    //  but beyond that, just interpreting the global data to modify the color and bg when state changes seems most sound.
+
 
     return (
         <SkyBox color={state.above.color} bg={basicSky}>

@@ -20,7 +20,7 @@ const initialState = {
     above: {
         type: 'sky',
         imgsrc: '../assets/skyboxes/bluesky.jpg',
-        color: 'hsla(215, 90%, 75%, 1)'
+        color: 'hsla(215, 90%, 75%, 0.3)'
     },
     around: {
         type: 'field'
@@ -39,7 +39,8 @@ const initialState = {
     location: {
         coords: [0, 0, 0],
         room: {}
-    }
+    },
+    mode: 'travel'
 }
 
 export const Context = createContext(initialState);

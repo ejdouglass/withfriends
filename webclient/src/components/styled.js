@@ -109,18 +109,19 @@ export const SkyBox = styled.div`
     top: 0;
     left: 0;
     margin: 0;
+    z-index: 0;
     width: 100vw;
-    height: 150px;
+    height: 70vh;
     background-color: ${props => props.color};
     &:before {
         content: "";
         background-image: url(${props => props.bg});
         background-size: contain no-repeat;
         background-position: middle;
-        animation: ${floatingClouds} 40s linear 0s infinite;
+        animation: ${floatingClouds} 300s linear 0s infinite;
         width: 100%;
         height: 100%;
-        opacity: 0.5;
+        opacity: 0.4;
     }
 `;
 
@@ -130,8 +131,9 @@ export const GroundBox = styled.div`
     bottom: 0;
     left: 0;
     margin: 0;
+    z-index: 0;
     width: 100vw;
-    height: 150px;
+    height: 30vh;
     background-color: ${props => props.color};
     &:before {
         content: "";
@@ -140,7 +142,7 @@ export const GroundBox = styled.div`
         background-position: bottom;
         width: 100%;
         height: 100%;
-        opacity: 0.5;
+        opacity: 0.2;
     }
 `;
 
@@ -157,4 +159,18 @@ export const BackpackContainer = styled.div`
     background-color: tan;
     border: 3px solid brown;
     animation: ${animateBackpackOpening} 0.1s linear;
+`;
+
+export const NavBox = styled.div`
+    display: flex;
+    background-color: white;
+    opacity: 0.99;
+    z-index: 1;
+    position: fixed;
+    width: 70vw;
+    height: 85vh;
+    box-sizing: border-box;
+    border: 1px solid gray;
+    top: 10%;
+    left: 15%;
 `;
