@@ -38,6 +38,22 @@ const floatingClouds = keyframes`
     }
 `;
 
+const swayingGrass = keyframes`
+    0% {
+        transform: none;
+        background-position: 50% 99%;
+    }
+    50% {
+        transform: skew(10deg, 0deg);
+        background-position: 51% 99%;
+        
+    }
+    100 %{
+        transform: none;
+        background-position: 50% 99%;
+    }
+`;
+
 export const Container = styled.div`
     display: flex;
     padding: 1rem;
@@ -125,24 +141,30 @@ export const SkyBox = styled.div`
     }
 `;
 
+export const AroundBox = styled.div`
+    display: flex;
+`;
+
 export const GroundBox = styled.div`
     display: flex;
     position: fixed;
     bottom: 0;
-    left: 0;
+    left: -5%;
     margin: 0;
     z-index: 0;
-    width: 100vw;
+    width: 110vw;
     height: 30vh;
     background-color: ${props => props.color};
+    background-image: linear-gradient(hsla(130, 85%, 15%, 0.8), hsla(110, 45%, 65%, 0.5));
     &:before {
         content: "";
         background-image: url(${props => props.bg});
         background-size: contain no-repeat;
-        background-position: bottom;
+        background-position: 50% 99%;
+        animation: ${swayingGrass} 10s linear 0s infinite;
         width: 100%;
         height: 100%;
-        opacity: 0.2;
+        opacity: 0.5;
     }
 `;
 
@@ -161,16 +183,28 @@ export const BackpackContainer = styled.div`
     animation: ${animateBackpackOpening} 0.1s linear;
 `;
 
-export const NavBox = styled.div`
+export const MainScreen = styled.div`
     display: flex;
     background-color: white;
     opacity: 0.99;
     z-index: 1;
     position: fixed;
-    width: 70vw;
+    width: 80vw;
     height: 85vh;
     box-sizing: border-box;
     border: 1px solid gray;
     top: 10%;
-    left: 15%;
+    left: 10%;
+`;
+
+export const MyMapView = styled.div`
+    display: flex;
+    position: absolute;
+    background-color: hsl(40, 65%, 95%);
+    width: 40vmin;
+    height: 40vmin;
+    border: 1px solid hsl(30, 75%, 45%);
+    border-radius: 3px;
+    right: -5vmin;
+    bottom: -5vmin;
 `;

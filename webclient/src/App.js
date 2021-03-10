@@ -2,8 +2,9 @@ import React from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 import { Store } from './context/context';
 import Above from './components/Above';
+import Around from './components/Around';
 import Below from './components/Below';
-import NavView from './components/NavView';
+import MainView from './components/MainView';
 import CharSheet from './components/CharSheet';
 import Backpack from './components/Backpack';
 import Status from './components/Status';
@@ -19,7 +20,8 @@ const App = () => {
       <Router>
         <Keyboard />
         <Above />
-        <NavView />
+        <Around />
+        <MainView />
         <Below />
         <Cutscene />
         <CharSheet />
@@ -38,8 +40,7 @@ export default App;
   DRAFTUS
 
   RANDOM THOUGHTS:
-  -- I think the sky and ground boxes are a little thicc. I tend to make things too big... 
-   -> Since they're largely 'background elements,' they can be smaller, and they'll 'bleed' into the center behind the contextual environment display.
+  -- I'm a little off in the weeds right now. Get back to core functionality next.
 
 
   The main goal is to design the 'ideal' version from my current point of view, then scale back to first dev milestones ASAP.
@@ -48,6 +49,8 @@ export default App;
   
   STUFF TO DEV UP, IN ORDER:
   !! basic frontend stuff: a basic layout and interactivity (open and close backpack, 'look around,' etc.)
+    -> THIS STEP: add support for navigation, acting in current environment contextually, viewing basic elements of character, state (can be crude atm)
+
   -- character creation (basic) -- mostly so we can see how sockets work, below 
   -- basic backend stuff: mostly for account and character creation and loading, below
   -- login/auth implementation
@@ -88,12 +91,18 @@ export default App;
   -- Dunno how to handle 'overworld'/open-ended travel modes, if applicable.
   -- 'Areas' will be DR-like, with eight directions, up/down, out, etc.
   -- 'Forage' and 'context' menu on the bottom? Side? Side bottom? :P
+  -- COMMAND BAR: clickable/keyboardable buttons that let you know what you can do
   -- 'Status' and 'condition' and 'hands' on the top
   -- 'Chat' mode/interaction mode/'looking' mode? How to square with big ol' center NavView? HMMM.
   
-  -- Ok, I think it's important to shrink the top/bottom boxes. Show 'briefs' of backpack, charsheet, etc. on side/border menus with shortcuts and 
-    quick deets. :P
-  -- 
+  -- We have a big ol' CENTER BOX. What to do with you? 
+  : Character Box ('face', condition, state such as stealth) in upper-left feels like a good start
+  : Command Bar across top related to character - Stuff, Stats, etc.
+  : Surroundings-related (people, critters, mobs of various descriptions) - ???
+  : Picked-up rise on upper right, dropped fall on lower right
+
+  Oof. I'm 'stuck' on this part. Let's see. CENTER BOX. Let's get you going, my friend...
+  -- What's the essential problem? What to 'see' and 'how' to see it. 
 
 
 */

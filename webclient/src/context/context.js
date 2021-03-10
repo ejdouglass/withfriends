@@ -15,7 +15,10 @@ export const Reducer = (state, action) => {
     }
 }
 
-// Hm. Lots of ways to set up the copious data... state.user.stat.strength vs state.strength, for example. Let's figure out a good balance.
+const mode = {
+    TRAVEL: 'travel'
+}
+
 const initialState = {
     above: {
         type: 'sky',
@@ -31,16 +34,39 @@ const initialState = {
     },
     backpack: {
         open: false,
-        contents: []
+        contents: [],
+        size: 10,
+        stackModifiers: []
+    },
+    equipped: {
+        head: {},
+        neck: {},
+        shoulders: {},
+        torso: {},
+        arms: {},
+        hands: {},
+        rings: [{},{}],
+        legs: {},
+        feet: {},
+        accessories: [{},{}]
     },
     position: 'standing',
     healthStatus: 'fine',
     mindStatus: 'clear',
+    stat: {
+        strength: 20,
+        agility: 20,
+        constitution: 20,
+        willpower: 20,
+        intelligence: 20,
+        wisdom: 20,
+        charisma: 20
+    },
     location: {
         coords: [0, 0, 0],
         room: {}
     },
-    mode: 'travel'
+    whatDo: mode.TRAVEL
 }
 
 export const Context = createContext(initialState);
