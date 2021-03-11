@@ -41,6 +41,10 @@ export default App;
 
   RANDOM THOUGHTS:
   -- I'm a little off in the weeds right now. Get back to core functionality next.
+  WITH FRIENDS. First, make it possible to play with friends, real-time, chatting and gathering and building and accomplishing together!
+  -- Once that can be done, you can 'expand' whatever you like.
+  -- Make it REALLY easy to begin. Name, class (grab or customize), away we go! Should be able to fire it up in seconds, literally.
+    -> However, to ensure an enduring existence, add account creation, and make sure it's prominent.
 
 
   The main goal is to design the 'ideal' version from my current point of view, then scale back to first dev milestones ASAP.

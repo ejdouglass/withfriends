@@ -1,22 +1,33 @@
 import React, { useContext } from 'react';
 import { Context } from '../context/context';
-import { MainScreen, MyMapView } from './styled';
+import { MainScreen, CharCard, MyMapView, MyMapGuy } from './styled';
 
 const MainView = () => {
     const [state] = useContext(Context);
 
     return (
         <MainScreen>
-            <MyMap />
+            <MyChar state={state} />
+            <MyMap state={state} />
         </MainScreen>
     )
 }
 
 export default MainView;
 
-const MyMap = () => {
+const MyChar = ({ state }) => {
     return (
-        <MyMapView></MyMapView>
+        <CharCard>
+            {state.name}
+        </CharCard>
+    )
+}
+
+const MyMap = ({ state }) => {
+    return (
+        <MyMapView>
+            <MyMapGuy />
+        </MyMapView>
     )
 }
 
@@ -25,7 +36,7 @@ const MyMap = () => {
 Refactored! Whoa! This is now the big 'main box' and its assorted bits and bobs.
 
 Wed 3/10:
--- Thinking the 'DR nav directions' is primarily a secondary but prominent part in the corner?
+-- Doot da doo
 
 Copying notes in here from App:
 
@@ -42,7 +53,7 @@ When traveling, the main part of the screen should be a visual representation of
 : Command Bar across top related to character - Stuff, Stats, etc.
 : Contextual Command Bar (forage, fish, etc.) across bottom?
 : Surroundings-related (people, critters, mobs of various descriptions) - ???
-: Picked-up rise on upper right, dropped fall on lower right (possibly outside of box altogether)
+: Picked-up/dropped items scooted to upper left near charbox, mayhaps?
 
 Oof. I'm 'stuck' on this part. Let's see. CENTER BOX. Let's get you going, my friend...
 -- What's the essential problem? What to 'see' and 'how' to see it. 

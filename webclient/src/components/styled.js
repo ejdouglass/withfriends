@@ -54,6 +54,18 @@ const swayingGrass = keyframes`
     }
 `;
 
+const flicker = keyframes`
+    0% {
+        background-color: hsl(220, 85%, 50%);
+    }
+    50% {
+        background-color: hsl(200, 75%, 80%);
+    }
+    100% {
+        background-color: hsl(220, 85%, 50%);
+    }
+`;
+
 export const Container = styled.div`
     display: flex;
     padding: 1rem;
@@ -186,25 +198,48 @@ export const BackpackContainer = styled.div`
 export const MainScreen = styled.div`
     display: flex;
     background-color: white;
-    opacity: 0.99;
+    opacity: 1;
     z-index: 1;
     position: fixed;
-    width: 80vw;
-    height: 85vh;
+    width: 86vw;
+    height: 86vh;
     box-sizing: border-box;
     border: 1px solid gray;
-    top: 10%;
-    left: 10%;
+    top: 8%;
+    left: 7%;
+`;
+
+// Width needs a minimum value; since it needs a certain width to do its job well; see if we can find a good responsive way to get that rejiggered
+export const CharCard = styled.div`
+    display: flex;
+    position: absolute;
+    width: calc(200px + 30vw);
+    height: 20vmin;
+    top: -5vmin;
+    left: -5vmin;
+    background-color: hsl(180, 15%, 95%);
+    border-radius: 3px;
+    border: 1px solid black;
 `;
 
 export const MyMapView = styled.div`
     display: flex;
     position: absolute;
+    justify-content: center;
     background-color: hsl(40, 65%, 95%);
-    width: 40vmin;
-    height: 40vmin;
+    width: calc(100px + 20vmin);
+    height: calc(100px + 20vmin);
+    border-radius: 40vmin;
     border: 1px solid hsl(30, 75%, 45%);
-    border-radius: 3px;
-    right: -5vmin;
+    right: -7vmin;
     bottom: -5vmin;
+`;
+
+export const MyMapGuy = styled.div`
+    align-self: center;
+    width: 2vmin;
+    height: 2vmin;
+    border-radius: 100vmin;
+    background-color: hsl(220, 85%, 50%);
+    animation: ${flicker} 2s linear 0s infinite;
 `;

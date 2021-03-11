@@ -20,6 +20,7 @@ const mode = {
 }
 
 const initialState = {
+    name: 'Noname Smith',
     above: {
         type: 'sky',
         imgsrc: '../assets/skyboxes/bluesky.jpg',
