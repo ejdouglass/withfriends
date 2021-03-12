@@ -212,6 +212,7 @@ export const MainScreen = styled.div`
 // Width needs a minimum value; since it needs a certain width to do its job well; see if we can find a good responsive way to get that rejiggered
 export const CharCard = styled.div`
     display: flex;
+    flex-direction: row;
     position: absolute;
     width: calc(200px + 30vw);
     height: 20vmin;
@@ -220,6 +221,27 @@ export const CharCard = styled.div`
     background-color: hsl(180, 15%, 95%);
     border-radius: 3px;
     border: 1px solid black;
+`;
+
+export const CharProfileContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 15vw;
+    border-right: 1px solid red;
+`;
+
+export const CharProfileImg = styled.div`
+    display: flex;
+    width: 15vw;
+    height: 15vw;
+    background-color: blue;
+`;
+
+export const CharProfileName = styled.p`
+    font-size: 1.2rem;
+    text-align: center;
+    width: 100%;
+    font-weight: 700;
 `;
 
 export const MyMapView = styled.div`

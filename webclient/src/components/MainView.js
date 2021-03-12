@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Context } from '../context/context';
-import { MainScreen, CharCard, MyMapView, MyMapGuy } from './styled';
+import { MainScreen, CharCard, CharProfileContainer, CharProfileImg, CharProfileName, MyMapView, MyMapGuy } from './styled';
 
 const MainView = () => {
     const [state] = useContext(Context);
@@ -18,7 +18,10 @@ export default MainView;
 const MyChar = ({ state }) => {
     return (
         <CharCard>
-            {state.name}
+            <CharProfileContainer>
+                <CharProfileImg />
+                <CharProfileName>{state.name}</CharProfileName>
+            </CharProfileContainer>
         </CharCard>
     )
 }
