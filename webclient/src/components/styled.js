@@ -226,19 +226,19 @@ export const CharCard = styled.div`
 export const CharProfileContainer = styled.div`
     display: flex;
     flex-direction: column;
-    width: 15vw;
+    width: calc(100px + 15vw);
     border-right: 1px solid red;
 `;
 
 export const CharProfileImg = styled.div`
     display: flex;
-    width: 15vw;
-    height: 15vw;
+    width: calc(100px + 15vw);
+    height: calc(100px + 15vw);
     background-color: blue;
 `;
 
 export const CharProfileName = styled.p`
-    font-size: 1.2rem;
+    font-size: calc(6px + 0.5vw);
     text-align: center;
     width: 100%;
     font-weight: 700;
