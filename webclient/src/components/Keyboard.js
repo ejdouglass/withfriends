@@ -1,11 +1,20 @@
-import React, { useContext, useEffect, useRef, useCallback } from 'react';
+import React, { useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { Context, actions } from '../context/context';
 import { Container } from './styled';
 import axios from 'axios';
+import socketIOClient from 'socket.io-client';
+const ENDPOINT = 'http://localhost:5000';
+const socketToMe = socketIOClient(ENDPOINT);
+socketToMe.on('moved_dir', data => {
+    console.log(data);
+});
 
 const Keyboard = () => {
     const [state, dispatch] = useContext(Context);
+    const [response, setResponse] = useState('');
+    const [socketActive, setSocketActive] = useState(false);
     const keysDown = useRef({});
+    const keyState = useState({});
     const keyDownCB = useCallback(keyevent => handleKeyDown(keyevent), [handleKeyDown]);
     const keyUpCB = useCallback(keyevent => handleKeyUp(keyevent), [handleKeyUp]);
 
@@ -27,10 +36,13 @@ const Keyboard = () => {
             case 'x':
             case 'z':
             case 'a':
+            case 'q':                
                 {
-                    axios.post('/moveme', { moveDir: e.key })
-                        .then(res => console.log(res.data.message))
-                        .catch(e => console.log(e));
+                    socketToMe.emit('movedir', e.key);
+                    // Commenting the below out; let's see if we can do pure sockets for this one
+                    // axios.post('/moveme', { moveDir: e.key })
+                    //     .then(res => console.log(res.data.message))
+                    //     .catch(e => console.log(e));
                 }
         }
     }
@@ -52,6 +64,23 @@ const Keyboard = () => {
             window.removeEventListener('keyup', keyUpCB);
         }
     }, [keyDownCB, keyUpCB]);
+
+    // useEffect(() => {
+    //     const socket = socketIOClient(ENDPOINT);
+    //     setSocketActive(true);
+    //     socket.on('FromAPI', data => {
+    //         setResponse(data);
+    //     });
+
+    //     return () => {
+    //         socket.disconnect();
+    //         setSocketActive(false);
+    //     };
+    // }, []);
+
+    useEffect(() => {
+        console.log(`Keystate has changed!`);
+    }, [keyState]);
 
     return (
         <Container></Container>

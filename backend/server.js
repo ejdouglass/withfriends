@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
-const http = require('http').createServer(app);
+const server = require('http').createServer(app);
+const socketIo = require('socket.io');
 const mongoose = require('mongoose');
 // const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -14,6 +15,11 @@ const lilMap = [
 
 const dummyPlayer = {
     atX: 1,
+    atY: 1
+};
+
+const fieldGoblin = {
+    atX: 0,
     atY: 1
 };
 
@@ -32,23 +38,46 @@ app.use(express.urlencoded({extended: false}));
 const PORT = process.env.PORT || 5000;
 
 
-// Testing it the non-socket way:
-app.post('/moveme', (req, res, next) => {
-    let { moveDir } = req.body || 'through spacetime';
+// app.post('/moveme', (req, res, next) => {
+//     let { moveDir } = req.body || 'through spacetime';
 
-    // HERE: Change dummyPlayer data based on the string received as a movement direction
-    let directionMoved = '';
-    switch (moveDir) {
-        case 'd': {
-            directionMoved = 'east';
-        }
+//     // HERE: Change dummyPlayer data based on the string received as a movement direction
+//     let directionMoved = '';
+//     switch (moveDir) {
+//         case 'd': {
+//             directionMoved = 'east';
+//         }
+//     }
+
+//     let movementResult = `You just moved ${directionMoved} and arrived at ${lilMap[dummyPlayer.atY][dummyPlayer.atX]}. `;
+//     if (dummyPlayer.atX === fieldGoblin.atX && dummyPlayer.atY === fieldGoblin.atY) movementResult += `A field goblin is here!`;
+
+//     res.json({ok: true, message: movementResult});
+// });
+
+
+const io = socketIo(server, {
+    cors: {
+        origin: 'http://localhost:4001',
+        methods: ['GET', 'POST']
     }
+});
 
-    res.json({ok: true, message: `You just moved ${directionMoved} and arrived at ${lilMap[dummyPlayer.atY][dummyPlayer.atX]}.`});
-})
+io.on('connection', (socket) => {
+    console.log(`A client has connected to our IO shenanigans.`);
 
+    socket.on('movedir', dirMove => {
+        console.log(`Client wishes to move in a direction indicated by the ${dirMove} key.`);
+        // HERE: Send response back down to webclient?
+        socket.emit('moved_dir', `Woogly boogly`);
+    })
 
-http.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
+    socket.on('disconnect', () => {
+        console.log(`Client has disconnected from our IO shenanigans.`);
+    })
+});
+
+server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
 
 
 /*
