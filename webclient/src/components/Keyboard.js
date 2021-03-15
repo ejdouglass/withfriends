@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useRef, useCallback } from 'react';
 import { Context, actions } from '../context/context';
 import { Container } from './styled';
+import axios from 'axios';
 
 const Keyboard = () => {
     const [state, dispatch] = useContext(Context);
@@ -19,14 +20,29 @@ const Keyboard = () => {
             case 'b': {
                 if (keysDown.current['Meta']) dispatch({type: actions.TOGGLE_BACKPACK});
             }
+            case 'w':
+            case 'e':
+            case 'd':
+            case 'c':
+            case 'x':
+            case 'z':
+            case 'a':
+                {
+                    axios.post('/moveme', { moveDir: e.key })
+                        .then(res => console.log(res.data.message))
+                        .catch(e => console.log(e));
+                }
         }
     }
+
 
     function handleKeyUp(e) {
         // console.log(`Released ${e.key}`);
         keysDown.current[e.key] = false;
     }
 
+
+    
     useEffect(() => {
         window.addEventListener('keydown', keyDownCB);
         window.addEventListener('keyup', keyUpCB);
