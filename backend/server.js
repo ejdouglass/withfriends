@@ -7,15 +7,56 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
+function moveAnEntity(entity, direction) {
+    // For now very griddy; might have more omnidirectionality later
+    // Probably will need to reference entity's current map/location at some point, as well
+
+    // Received "DIRECTION" has X, Y, and compasssDirection to work with, neato
+    if (direction.X === 0 && direction.Y === 0) return `You remain where you are at`;
+
+    let moveAttemptFeedback = `You walk ${direction.compassDirection} `;
+
+    if (entity.atX + direction.X < 0 || entity.atX + direction.X >= lilMap[0].length || entity.atY + direction.Y < 0 || entity.atY + direction.Y >= lilMap[0].length) {
+        moveAttemptFeedback += `but can't seem to proceed further, so you're still at`;
+    }
+    else {
+        entity.atX += direction.X;
+        entity.atY += direction.Y;  
+        moveAttemptFeedback += `and arrive at`;
+    }
+    return moveAttemptFeedback;
+
+    // FIX: Don't return before checking Y, silly :P
+    // ADD: "Bonk!" You can't go there (handling).
+    // THEN: This will do the moving and return a string describing that movement.
+}
+
+function parseKeyInput(key) {
+    switch (key) {
+        case 'w': {
+            return {compassDirection: 'north', X: 0, Y: -1};
+        }
+        case 'd': {
+            return {compassDirection: 'east', X: 1, Y: 0};
+        }
+        case 'x': {
+            return {compassDirection: 'south', X: 0, Y: 1};
+        }
+        case 'a': {
+            return {compassDirection: 'west', X: -1, Y: 0};
+        }
+    }
+}
+
 const lilMap = [
-    ['nw field', 'n field', 'ne field'],
-    ['w field', 'middlefield', 'e field'],
-    ['sw field', 's field', 'se field']
+    ['the northwest fields', 'the fluffy north field', 'the frigid northeastern field'],
+    ['the rolling western field', 'the rather central middlefield', 'the dingy eastern field'],
+    ['the flooded southwestern field', 'the marginal southern field', 'the crimson southeastern field']
 ];
 
 const dummyPlayer = {
     atX: 1,
-    atY: 1
+    atY: 1,
 };
 
 const fieldGoblin = {
@@ -69,7 +110,11 @@ io.on('connection', (socket) => {
     socket.on('movedir', dirMove => {
         console.log(`Client wishes to move in a direction indicated by the ${dirMove} key.`);
         // HERE: Send response back down to webclient?
-        socket.emit('moved_dir', `Woogly boogly`);
+        const directionObj = parseKeyInput(dirMove) || {compassDirection: 'nowhere', X: 0, Y: 0};
+        let walkResult = `${moveAnEntity(dummyPlayer, directionObj)} ${lilMap[dummyPlayer.atY][dummyPlayer.atX]}.`;
+        if (dummyPlayer.atX === fieldGoblin.atX && dummyPlayer.atY === fieldGoblin.atY) walkResult += ` You see a field goblin here!`;
+
+        socket.emit('moved_dir', walkResult);
     })
 
     socket.on('disconnect', () => {
