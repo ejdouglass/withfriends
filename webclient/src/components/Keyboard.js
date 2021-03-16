@@ -38,6 +38,11 @@ const Keyboard = () => {
             case 'a':
             case 'q':                
                 {
+                    // Right now ANY connected entity is using this code to manipulate the single 'character' dummy in API...
+                    // I can think of a few ways to implement separate characters, but offhand:
+                    // Use normal axios/auth stuff to log in/select character, which can then prepare global variables to ship with these requests
+                    // Package in any crypto-signed goodies to measure validity of commands/origin of commands? 
+                    // Well, get a basic implementation down, then expand to minFR status
                     socketToMe.emit('movedir', e.key);
                     // Commenting the below out; let's see if we can do pure sockets for this one
                     // axios.post('/moveme', { moveDir: e.key })

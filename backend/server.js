@@ -129,5 +129,9 @@ server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT
 
 And a-here we go. Let's try out some SOCKET ROCKET POWER!
 
+Ok, neat. Well, currently there's only ONE back-end 'player,' but I'm starting to get to the point where I can see adding MOAR. MWAHA.
+
+And then after that, interacting with stuff back here! That'd be rad.
+
 
 */
