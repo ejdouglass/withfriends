@@ -38,7 +38,7 @@ function moveAnEntity(entity, direction) {
     else {
         entity.atX += direction.X;
         entity.atY += direction.Y;  
-        moveAttemptFeedback += `and arrive at`;
+        moveAttemptFeedback += `and arrive`;
     }
     return moveAttemptFeedback;
 }
@@ -61,20 +61,82 @@ function parseKeyInput(key) {
 }
 
 const lilMap = [
-    ['the northwest fields', 'the fluffy north field', 'the frigid northeastern field'],
-    ['the rolling western fields', 'the rather central middlefield', 'the dingy eastern field'],
-    ['the flooded southwestern field', 'the marginal southern field', 'the crimson southeastern field']
+    [
+        {
+            title: 'at the edge of a forest',
+            description: `A totally nondescript forest. There are quite a few trees and plants all around.`,
+            entities: [],
+            stuff: [],
+            exits: {}
+        }, 
+        {
+            title: 'within a fluffy northern wheatfield',
+            description: `It's fluffy and full of wheat! Rolling and idyllic.`,
+            entities: [],
+            stuff: [],
+            exits: {}
+        },
+        {
+            title: `amidst rocky rubble`,
+            description: `Lots of stone here, including several areas that may have once been buildings, walls, and towers.`,
+            entities: [],
+            stuff: [],
+            exits: {}
+        }
+    ],
+    [
+        {
+            title: 'some rolling grassy fields',
+            description: `A totally nondescript forest.`,
+            entities: [],
+            stuff: [],
+            exits: {}
+        }, 
+        {
+            title: 'within a sprawling central middlefield',
+            description: `A totally nondescript forest.`,
+            entities: [],
+            stuff: [],
+            exits: {}
+        }, 
+        {
+            title: 'outside the walls of an imposing town gate',
+            description: `A totally nondescript forest.`,
+            entities: [],
+            stuff: [],
+            exits: {}
+        }, 
+    ],
+    [
+        {
+            title: 'above a deep ravine',
+            description: `A totally nondescript forest.`,
+            entities: [],
+            stuff: [],
+            exits: {}
+        }, 
+        {
+            title: 'at the edge of a lake',
+            description: `A totally nondescript forest.`,
+            entities: [],
+            stuff: [],
+            exits: {}
+        }, 
+        {
+            title: 'where lakefront meets town wall',
+            description: `A totally nondescript forest.`,
+            entities: [],
+            stuff: [],
+            exits: {}
+        }, 
+    ]
 ];
-
-const dummyPlayer = {
-    atX: 1,
-    atY: 1,
-};
 
 // The PROTOTYPE MOB. Let's try out a bunch of actions, behaviors, stats, etc. here and see what makes sense to scale up!
 // Ok! Now there are a bunch of messages that can be 'displayed.' The question becomes... how to hook these into the 'room' so a user sees them?
 // Later on, can add 'message,' 'obscurity,' 'result,' 'skillcheck,' etc. to different idle and active actions
 const fieldGoblin = {
+    atMap: 'lilMap',
     atX: 0,
     atY: 1,
     idle: [
@@ -136,7 +198,7 @@ io.on('connection', (socket) => {
 
     socket.on('movedir', mover => {
         const directionObj = parseKeyInput(mover.where) || {compassDirection: 'nowhere', X: 0, Y: 0};
-        let walkResult = `${moveAnEntity(player[mover.who], directionObj)} ${lilMap[player[mover.who].atY][player[mover.who].atX]}.`;
+        let walkResult = `${moveAnEntity(player[mover.who], directionObj)} ${lilMap[player[mover.who].atY][player[mover.who].atX].title}.`;
         if (player[mover.who].atX === fieldGoblin.atX && player[mover.who].atY === fieldGoblin.atY) walkResult += ` You see a field goblin here!`;
 
         socket.emit('moved_dir', walkResult);

@@ -50,9 +50,22 @@ export default App;
     -> The 'server' is where the actual game lives by current reckoning, so that has to not go 'bloop' too often or else that'll be an issue :P
     -> That said, having the DB store a living snapshot of the ENTIRE GAME'S STATE periodically, and know when/if to load from that snapshot, would be great
     -> Somewhat unrelated, but having "internal AI" for entities and areas is a great goal to pursue ultimately
+  
+  -- Ok, so, here's our marching orders (in order!) right now:
+  1) Implement character creation
+  2) Create a DB (we'll stick with MONGO ATLAS for now)
+  3) Create a "User Account" process on frontend and backend, inclusive of creation, deletion, logging in, logging out, and character selection (all AUTH)
+  4) Use the ABSOLUTE TRUTH of the backend to create meaningful 'navigation' on frontend in our LilMap
+  5) Add meaningful interaction with the 'rooms'
+  6) Add meaningful interaction with the field goblin
 
 
   Can look into CLASSES for mob generation! Neato! ... new Goblin(), here we come :P
+
+  Pondering how to handle 'room actions'... it makes sense to 'put' a character in the room (while also having room reference attached to character).
+  -- That way, there's an array or collection of 'entities' within a room, and events can just be 'broadcast' to them.
+  -- This works both for basic messaging (ambient, mobs in room) as well as skill-based stuff, parsing mob actions, player actions, etc.
+
 
   The main goal is to design the 'ideal' version from my current point of view, then scale back to first dev milestones ASAP.
   -- Websocket play and demo
