@@ -39,13 +39,20 @@ export default App;
 
   DRAFTUS
 
-  RANDOM THOUGHTS:
-  -- I'm a little off in the weeds right now. Get back to core functionality next.
-  WITH FRIENDS. First, make it possible to play with friends, real-time, chatting and gathering and building and accomplishing together!
-  -- Once that can be done, you can 'expand' whatever you like.
-  -- Make it REALLY easy to begin. Name, class (grab or customize), away we go! Should be able to fire it up in seconds, literally.
-    -> However, to ensure an enduring existence, add account creation, and make sure it's prominent.
+  WEDS 3/17/21 APP THOUGHTS:
+  -- Still a little in the weeds, but hopefully centering in on a good and practical ("practical") core experience.
+  -- Next task is to create the login process. Crib off of folioprpl for the logistics on that, and copy into Notes.
+  -- The login process should also be tied to a 'character creation' process. Start silly-simple, and then add from there.
+    -> There's a lot of potential depth here, so feel free to begin brainstorming, and keep options open for how the creation/characters are handled.
+  -- Based on random thoughts below, it makes sense to STREAMLINE character creation/jumping in, with a BIG NOTE @ user to create an account to persist.
 
+  -- Gotta spin up an ATLAS for "With Friends," and mostly it'll be there to 'load' players into the game, I think?
+    -> The 'server' is where the actual game lives by current reckoning, so that has to not go 'bloop' too often or else that'll be an issue :P
+    -> That said, having the DB store a living snapshot of the ENTIRE GAME'S STATE periodically, and know when/if to load from that snapshot, would be great
+    -> Somewhat unrelated, but having "internal AI" for entities and areas is a great goal to pursue ultimately
+
+
+  Can look into CLASSES for mob generation! Neato! ... new Goblin(), here we come :P
 
   The main goal is to design the 'ideal' version from my current point of view, then scale back to first dev milestones ASAP.
   -- Websocket play and demo

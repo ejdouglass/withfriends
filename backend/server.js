@@ -4,12 +4,28 @@ const server = require('http').createServer(app);
 const socketIo = require('socket.io');
 const mongoose = require('mongoose');
 // const bodyParser = require('body-parser');
-const cors = require('cors');
+// const cors = require('cors');
 require('dotenv').config();
+
+
+// Hardcoded nonsense for now, pending an actual login process. :P
+let player = {
+    'Dekar': {
+        atX: 1,
+        atY: 1
+    }
+};
+
+// Probably refactor this later, but can slip 'maps' such as lilmap below into this object for the short-term until I figure out a good way to scale it
+let areas = {
+
+};
 
 function moveAnEntity(entity, direction) {
     // For now very griddy; might have more omnidirectionality later
-    // Probably will need to reference entity's current map/location at some point, as well
+    // Probably will need to reference entity's current map/location at some point, as well... attach to the entity in question?
+
+    console.log(`Attempting to move ${entity}, who is at (${entity.atX},${entity.atY}) by (${direction.X},${direction.Y})`)
 
     // Received "DIRECTION" has X, Y, and compasssDirection to work with, neato
     if (direction.X === 0 && direction.Y === 0) return `You remain where you are at`;
@@ -25,10 +41,6 @@ function moveAnEntity(entity, direction) {
         moveAttemptFeedback += `and arrive at`;
     }
     return moveAttemptFeedback;
-
-    // FIX: Don't return before checking Y, silly :P
-    // ADD: "Bonk!" You can't go there (handling).
-    // THEN: This will do the moving and return a string describing that movement.
 }
 
 function parseKeyInput(key) {
@@ -50,7 +62,7 @@ function parseKeyInput(key) {
 
 const lilMap = [
     ['the northwest fields', 'the fluffy north field', 'the frigid northeastern field'],
-    ['the rolling western field', 'the rather central middlefield', 'the dingy eastern field'],
+    ['the rolling western fields', 'the rather central middlefield', 'the dingy eastern field'],
     ['the flooded southwestern field', 'the marginal southern field', 'the crimson southeastern field']
 ];
 
@@ -59,9 +71,20 @@ const dummyPlayer = {
     atY: 1,
 };
 
+// The PROTOTYPE MOB. Let's try out a bunch of actions, behaviors, stats, etc. here and see what makes sense to scale up!
+// Ok! Now there are a bunch of messages that can be 'displayed.' The question becomes... how to hook these into the 'room' so a user sees them?
+// Later on, can add 'message,' 'obscurity,' 'result,' 'skillcheck,' etc. to different idle and active actions
 const fieldGoblin = {
     atX: 0,
-    atY: 1
+    atY: 1,
+    idle: [
+        `A field goblin wanders around, mumbling and snickering to itself.`, 
+        `A field goblin shudders and moans slightly.`, 
+        `A field goblin searches the area, seemingly looking for nothing in particular.`,
+        `A field goblin contemplates its existence.`,
+        `A field goblin begins to advance towards you menacingly! ... just kidding, it can't do that yet. It snickers to itself instead.`
+    ],
+    state: 'idle'
 };
 
 
@@ -107,19 +130,21 @@ const io = socketIo(server, {
 io.on('connection', (socket) => {
     console.log(`A client has connected to our IO shenanigans.`);
 
-    socket.on('movedir', dirMove => {
-        console.log(`Client wishes to move in a direction indicated by the ${dirMove} key.`);
-        // HERE: Send response back down to webclient?
-        const directionObj = parseKeyInput(dirMove) || {compassDirection: 'nowhere', X: 0, Y: 0};
-        let walkResult = `${moveAnEntity(dummyPlayer, directionObj)} ${lilMap[dummyPlayer.atY][dummyPlayer.atX]}.`;
-        if (dummyPlayer.atX === fieldGoblin.atX && dummyPlayer.atY === fieldGoblin.atY) walkResult += ` You see a field goblin here!`;
+    socket.on('login', character => {
+        console.log(`Welcome, ${character}!`);
+    });
+
+    socket.on('movedir', mover => {
+        const directionObj = parseKeyInput(mover.where) || {compassDirection: 'nowhere', X: 0, Y: 0};
+        let walkResult = `${moveAnEntity(player[mover.who], directionObj)} ${lilMap[player[mover.who].atY][player[mover.who].atX]}.`;
+        if (player[mover.who].atX === fieldGoblin.atX && player[mover.who].atY === fieldGoblin.atY) walkResult += ` You see a field goblin here!`;
 
         socket.emit('moved_dir', walkResult);
-    })
+    });
 
     socket.on('disconnect', () => {
         console.log(`Client has disconnected from our IO shenanigans.`);
-    })
+    });
 });
 
 server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));

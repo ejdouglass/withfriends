@@ -5,6 +5,7 @@ import axios from 'axios';
 import socketIOClient from 'socket.io-client';
 const ENDPOINT = 'http://localhost:5000';
 const socketToMe = socketIOClient(ENDPOINT);
+socketToMe.emit('login', 'Dekar');
 socketToMe.on('moved_dir', data => {
     console.log(data);
 });
@@ -43,7 +44,8 @@ const Keyboard = () => {
                     // Use normal axios/auth stuff to log in/select character, which can then prepare global variables to ship with these requests
                     // Package in any crypto-signed goodies to measure validity of commands/origin of commands? 
                     // Well, get a basic implementation down, then expand to minFR status
-                    socketToMe.emit('movedir', e.key);
+                    const mover = {who: state.name, where: e.key};
+                    socketToMe.emit('movedir', mover);
                     // Commenting the below out; let's see if we can do pure sockets for this one
                     // axios.post('/moveme', { moveDir: e.key })
                     //     .then(res => console.log(res.data.message))
