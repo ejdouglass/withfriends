@@ -5,12 +5,28 @@ const socketIo = require('socket.io');
 const mongoose = require('mongoose');
 // const bodyParser = require('body-parser');
 // const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 require('dotenv').config();
 
 
+const connectionParams = {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useUnifiedTopology: true
+};
+
+mongoose.connect(process.env.DB_HOST, connectionParams)
+    .then(() => console.log(`Successfully connected to With Friends database. That'll come in handy!`))
+    .catch(err => console.log(`Error connecting to With Friends database: ${err}`));
+
 // Hardcoded nonsense for now, pending an actual login process. :P
+// This will eventually hold ALL the stuff associated with the character.
+// The player.'Dekar' will be player[username], so won't automatically be the same as player[username].charName. 
 let player = {
     'Dekar': {
+        charName: 'Dekar',
+        atMap: 'lilMap',
         atX: 1,
         atY: 1
     }
@@ -18,22 +34,93 @@ let player = {
 
 // Probably refactor this later, but can slip 'maps' such as lilmap below into this object for the short-term until I figure out a good way to scale it
 let areas = {
-
+    'lilMap': [
+        [
+            {
+                title: 'at the edge of a forest',
+                description: `A totally nondescript forest. There are quite a few trees and plants all around.`,
+                entities: [],
+                stuff: [],
+                exits: {}
+            }, 
+            {
+                title: 'within a fluffy northern wheatfield',
+                description: `It's fluffy and full of wheat! Rolling and idyllic.`,
+                entities: [],
+                stuff: [],
+                exits: {}
+            },
+            {
+                title: `amidst rocky rubble`,
+                description: `Lots of stone here, including several areas that may have once been buildings, walls, and towers.`,
+                entities: [],
+                stuff: [],
+                exits: {}
+            }
+        ],
+        [
+            {
+                title: 'some rolling grassy fields',
+                description: `A totally nondescript forest.`,
+                entities: [],
+                stuff: [],
+                exits: {}
+            }, 
+            {
+                title: 'within a sprawling central middlefield',
+                description: `A totally nondescript forest.`,
+                entities: [],
+                stuff: [],
+                exits: {}
+            }, 
+            {
+                title: 'outside the walls of an imposing town gate',
+                description: `A totally nondescript forest.`,
+                entities: [],
+                stuff: [],
+                exits: {}
+            }, 
+        ],
+        [
+            {
+                title: 'above a deep ravine',
+                description: `A totally nondescript forest.`,
+                entities: [],
+                stuff: [],
+                exits: {}
+            }, 
+            {
+                title: 'at the edge of a lake',
+                description: `A totally nondescript forest.`,
+                entities: [],
+                stuff: [],
+                exits: {}
+            }, 
+            {
+                title: 'where lakefront meets town wall',
+                description: `A totally nondescript forest.`,
+                entities: [],
+                stuff: [],
+                exits: {}
+            }, 
+        ]
+    ]
 };
 
 function moveAnEntity(entity, direction) {
     // For now very griddy; might have more omnidirectionality later
     // Probably will need to reference entity's current map/location at some point, as well... attach to the entity in question?
 
-    console.log(`Attempting to move ${entity}, who is at (${entity.atX},${entity.atY}) by (${direction.X},${direction.Y})`)
+    // Watch the movement happen in the console. Works fine for player. Will test later for mobs.
+    // console.log(`Attempting to move ${entity}, who is at (${entity.atX},${entity.atY}) by (${direction.X},${direction.Y})`);
 
     // Received "DIRECTION" has X, Y, and compasssDirection to work with, neato
-    if (direction.X === 0 && direction.Y === 0) return `You remain where you are at`;
+    if (direction.X === 0 && direction.Y === 0) return `You remain where you are`;
 
     let moveAttemptFeedback = `You walk ${direction.compassDirection} `;
 
     if (entity.atX + direction.X < 0 || entity.atX + direction.X >= lilMap[0].length || entity.atY + direction.Y < 0 || entity.atY + direction.Y >= lilMap[0].length) {
-        moveAttemptFeedback += `but can't seem to proceed further, so you're still at`;
+        moveAttemptFeedback += `but can't seem to proceed further, so you're still`;
     }
     else {
         entity.atX += direction.X;
@@ -60,6 +147,15 @@ function parseKeyInput(key) {
     }
 }
 
+// One of the next steps is to slip this bad boy into the 'areas' object, somewhere above.
+// Adding an 'absolute' and/or 'relative' coords to each 'room' makes sense.
+// Also, attributes such as those the front-end needs to display proper images would be fantastic. Lake, forest, plains, etc.
+// ... can even have multiple 'layers' or fewer. We have some support for sky and ground, at minimum, right now.
+// How to handle 'exits'? Hmmmm...
+// Right now we're leaning into the 'multidimensional grid' of the nested arrays, which is 'easy' in a way.
+// The 'harder' way long-term is to just have an array of objects with internally defined relationships with surrounding areas.
+// Either way, exits need to know what is connected in each 'direction' that you can go, and possibly extra stuff:
+//      skill(s) required to traverse, 'room' size, exit size/type, any considerations such as being blocked by mob(s), etc.
 const lilMap = [
     [
         {
@@ -148,6 +244,9 @@ const fieldGoblin = {
     ],
     state: 'idle'
 };
+// ... can also add stuff like 'exitMap: t/f,' 'flying: t/f,' 'activityLevel,' (which can be per state), 'statsPerActivityLevel' (or mods)
+// So, they can be sleeping, hanging out, hunting, playing, foraging, vibing, seeking, what have you
+// This more 'sophisticated' behavior could carry over well to more fleshed-out OOC NPC's! :P Always scripting!
 
 
 app.use((req, res, next) => {
@@ -180,6 +279,10 @@ const PORT = process.env.PORT || 5000;
 
 //     res.json({ok: true, message: movementResult});
 // });
+
+app.post('/player/login', (req, res, next) => {
+    // !    
+});
 
 
 const io = socketIo(server, {

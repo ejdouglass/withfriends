@@ -38,6 +38,18 @@ export default App;
 /*
 
   DRAFTUS
+  -- Ok, so, here's our marching orders (in order!) right now:
+  x) Create a Cluster/DB (we'll stick with MONGO ATLAS for now)
+
+  2) Implement character creation  
+  3) Create a "User Account" process on frontend and backend, inclusive of creation, deletion, logging in, logging out, and character selection (all AUTH)
+  4) Use the ABSOLUTE TRUTH of the backend to create meaningful 'navigation' on frontend in our LilMap
+  5) Add meaningful interaction with the 'rooms'
+  6) Add meaningful interaction with the field goblin
+
+  REFACTOR) Don't need the separate root-level Above/Below/etc. Move into components within a single main entity.
+
+
 
   WEDS 3/17/21 APP THOUGHTS:
   -- Still a little in the weeds, but hopefully centering in on a good and practical ("practical") core experience.
@@ -51,13 +63,10 @@ export default App;
     -> That said, having the DB store a living snapshot of the ENTIRE GAME'S STATE periodically, and know when/if to load from that snapshot, would be great
     -> Somewhat unrelated, but having "internal AI" for entities and areas is a great goal to pursue ultimately
   
-  -- Ok, so, here's our marching orders (in order!) right now:
-  1) Implement character creation
-  2) Create a DB (we'll stick with MONGO ATLAS for now)
-  3) Create a "User Account" process on frontend and backend, inclusive of creation, deletion, logging in, logging out, and character selection (all AUTH)
-  4) Use the ABSOLUTE TRUTH of the backend to create meaningful 'navigation' on frontend in our LilMap
-  5) Add meaningful interaction with the 'rooms'
-  6) Add meaningful interaction with the field goblin
+
+  Hm. "Socket reset?" Right now the downside to the single-declaration socket is, if something goes wrong, we just sit there with a broken socket...
+  -- Where can we put the 'socket connection' that makes the socket component-accessible but refreshable?
+  ... huh, maybe inside the component itself? With a 'socketStatusOK' useEffect-based useState to 'fix' it if it's broken? 
 
 
   Can look into CLASSES for mob generation! Neato! ... new Goblin(), here we come :P

@@ -31,5 +31,7 @@ export default GameScreen;
 
     ... and for basic front-end testing purposes for now, I can probably also tuck the 'truth' in here -- the 'world.' 
 
+    ... actually, now that we've got a SOCKET online, the game loop will live on the backend. Soooooo. Back to the drawing board...
+
 
 */

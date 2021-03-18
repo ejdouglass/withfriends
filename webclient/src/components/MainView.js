@@ -15,7 +15,10 @@ const MainView = () => {
 
 export default MainView;
 
+
+
 const MyChar = ({ state }) => {
+    // Let's go into STYLED and refactor the char portrat to be a reliable square, and put the name/stats/etc. in the rest of the 'banner.'
     return (
         <CharCard>
             <CharProfileContainer>
@@ -25,6 +28,8 @@ const MyChar = ({ state }) => {
         </CharCard>
     )
 }
+
+
 
 const MyMap = ({ state }) => {
     return (
