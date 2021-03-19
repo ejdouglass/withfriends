@@ -1,22 +1,56 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 import { Context } from '../context/context';
-
-// This is also a pretty good chance to set up how the 'world' will live on the backend, as well.
-// This will obviously be almost painfully basic for now, but will help guide future building endeavors
-let world = {
-
-};
+import { CreateCharacterScreen, CreateCharacterForm, CreateCharacterButton, CharacterNameInput } from '../components/styled';
 
 const GameScreen = () => {
-    // 'an eye on things' -- eureka! 
     const [state, dispatch] = useContext(Context);
+    const [newChar, setNewChar] = useState({
+        name: '',
+        class: '',
+        feature: {eyes: '', hair: '', height: ''},
+        stat: {strength: 20, agility: 20, constitution: 20, willpower: 20, intelligence: 20, wisdom: 20, charisma: 20, available: 0}
+    })
+
+    function loadCharFromToken(charToken) {
+        // THIS: axios passes the charToken to the API in an attempt to load up the character in question
+        axios.post('/character/login', { charToken: charToken })
+            .then(res => console.log(res.data))
+            .catch(err => console.log(err));
+    }
+
+    function saveNewCharacter(e) {
+        e.preventDefault();
+        console.log(`Attempting to save new character!`);
+        // THIS: Passes to API via axios to create a new character.
+
+        // HERE: Validation checks (also perform on backend)
+
+        // HERE: Send newChar to axios; if successful, will receive newChar full data (with location and all!), as well as charToken to localStore.
+        // CONSIDER: Hm, instead of localStorage, should I do an HTTP version JS isn't allowed to touch? Maybe.
+    }
 
     useEffect(() => {
-        // game loop TURN ON ... uh, let's look up how to do that properly :P
+        // Ok, anyway. Here we can attempt to load up the character from localStorage, and if no such character loads up, fire up CREATION MODE
+        // Which will entail using DISPATCH to change the mode so our keypresses don't, say, open the backpack :P
+        const charToken = localStorage.getItem('charToken');
+        if (charToken) {
+            loadCharFromToken(charToken);
+        }
     }, []);
+
+    // Can add another useEffect down below to monitor changes to state.characterName and adjust accordingly
 
     return (
         <>
+        {state.characterName ? (<></>) : (
+            <CreateCharacterScreen>
+                <CreateCharacterForm onSubmit={e => saveNewCharacter(e)}>
+                    <h1>Welcome to With Friends! New here? Make a new character! Or log in, I guess.</h1>
+                    <CharacterNameInput type='text' value={newChar.name} onChange={e => {setNewChar({...newChar, name: e.target.value})}}></CharacterNameInput>
+                </CreateCharacterForm>
+            </CreateCharacterScreen>
+        )}
         </>
     )
 }
@@ -25,13 +59,10 @@ export default GameScreen;
 
 /*
 
-    OK! I have conjectured a purpose for this screen. It can hold the GAME LOOP. Ta-da!
-    -- The 'game loop' such as it is now is mostly just a world-ping to see if anything has changed, quick compare 'n contrast if state needs updating
-    -- It can also do basic AI-y things, such as spawn, despawn, world self-checking protocols, etc.
+    Did some testing and this ONLY appears when you're in the "/" path. Interesting!
+    ... all the other compnents just mount on up regardless of whatever nonsense path I put. Whoops? Maybe not whoops? We'll see.. :P
+    ... that DOES open up the interesting option to have the characterName be present in the URL, though obviously we can't require that config.
 
-    ... and for basic front-end testing purposes for now, I can probably also tuck the 'truth' in here -- the 'world.' 
-
-    ... actually, now that we've got a SOCKET online, the game loop will live on the backend. Soooooo. Back to the drawing board...
-
+    We can have some other app-wide component check to see if we're in the proper URL and push us around if not?
 
 */

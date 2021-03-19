@@ -1,13 +1,22 @@
 import React, { createContext, useReducer } from 'react';
 
 export const actions = {
-    TOGGLE_BACKPACK: 'toggle_backpack'
+    TOGGLE_BACKPACK: 'toggle_backpack',
+    LOAD_CHAR: 'load_from_localstorage_char',
+    SET_GAME_STATE: 'set_game_state'
 }
 
 export const Reducer = (state, action) => {
     switch (action.type) {
         case actions.TOGGLE_BACKPACK: {
             return {...state, backpack: {...state.backpack, open: !state.backpack.open}};
+        }
+        case actions.LOAD_CHAR: {
+            // Receive a valid GUY or GUYETTE from the backend and set up global state accordingly
+            return state;
+        }
+        case actions.SET_GAME_STATE: {
+            return {...state, whatDo: action.payload}
         }
         default: {
             return state;
@@ -16,11 +25,12 @@ export const Reducer = (state, action) => {
 }
 
 const mode = {
-    TRAVEL: 'travel'
+    TRAVEL: 'travel',
+    CHARACTER_CREATION: 'character_creation'
 }
 
 const initialState = {
-    name: 'Dekar',
+    characterName: undefined,
     above: {
         type: 'sky',
         imgsrc: '../assets/skyboxes/bluesky.jpg',
@@ -67,7 +77,7 @@ const initialState = {
         coords: [0, 0, 0],
         room: {}
     },
-    whatDo: mode.TRAVEL
+    whatDo: mode.CHARACTER_CREATION
 }
 
 export const Context = createContext(initialState);

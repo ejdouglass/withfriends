@@ -14,6 +14,7 @@ import GameScreen from './pages/GameScreen';
 
 
 // Might end up plopping a lot of the "screens" down here at the keyboard level... like inventory, charsheet, etc.
+// It could be possible to combine and conditionally render some of these that can't co-exist? Hm.
 const App = () => {
   return (
     <Store>
@@ -41,11 +42,31 @@ export default App;
   -- Ok, so, here's our marching orders (in order!) right now:
   x) Create a Cluster/DB (we'll stick with MONGO ATLAS for now)
 
-  2) Implement character creation  
+  2) Implement character creation
+  -- App needs to know user is not 'logged in' or, more specifically, does not have a valid character
+  -- Allow user to quickly or in-depth-ly create a valid character (backend will validate its existence, even without a Player account)
+  -- The 'token' for this character, and character itself, can persist even on backend *for a time,* but requires Player acct for true persistence
+  -- So, for now, big milestones:
+    I. App goes "valid character able to be loaded?" -> YES: load, play ... NO: fire up chara creation
+    -- So, uh, check localStorage for (current chara token), if one found, attempt to load in backend; if none found, scoot-addle to CREATION
+
+    II. Chara Creation!
+    -- Name (must be unique, check backend for that)
+    -- Stats
+    -- Background/'Class' (informs skills, knowledge, other stuff eventually perhaps) (can evolve this later into more nuanced backstories)
+    -- Features (basic)
+    -> Consideration: 'character' database? ... separate player database, too. Well, collection.
+
+
   3) Create a "User Account" process on frontend and backend, inclusive of creation, deletion, logging in, logging out, and character selection (all AUTH)
   4) Use the ABSOLUTE TRUTH of the backend to create meaningful 'navigation' on frontend in our LilMap
   5) Add meaningful interaction with the 'rooms'
   6) Add meaningful interaction with the field goblin
+
+  ?) Add skills
+  ?) Add perks/talents/abilities unlocked through skills
+  ?) Add minigames (fighting, fishing, foraging, etc.)
+  !) Add 'chat' and better-fleshed-out room interactivity (including other entities in it)
 
   REFACTOR) Don't need the separate root-level Above/Below/etc. Move into components within a single main entity.
 

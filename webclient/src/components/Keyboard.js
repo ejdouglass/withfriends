@@ -3,12 +3,12 @@ import { Context, actions } from '../context/context';
 import { Container } from './styled';
 import axios from 'axios';
 import socketIOClient from 'socket.io-client';
-const ENDPOINT = 'http://localhost:5000';
-const socketToMe = socketIOClient(ENDPOINT);
-socketToMe.emit('login', 'Dekar');
-socketToMe.on('moved_dir', data => {
-    console.log(data);
-});
+// const ENDPOINT = 'http://localhost:5000';
+// const socketToMe = socketIOClient(ENDPOINT);
+// socketToMe.emit('login', 'Dekar');
+// socketToMe.on('moved_dir', data => {
+//     console.log(data);
+// });
 
 const Keyboard = () => {
     const [state, dispatch] = useContext(Context);
@@ -27,8 +27,9 @@ const Keyboard = () => {
             keysDown.current[e.key] = true;
         }
         switch (e.key) {
+            // Did a HAX below for now, but going forward, let's sort out ways to parse state.whatDo/game mode/gamestate
             case 'b': {
-                if (keysDown.current['Meta']) dispatch({type: actions.TOGGLE_BACKPACK});
+                if (keysDown.current['Meta'] && state.whatDo !== 'character_creation') dispatch({type: actions.TOGGLE_BACKPACK});
             }
             case 'w':
             case 'e':
@@ -45,7 +46,7 @@ const Keyboard = () => {
                     // Package in any crypto-signed goodies to measure validity of commands/origin of commands? 
                     // Well, get a basic implementation down, then expand to minFR status
                     const mover = {who: state.name, where: e.key};
-                    socketToMe.emit('movedir', mover);
+                    // socketToMe.emit('movedir', mover);
                     // Commenting the below out; let's see if we can do pure sockets for this one
                     // axios.post('/moveme', { moveDir: e.key })
                     //     .then(res => console.log(res.data.message))

@@ -265,3 +265,29 @@ export const MyMapGuy = styled.div`
     background-color: hsl(220, 85%, 50%);
     animation: ${flicker} 2s linear 0s infinite;
 `;
+
+export const CreateCharacterScreen = styled.div`
+    z-index: 9999;
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    background-color: white;
+    opacity: 0.9;
+`;
+
+export const CharacterNameInput = styled.input`
+    height: 2rem;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    font-weight: 600;
+`;
+
+export const CreateCharacterForm = styled.form``;
+
+export const CreateCharacterButton = styled.button``;

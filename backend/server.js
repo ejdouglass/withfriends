@@ -284,6 +284,14 @@ app.post('/player/login', (req, res, next) => {
     // !    
 });
 
+app.post('/character/login', (req, res, next) => {
+    // Receive a CHARTOKEN, check it, and if VALID, do two important things:
+    // 1) 'Load' the character live into this server space
+    // 2) Pass back that character to the client, which must use this package to open a socket with the server
+
+    res.status(200).json({message: `API endpoint is here. Hi!`});
+});
+
 
 const io = socketIo(server, {
     cors: {
