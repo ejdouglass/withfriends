@@ -15,6 +15,8 @@ import GameScreen from './pages/GameScreen';
 
 // Might end up plopping a lot of the "screens" down here at the keyboard level... like inventory, charsheet, etc.
 // It could be possible to combine and conditionally render some of these that can't co-exist? Hm.
+
+// ADD: UserPrompt - for character creation, network errors, etc.
 const App = () => {
   return (
     <Store>

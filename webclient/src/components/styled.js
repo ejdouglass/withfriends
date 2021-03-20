@@ -284,10 +284,25 @@ export const CreateCharacterScreen = styled.div`
 export const CharacterNameInput = styled.input`
     height: 2rem;
     font-size: 1.2rem;
+    width: calc(200px + 5vw);
     padding: 0.5rem;
     font-weight: 600;
+    margin: 0.5rem;
 `;
 
-export const CreateCharacterForm = styled.form``;
+export const CreateCharacterForm = styled.form`
+    display: flex;
+    flex-direction: column;
+`;
 
-export const CreateCharacterButton = styled.button``;
+export const CreateCharacterButton = styled.button`
+    width: calc(200px + 5vw);
+    padding: 0.5rem;
+    font-size: 1.1rem;
+    margin: 0.5rem;
+    font-weight: 600;
+    border-radius: 6px;
+    &:hover {
+        transform: translateY(-1px);
+    }
+`;

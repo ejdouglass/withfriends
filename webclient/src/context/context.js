@@ -31,6 +31,7 @@ const mode = {
 
 const initialState = {
     characterName: undefined,
+    // Gonna reconfig ABOVE and AROUND and BELOW to be information contained in LOCATION data
     above: {
         type: 'sky',
         imgsrc: '../assets/skyboxes/bluesky.jpg',
@@ -47,7 +48,7 @@ const initialState = {
         open: false,
         contents: [],
         size: 10,
-        stackModifiers: []
+        stackModifiers: {}
     },
     equipped: {
         head: {},
@@ -65,16 +66,18 @@ const initialState = {
     healthStatus: 'fine',
     mindStatus: 'clear',
     stat: {
-        strength: 20,
-        agility: 20,
-        constitution: 20,
-        willpower: 20,
-        intelligence: 20,
-        wisdom: 20,
-        charisma: 20
+        strength: 0,
+        agility: 0,
+        constitution: 0,
+        willpower: 0,
+        intelligence: 0,
+        wisdom: 0,
+        charisma: 0
     },
     location: {
-        coords: [0, 0, 0],
+        atMap: undefined, //Hm, this will probably become an object rather than a string at some point
+        atX: -1,
+        atY: -1,
         room: {}
     },
     whatDo: mode.CHARACTER_CREATION

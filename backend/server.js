@@ -3,6 +3,7 @@ const app = express();
 const server = require('http').createServer(app);
 const socketIo = require('socket.io');
 const mongoose = require('mongoose');
+const Character = require('./models/Character');
 // const bodyParser = require('body-parser');
 // const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -31,6 +32,9 @@ let player = {
         atY: 1
     }
 };
+
+let characters = {};
+let mobs = {};
 
 // Probably refactor this later, but can slip 'maps' such as lilmap below into this object for the short-term until I figure out a good way to scale it
 let areas = {
@@ -292,7 +296,33 @@ app.post('/character/login', (req, res, next) => {
     res.status(200).json({message: `API endpoint is here. Hi!`});
 });
 
+app.post('/character/create', (req, res, next) => {
+    const { newChar } = req.body;
 
+    // THIS: Take the request from the user to create a new character, validate it (inputs okay, character name not yet taken), create, and pass back
+    // Don't forget to create a charToken to pass back as well! This will be saved with the character on the client to allow further logging in.
+
+    // Like LOGIN for character above, we have to 'load' the character live into the server space, and make sure what we pass back can open a socket here
+
+    // HERE: Validate inputs for character are okay (name okay, etc.)
+
+    // HERE: Make sure newChar.name isn't yet taken (scan DB in characters collection)
+
+    // HERE: Create a fully-operational new character object that both backend and frontend can make sense of mutually
+    //  This includes: A) creating the object, B) saving it to DB, and C) assuming success move along below
+
+    // HERE: Call a function to 'load' character into server space
+
+    // HERE: Call a function to create an object for frontend to load character from, plus charToken, probably {char: {charObj}, charToken: '...'}
+
+    // HERE: res.json 
+
+    res.status(200).json({message: `So you want to create a new character named ${newChar.name}? Interesting.`});
+
+});
+
+
+// Idle question for later -- can I specify multiple origins, possibly in an array?
 const io = socketIo(server, {
     cors: {
         origin: 'http://localhost:4001',
@@ -304,7 +334,7 @@ io.on('connection', (socket) => {
     console.log(`A client has connected to our IO shenanigans.`);
 
     socket.on('login', character => {
-        console.log(`Welcome, ${character}!`);
+        console.log(`${character.name} has joined the game!`);
     });
 
     socket.on('movedir', mover => {

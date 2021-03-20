@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { Context } from '../context/context';
-import { CreateCharacterScreen, CreateCharacterForm, CreateCharacterButton, CharacterNameInput } from '../components/styled';
+import { CreateCharacterScreen, CreateCharacterForm, CreateCharacterButton, Title, CharacterNameInput } from '../components/styled';
 
 const GameScreen = () => {
     const [state, dispatch] = useContext(Context);
@@ -19,6 +19,13 @@ const GameScreen = () => {
             .catch(err => console.log(err));
     }
 
+    function parseCharNameInput(nameString) {
+        // Capitalizes the character name and prevents spaces as user types
+        if (nameString.length > 0) nameString = nameString[0].toUpperCase() + nameString.slice(1);
+        nameString = nameString.split(' ').join('');
+        setNewChar({...newChar, name: nameString});
+    }
+
     function saveNewCharacter(e) {
         e.preventDefault();
         console.log(`Attempting to save new character!`);
@@ -28,6 +35,9 @@ const GameScreen = () => {
 
         // HERE: Send newChar to axios; if successful, will receive newChar full data (with location and all!), as well as charToken to localStore.
         // CONSIDER: Hm, instead of localStorage, should I do an HTTP version JS isn't allowed to touch? Maybe.
+        axios.post('/character/create', { newChar: newChar })
+            .then(res => console.log(res.data))
+            .catch(err => console.log(err));
     }
 
     useEffect(() => {
@@ -46,8 +56,9 @@ const GameScreen = () => {
         {state.characterName ? (<></>) : (
             <CreateCharacterScreen>
                 <CreateCharacterForm onSubmit={e => saveNewCharacter(e)}>
-                    <h1>Welcome to With Friends! New here? Make a new character! Or log in, I guess.</h1>
-                    <CharacterNameInput type='text' value={newChar.name} onChange={e => {setNewChar({...newChar, name: e.target.value})}}></CharacterNameInput>
+                    <Title>Welcome to With Friends! New here? Make a new character!</Title>
+                    <CharacterNameInput autoFocus={true} minLength={5} maxLength={15} type='text' value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
+                    <CreateCharacterButton>Create Character!</CreateCharacterButton>
                 </CreateCharacterForm>
             </CreateCharacterScreen>
         )}
