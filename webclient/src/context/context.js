@@ -3,7 +3,8 @@ import React, { createContext, useReducer } from 'react';
 export const actions = {
     TOGGLE_BACKPACK: 'toggle_backpack',
     LOAD_CHAR: 'load_from_localstorage_char',
-    SET_GAME_STATE: 'set_game_state'
+    SET_GAME_STATE: 'set_game_state',
+    SET_ALERT: 'set_alert'
 }
 
 export const Reducer = (state, action) => {
@@ -16,7 +17,12 @@ export const Reducer = (state, action) => {
             return state;
         }
         case actions.SET_GAME_STATE: {
-            return {...state, whatDo: action.payload}
+            return {...state, whatDo: action.payload};
+        }
+        case actions.SET_ALERT: {
+            // Set up to send action.payload.alert here:
+            const { alert } = action.payload;
+            return {...state, alert: alert};
         }
         default: {
             return state;
@@ -30,7 +36,7 @@ const mode = {
 }
 
 const initialState = {
-    characterName: undefined,
+    name: undefined,
     // Gonna reconfig ABOVE and AROUND and BELOW to be information contained in LOCATION data
     above: {
         type: 'sky',
@@ -80,7 +86,8 @@ const initialState = {
         atY: -1,
         room: {}
     },
-    whatDo: mode.CHARACTER_CREATION
+    whatDo: mode.CHARACTER_CREATION,
+    alert: undefined
 }
 
 export const Context = createContext(initialState);

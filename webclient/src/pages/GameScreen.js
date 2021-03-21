@@ -28,7 +28,7 @@ const GameScreen = () => {
 
     function saveNewCharacter(e) {
         e.preventDefault();
-        console.log(`Attempting to save new character!`);
+        console.log(`Connecting to API to create this new character...`);
         // THIS: Passes to API via axios to create a new character.
 
         // HERE: Validation checks (also perform on backend)
@@ -57,7 +57,7 @@ const GameScreen = () => {
             <CreateCharacterScreen>
                 <CreateCharacterForm onSubmit={e => saveNewCharacter(e)}>
                     <Title>Welcome to With Friends! New here? Make a new character!</Title>
-                    <CharacterNameInput autoFocus={true} minLength={5} maxLength={15} type='text' value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
+                    <CharacterNameInput autoFocus={true} minLength={5} maxLength={12} type='text' value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
                     <CreateCharacterButton>Create Character!</CreateCharacterButton>
                 </CreateCharacterForm>
             </CreateCharacterScreen>

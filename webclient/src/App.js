@@ -17,6 +17,7 @@ import GameScreen from './pages/GameScreen';
 // It could be possible to combine and conditionally render some of these that can't co-exist? Hm.
 
 // ADD: UserPrompt - for character creation, network errors, etc.
+// REFACTOR: Single 'background'/'scenery' component
 const App = () => {
   return (
     <Store>

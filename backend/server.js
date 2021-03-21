@@ -33,6 +33,7 @@ let player = {
     }
 };
 
+// All the characters! The 'source of truth' for each character. The client mimics these 1-to-1, ideally.
 let characters = {};
 let mobs = {};
 
@@ -301,12 +302,32 @@ app.post('/character/create', (req, res, next) => {
 
     // THIS: Take the request from the user to create a new character, validate it (inputs okay, character name not yet taken), create, and pass back
     // Don't forget to create a charToken to pass back as well! This will be saved with the character on the client to allow further logging in.
-
     // Like LOGIN for character above, we have to 'load' the character live into the server space, and make sure what we pass back can open a socket here
 
-    // HERE: Validate inputs for character are okay (name okay, etc.)
+    // HERE: Validate inputs for character are okay (name okay, etc.) ... we'll mirror the front-end checks, for now, and add more later (like no symbols :P)
+    let error = '';
+    if (newChar.name.length < 5) error += `Character name is too short. `;
+    if (newChar.name.length > 12) error += `Character name is too long. `;
+    if (newChar.name !== newChar.name.split(' ').join('')) error += `No spaces in the character name, please. `;
+    
+    if (error) res.status(406).json({message: error});
 
     // HERE: Make sure newChar.name isn't yet taken (scan DB in characters collection)
+    Character.findOne({ name: newChar.name })
+        .then(searchResult => {
+            if (searchResult === null) {
+                console.log(`Name available`)
+                // Congrats! Name is available.
+                res.json({type: `success`, message: `That name can be used! Good show, old chap.`});
+            } else {
+                // Name is unavailable! Share the sad news. :P
+                res.json({type: `failure`, message: `Some brave soul by that name already adventures here. Please choose another.`});
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            res.json({type: `failure`, message: err});
+        });
 
     // HERE: Create a fully-operational new character object that both backend and frontend can make sense of mutually
     //  This includes: A) creating the object, B) saving it to DB, and C) assuming success move along below
@@ -317,7 +338,7 @@ app.post('/character/create', (req, res, next) => {
 
     // HERE: res.json 
 
-    res.status(200).json({message: `So you want to create a new character named ${newChar.name}? Interesting.`});
+    // res.status(200).json({message: `So you want to create a new character named ${newChar.name}? Interesting.`});
 
 });
 
@@ -349,6 +370,29 @@ io.on('connection', (socket) => {
         console.log(`Client has disconnected from our IO shenanigans.`);
     });
 });
+
+function createSalt() {
+    return crypto.randomBytes(20).toString('hex');
+}
+
+function hash(password, salt) {
+    password = password.length && typeof password === 'string' ? password : undefined;
+
+    if (password && salt) {
+        let hash = crypto
+            .createHmac('sha512', salt)
+            .update(password)
+            .digest('hex');
+
+        return hash;
+    } else {
+        return null;
+    }
+}
+
+function craftAccessToken(name, id) {
+    return jwt.sign({ name: name, id: id }, process.env.SECRET, { expiresIn: '4h' });
+}
 
 server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
 
