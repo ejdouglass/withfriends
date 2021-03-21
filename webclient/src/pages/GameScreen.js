@@ -1,12 +1,14 @@
 import React, { useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { Context } from '../context/context';
-import { CreateCharacterScreen, CreateCharacterForm, CreateCharacterButton, Title, CharacterNameInput } from '../components/styled';
+import { CreateCharacterScreen, CreateCharacterForm, CreateCharacterButton, Title, CharacterNameInput, PWInput } from '../components/styled';
 
 const GameScreen = () => {
     const [state, dispatch] = useContext(Context);
     const [newChar, setNewChar] = useState({
         name: '',
+        password: '',
+        identity: '',
         class: '',
         feature: {eyes: '', hair: '', height: ''},
         stat: {strength: 20, agility: 20, constitution: 20, willpower: 20, intelligence: 20, wisdom: 20, charisma: 20, available: 0}
@@ -24,6 +26,11 @@ const GameScreen = () => {
         if (nameString.length > 0) nameString = nameString[0].toUpperCase() + nameString.slice(1);
         nameString = nameString.split(' ').join('');
         setNewChar({...newChar, name: nameString});
+    }
+
+    function parsePasswordInput(pwString) {
+        pwString = pwString.split(' ').join('');
+        setNewChar({...newChar, password: pwString});
     }
 
     function saveNewCharacter(e) {
@@ -57,7 +64,8 @@ const GameScreen = () => {
             <CreateCharacterScreen>
                 <CreateCharacterForm onSubmit={e => saveNewCharacter(e)}>
                     <Title>Welcome to With Friends! New here? Make a new character!</Title>
-                    <CharacterNameInput autoFocus={true} minLength={5} maxLength={12} type='text' value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
+                    <CharacterNameInput autoFocus={true} minLength={5} maxLength={12} type='text' placeholder={`character name`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
+                    <PWInput type='text' placeholder={`password`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
                     <CreateCharacterButton>Create Character!</CreateCharacterButton>
                 </CreateCharacterForm>
             </CreateCharacterScreen>

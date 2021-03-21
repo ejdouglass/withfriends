@@ -290,6 +290,8 @@ export const CharacterNameInput = styled.input`
     margin: 0.5rem;
 `;
 
+export const PWInput = styled(CharacterNameInput)``;
+
 export const CreateCharacterForm = styled.form`
     display: flex;
     flex-direction: column;

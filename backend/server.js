@@ -309,6 +309,8 @@ app.post('/character/create', (req, res, next) => {
     if (newChar.name.length < 5) error += `Character name is too short. `;
     if (newChar.name.length > 12) error += `Character name is too long. `;
     if (newChar.name !== newChar.name.split(' ').join('')) error += `No spaces in the character name, please. `;
+    if (newChar.password.length < 4) error+= `The password should be at least four characters long. `;
+    if (newChar.password !== newChar.password.split(' ').join('')) error+= `No spaces allowed in the password. `;
     
     if (error) res.status(406).json({message: error});
 
@@ -317,7 +319,12 @@ app.post('/character/create', (req, res, next) => {
         .then(searchResult => {
             if (searchResult === null) {
                 console.log(`Name available`)
-                // Congrats! Name is available.
+                // Congrats! Name is available. MAKE AND SAVE!
+                // HERE: Craft the object that will be the foundation, including salt, hash from password and salt
+
+                // HERE: new Character() save
+
+                // Get the _id (see how folioprpl handles this?), then create a TOKEN to attach to ALL THE REQUESTS
                 res.json({type: `success`, message: `That name can be used! Good show, old chap.`});
             } else {
                 // Name is unavailable! Share the sad news. :P
@@ -399,11 +406,6 @@ server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT
 
 /*
 
-And a-here we go. Let's try out some SOCKET ROCKET POWER!
-
-Ok, neat. Well, currently there's only ONE back-end 'player,' but I'm starting to get to the point where I can see adding MOAR. MWAHA.
-
-And then after that, interacting with stuff back here! That'd be rad.
-
+Doot doot. Nothing to report at this time.
 
 */
