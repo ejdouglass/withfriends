@@ -11,30 +11,52 @@ const charId = {
 };
 
 const identities = [
-    {name: 'Roamer', description: `Walls? Boundaries? Locks? Laws? Such obstacles are negotiable in the pursuit of your goals.`},
-    {name: 'Warrior', description: `An unprepared body and mind cannot bear the burdens of the world, and your martial training ensures you are robust indeed.`},
-    {name: 'Tradesman', description: `Knowing how and working hard -- your expertise is indispensible in any community, and you can weather any tough times with your command of practical lore.`},
+    {name: 'Rogue', description: `Walls? Boundaries? Locks? Laws? These petty obstacles are negotiable in the pursuit of your goals.`},
+    {name: 'Warrior', description: `Your body is strong and fast, your reflexes honed, your mind alert; ready for any threat.`},
+    {name: 'Tradesman', description: `Knowing how and working hard -- you are a creator and provider, the heart of any community.`},
     {name: 'Caster', description: `You've realized a very liberating, basic truth: *any* problem can be solved if you throw enough MP at it.`}
 ];
 
+// Two per... but we're already off in the weeds here :P Actually, 
+// I think I'm just being silly having this extra layer. Just... have CLASS be more inclusive. 
+// And you can add 'profession' granularity later in-game. Cool? Cool.
 const charClass = {
-    SNEAK: 'sneak',
-    EXPLORER: 'explorer',
+    OUTLAW: 'outlaw', // thieves, bandits, con artists
+    WAYFARER: 'wayfarer', // explorers, rangers, traders
 
-    SOLDIER: 'soldier',
-    MONK: 'monk',
-    MERCENARY: 'mercenary',
+    MERCENARY: 'mercenary', // a soldier for hire
+    MONK: 'monk', // some flavor of autonomous martial artist
 
-    VILLAGER: 'villager',
-    TRADESMAN: 'tradesman',
-    HEALER: 'healer',
+    CRAFTER: 'crafter', // blanket class for artisans, landworkers, etc.
+    MASTER: 'master', // due for rename; more like scholar/doctor/etc.
 
-    MYSTIC: 'mystic',
-    CATALYST: 'catalyst',
-    SYMPATH: 'sympath'
+    CATALYST: 'catalyst', // black mage prototype -- destroy, reveal, alter, know
+    SYMPATH: 'sympath' // white mage prototype -- preserve, connect, adjust, sense
 };
 
-// Fewer classes, more subclasses! Wheee!
+const charProfession = {
+    // outlaw
+    THIEF: 'thief',
+
+    // wayfarer
+    RANGER: 'ranger',
+    EXPLORER: 'explorer',
+
+    // soldier
+    MERCENARY: 'mercenary',
+    GUARD: 'guard',
+
+    // mystic
+    SEER: 'seer',
+
+    // catalyst
+    SLAMDANCER: 'slamdancer',
+    BLACKMAGE: 'blackmage',
+
+    // sympath
+    WHITEMAGE: 'whitemage',
+    BEASTMAGE: 'beastmage'
+}
 
 const GameScreen = () => {
     const [state, dispatch] = useContext(Context);
@@ -110,7 +132,6 @@ const GameScreen = () => {
                 <CreateCharacterForm onSubmit={e => saveNewCharacter(e)}>
                     <Title>Welcome to With Friends! New here? Make a character!</Title>
                     <CharacterNameInput autoFocus={true} minLength={5} maxLength={12} type='text' placeholder={`character name`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
-                    <PWInput type='text' placeholder={`password`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
                     <CharacterIdentityDescription>What is your Identity?</CharacterIdentityDescription>
                     <CharacterAspectContainer>
                         {identities.map((identity, index) => (
@@ -123,6 +144,7 @@ const GameScreen = () => {
                         {/* HERE: some styled divs that click to select class */}
 
                     </CharacterAspectContainer>
+                    <PWInput type='text' placeholder={`password`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
                     <CreateCharacterButton>Create Character!</CreateCharacterButton>
                 </CreateCharacterForm>
             </CreateCharacterScreen>

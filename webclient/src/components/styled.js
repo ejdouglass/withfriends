@@ -342,6 +342,9 @@ export const CharacterIDSelector = styled.div`
 export const CharacterIdentityDescription = styled.p`
     font-size: 1.2rem;
     font-color: colors.blackish || navyblue;
+    width: 80vw;
+    margin-left: calc(10vw - 1rem);
+    line-height: 1.5;
 `;
 
 export const CharacterClassDescription = styled.p``;
