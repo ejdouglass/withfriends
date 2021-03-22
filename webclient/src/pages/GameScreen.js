@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { Context } from '../context/context';
-import { CreateCharacterScreen, CharacterIDSelector, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, CharacterNameInput, PWInput } from '../components/styled';
+import { CreateCharacterScreen, CharacterIDSelector, CharacterIdentityDescription, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, CharacterNameInput, PWInput } from '../components/styled';
 
 const charId = {
     ROAMER: 'roamer',
@@ -11,15 +11,14 @@ const charId = {
 };
 
 const identities = [
-    {name: 'Roamer', description: ``},
-    {name: 'Fighter', description: ``},
-    {name: 'Provider', description: ``},
-    {name: 'Thinker', description: ``}
+    {name: 'Roamer', description: `Walls? Boundaries? Locks? Laws? Such obstacles are negotiable in the pursuit of your goals.`},
+    {name: 'Warrior', description: `An unprepared body and mind cannot bear the burdens of the world, and your martial training ensures you are robust indeed.`},
+    {name: 'Tradesman', description: `Knowing how and working hard -- your expertise is indispensible in any community, and you can weather any tough times with your command of practical lore.`},
+    {name: 'Caster', description: `You've realized a very liberating, basic truth: *any* problem can be solved if you throw enough MP at it.`}
 ];
 
 const charClass = {
     SNEAK: 'sneak',
-    RANGER: 'ranger',
     EXPLORER: 'explorer',
 
     SOLDIER: 'soldier',
@@ -35,6 +34,8 @@ const charClass = {
     SYMPATH: 'sympath'
 };
 
+// Fewer classes, more subclasses! Wheee!
+
 const GameScreen = () => {
     const [state, dispatch] = useContext(Context);
     const [newChar, setNewChar] = useState({
@@ -45,6 +46,7 @@ const GameScreen = () => {
         feature: {eyes: '', hair: '', height: ''},
         quirks: []
     });
+    const [selectedIdentityIndex, setSelectedIdentityIndex] = useState(undefined);
     // New concept: identity and class determine bulk of base stats, quirk choices round out the rest
     // ... so, we'll be adding some SWEET SWEET 
 
@@ -106,17 +108,19 @@ const GameScreen = () => {
         {state.characterName ? (<></>) : (
             <CreateCharacterScreen>
                 <CreateCharacterForm onSubmit={e => saveNewCharacter(e)}>
-                    <Title>Welcome to With Friends! New here? Make a new character!</Title>
+                    <Title>Welcome to With Friends! New here? Make a character!</Title>
                     <CharacterNameInput autoFocus={true} minLength={5} maxLength={12} type='text' placeholder={`character name`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
                     <PWInput type='text' placeholder={`password`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
+                    <CharacterIdentityDescription>What is your Identity?</CharacterIdentityDescription>
                     <CharacterAspectContainer>
-                        {/* HERE: some styled divs that click to select identity, exclusively */}
                         {identities.map((identity, index) => (
-                            <CharacterIDSelector key={identity.name}>{identity.name}</CharacterIDSelector>
+                            <CharacterIDSelector selected={index === selectedIdentityIndex} key={identity.name} onClick={() => setSelectedIdentityIndex(index)} >{identity.name}</CharacterIDSelector>
                         ))}
                     </CharacterAspectContainer>
+                    <CharacterIdentityDescription>{identities[selectedIdentityIndex]?.description}</CharacterIdentityDescription>
+
                     <CharacterAspectContainer>
-                        {/* HERE: some styled divs that click to select class, exclusively */}
+                        {/* HERE: some styled divs that click to select class */}
 
                     </CharacterAspectContainer>
                     <CreateCharacterButton>Create Character!</CreateCharacterButton>
@@ -131,27 +135,7 @@ export default GameScreen;
 
 /*
 
-    Just scruffgawing over here:
-    Identity and Classes:
-    * Note: may change from single-name identifiers for user to short descriptions, i.e., "I provide and protect...", "I range outside the walls and laws..."
-    ROAMER
-        Sneak
-        Ranger
-        Explorer
-    FIGHTER
-        Soldier
-        Monk
-        Mercenary
-    PROVIDER
-        Villager (farmer, fisher, etc.)
-        Tradesman
-        Healer
-    THINKER
-        Mystic
-        Blast Mage
-        Bend Mage
-    
-    
+    LAYOUT IDEA: Name, ID, Class at the top, pick it all, have it described in text, PASSWORD at the bottom to submit when it's all ready!
 
     Did some testing and this ONLY appears when you're in the "/" path. Interesting!
     ... all the other compnents just mount on up regardless of whatever nonsense path I put. Whoops? Maybe not whoops? We'll see.. :P

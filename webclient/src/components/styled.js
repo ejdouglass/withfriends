@@ -316,17 +316,32 @@ export const CharacterAspectContainer = styled.div`
     align-items: center;
     width: 95vw;
     margin-left: calc(2.5vw - 1rem);
-    margin-top: 2rem;
-    height: 200px;
+    margin-top: 1rem;
+    height: 100px;
     border: 2px solid teal;
 `;
 
 export const CharacterIDSelector = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: calc(0.6rem + 1vmin);
+    background-color: hsla(110, 60%, 20%, 0.9);
+    color: white;
+    font-weight: 800;
     height: 80%;
     width: calc(50px + 10vw);
+    border-radius: 6px;
     border: 1px solid black;
+    ${props => props.selected && css`
+        background-color: hsl(130, 90%, 60%);
+        color: hsl(310, 5%, 5%);
+    `}
 `;
 
-export const CharacterIdentityDescription = styled.p``;
+export const CharacterIdentityDescription = styled.p`
+    font-size: 1.2rem;
+    font-color: colors.blackish || navyblue;
+`;
 
 export const CharacterClassDescription = styled.p``;
