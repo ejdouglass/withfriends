@@ -1,7 +1,39 @@
 import React, { useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { Context } from '../context/context';
-import { CreateCharacterScreen, CreateCharacterForm, CreateCharacterButton, Title, CharacterNameInput, PWInput } from '../components/styled';
+import { CreateCharacterScreen, CharacterIDSelector, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, CharacterNameInput, PWInput } from '../components/styled';
+
+const charId = {
+    ROAMER: 'roamer',
+    FIGHTER: 'fighter',
+    PROVIDER: 'provider',
+    THINKER: 'thinker'
+};
+
+const identities = [
+    {name: 'Roamer', description: ``},
+    {name: 'Fighter', description: ``},
+    {name: 'Provider', description: ``},
+    {name: 'Thinker', description: ``}
+];
+
+const charClass = {
+    SNEAK: 'sneak',
+    RANGER: 'ranger',
+    EXPLORER: 'explorer',
+
+    SOLDIER: 'soldier',
+    MONK: 'monk',
+    MERCENARY: 'mercenary',
+
+    VILLAGER: 'villager',
+    TRADESMAN: 'tradesman',
+    HEALER: 'healer',
+
+    MYSTIC: 'mystic',
+    CATALYST: 'catalyst',
+    SYMPATH: 'sympath'
+};
 
 const GameScreen = () => {
     const [state, dispatch] = useContext(Context);
@@ -11,8 +43,10 @@ const GameScreen = () => {
         identity: '',
         class: '',
         feature: {eyes: '', hair: '', height: ''},
-        stat: {strength: 20, agility: 20, constitution: 20, willpower: 20, intelligence: 20, wisdom: 20, charisma: 20, available: 0}
-    })
+        quirks: []
+    });
+    // New concept: identity and class determine bulk of base stats, quirk choices round out the rest
+    // ... so, we'll be adding some SWEET SWEET 
 
     function loadCharFromToken(charToken) {
         // THIS: axios passes the charToken to the API in an attempt to load up the character in question
@@ -35,16 +69,25 @@ const GameScreen = () => {
 
     function saveNewCharacter(e) {
         e.preventDefault();
-        console.log(`Connecting to API to create this new character...`);
         // THIS: Passes to API via axios to create a new character.
 
-        // HERE: Validation checks (also perform on backend)
+        // HERE: Validation checks (also will separately be performed on backend)
+        let error = ``;
+        if (newChar.name.length < 5 || newChar.name.length > 12) error += `Enter a valid character name between 5 and 12 characters long. `;
+        if (newChar.password.length < 4) error += `Enter a proper password (4+ characters). `;
+        // ADD: identity, class, quirks
 
+        if (error) {
+            return;
+        } else {
+            console.log(`Connecting to API to create this new character...`);
+            axios.post('/character/create', { newChar: newChar })
+                .then(res => console.log(res.data))
+                .catch(err => console.log(err));
+        }
         // HERE: Send newChar to axios; if successful, will receive newChar full data (with location and all!), as well as charToken to localStore.
         // CONSIDER: Hm, instead of localStorage, should I do an HTTP version JS isn't allowed to touch? Maybe.
-        axios.post('/character/create', { newChar: newChar })
-            .then(res => console.log(res.data))
-            .catch(err => console.log(err));
+
     }
 
     useEffect(() => {
@@ -66,6 +109,16 @@ const GameScreen = () => {
                     <Title>Welcome to With Friends! New here? Make a new character!</Title>
                     <CharacterNameInput autoFocus={true} minLength={5} maxLength={12} type='text' placeholder={`character name`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
                     <PWInput type='text' placeholder={`password`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
+                    <CharacterAspectContainer>
+                        {/* HERE: some styled divs that click to select identity, exclusively */}
+                        {identities.map((identity, index) => (
+                            <CharacterIDSelector key={identity.name}>{identity.name}</CharacterIDSelector>
+                        ))}
+                    </CharacterAspectContainer>
+                    <CharacterAspectContainer>
+                        {/* HERE: some styled divs that click to select class, exclusively */}
+
+                    </CharacterAspectContainer>
                     <CreateCharacterButton>Create Character!</CreateCharacterButton>
                 </CreateCharacterForm>
             </CreateCharacterScreen>
@@ -77,6 +130,28 @@ const GameScreen = () => {
 export default GameScreen;
 
 /*
+
+    Just scruffgawing over here:
+    Identity and Classes:
+    * Note: may change from single-name identifiers for user to short descriptions, i.e., "I provide and protect...", "I range outside the walls and laws..."
+    ROAMER
+        Sneak
+        Ranger
+        Explorer
+    FIGHTER
+        Soldier
+        Monk
+        Mercenary
+    PROVIDER
+        Villager (farmer, fisher, etc.)
+        Tradesman
+        Healer
+    THINKER
+        Mystic
+        Blast Mage
+        Bend Mage
+    
+    
 
     Did some testing and this ONLY appears when you're in the "/" path. Interesting!
     ... all the other compnents just mount on up regardless of whatever nonsense path I put. Whoops? Maybe not whoops? We'll see.. :P

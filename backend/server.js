@@ -324,7 +324,13 @@ app.post('/character/create', (req, res, next) => {
 
                 // HERE: new Character() save
 
-                // Get the _id (see how folioprpl handles this?), then create a TOKEN to attach to ALL THE REQUESTS
+                // HERE: call fxn that loads character into server-space
+
+                // HERE: Get the _id (see how folioprpl handles this?), then create a TOKEN to attach to ALL THE REQUESTS
+
+                // HERE: 
+
+                // HERE: Send back the goodies! res.json, away~
                 res.json({type: `success`, message: `That name can be used! Good show, old chap.`});
             } else {
                 // Name is unavailable! Share the sad news. :P
@@ -344,9 +350,6 @@ app.post('/character/create', (req, res, next) => {
     // HERE: Call a function to create an object for frontend to load character from, plus charToken, probably {char: {charObj}, charToken: '...'}
 
     // HERE: res.json 
-
-    // res.status(200).json({message: `So you want to create a new character named ${newChar.name}? Interesting.`});
-
 });
 
 
@@ -399,6 +402,14 @@ function hash(password, salt) {
 
 function craftAccessToken(name, id) {
     return jwt.sign({ name: name, id: id }, process.env.SECRET, { expiresIn: '4h' });
+}
+
+function addCharacterToGame(character) {
+    characters[character.name] = character;
+}
+
+function removeCharacterFromGame(character) {
+    delete characters[character.name];
 }
 
 server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));

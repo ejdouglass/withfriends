@@ -308,3 +308,25 @@ export const CreateCharacterButton = styled.button`
         transform: translateY(-1px);
     }
 `;
+
+export const CharacterAspectContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    width: 95vw;
+    margin-left: calc(2.5vw - 1rem);
+    margin-top: 2rem;
+    height: 200px;
+    border: 2px solid teal;
+`;
+
+export const CharacterIDSelector = styled.div`
+    height: 80%;
+    width: calc(50px + 10vw);
+    border: 1px solid black;
+`;
+
+export const CharacterIdentityDescription = styled.p``;
+
+export const CharacterClassDescription = styled.p``;
