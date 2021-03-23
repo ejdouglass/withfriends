@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { Context } from '../context/context';
-import { CreateCharacterScreen, CharacterIDSelector, CharacterIdentityDescription, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, CharacterNameInput, PWInput } from '../components/styled';
+import { CreateCharacterScreen, CharacterClassSelector, CharacterClassChoiceContainer, CharacterIDSelector, CharacterIdentityDescription, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, CharacterNameInput, PWInput } from '../components/styled';
 
 const charId = {
     ROAMER: 'roamer',
@@ -10,65 +10,57 @@ const charId = {
     THINKER: 'thinker'
 };
 
-const identities = [
-    {name: 'Rogue', description: `Walls? Boundaries? Locks? Laws? These petty obstacles are negotiable in the pursuit of your goals.`},
-    {name: 'Warrior', description: `Your body is strong and fast, your reflexes honed, your mind alert; ready for any threat.`},
-    {name: 'Tradesman', description: `Knowing how and working hard -- you are a creator and provider, the heart of any community.`},
-    {name: 'Caster', description: `You've realized a very liberating, basic truth: *any* problem can be solved if you throw enough MP at it.`}
-];
-
 // Two per... but we're already off in the weeds here :P Actually, 
 // I think I'm just being silly having this extra layer. Just... have CLASS be more inclusive. 
 // And you can add 'profession' granularity later in-game. Cool? Cool.
 const charClass = {
-    OUTLAW: 'outlaw', // thieves, bandits, con artists
-    WAYFARER: 'wayfarer', // explorers, rangers, traders
+    OUTLAW: {name: 'Outlaw', description: ``, stat: {}}, // thieves, bandits, con artists
+    WAYFARER: {name: 'Wayfarer', description: ``, stat: {}}, // explorers, rangers, traders
 
-    MERCENARY: 'mercenary', // a soldier for hire
-    MONK: 'monk', // some flavor of autonomous martial artist
+    MERCENARY: {name: 'Mercenary', description: ``, stat: {}}, // a soldier for hire
+    MONK: {name: 'Monk', description: ``, stat: {}}, // some flavor of autonomous martial artist
 
-    CRAFTER: 'crafter', // blanket class for artisans, landworkers, etc.
-    MASTER: 'master', // due for rename; more like scholar/doctor/etc.
+    CRAFTER: {name: 'Crafter', description: ``, stat: {}}, // blanket class for artisans, landworkers, etc.
+    MASTER: {name: 'Master', description: ``, stat: {}}, // due for rename; more like scholar/doctor/etc.
 
-    CATALYST: 'catalyst', // black mage prototype -- destroy, reveal, alter, know
-    SYMPATH: 'sympath' // white mage prototype -- preserve, connect, adjust, sense
+    CATALYST: {name: 'Catalyst', description: ``, stat: {}}, // black mage prototype -- destroy, reveal, alter, know
+    SYMPATH: {name: 'Sympath', description: ``, stat: {}} // white mage prototype -- preserve, connect, adjust, sense
 };
 
-const charProfession = {
-    // outlaw
-    THIEF: 'thief',
-
-    // wayfarer
-    RANGER: 'ranger',
-    EXPLORER: 'explorer',
-
-    // soldier
-    MERCENARY: 'mercenary',
-    GUARD: 'guard',
-
-    // mystic
-    SEER: 'seer',
-
-    // catalyst
-    SLAMDANCER: 'slamdancer',
-    BLACKMAGE: 'blackmage',
-
-    // sympath
-    WHITEMAGE: 'whitemage',
-    BEASTMAGE: 'beastmage'
-}
+// Hm, makes sense to attach the classes to these already-extant objects, easier to render than doing a lot of querying down the road.
+const identities = [
+    {
+        name: 'Rogue', 
+        description: `Walls? Boundaries? Locks? Laws? These petty obstacles are negotiable in the pursuit of your goals.`,
+        class: [charClass.WAYFARER, charClass.OUTLAW]
+    },
+    {
+        name: 'Warrior', 
+        description: `Your body is strong and fast, your reflexes honed, your mind alert; ready for any threat.`,
+        class: [charClass.MONK, charClass.MERCENARY]
+    },
+    {
+        name: 'Tradesman', 
+        description: `Knowing how and working hard -- you are a creator and provider, the heart of any community.`,
+        class: [charClass.CRAFTER, charClass.MASTER]
+    },
+    {
+        name: 'Caster', 
+        description: `You've realized a very liberating, basic truth: *any* problem can be solved if you throw enough MP at it.`,
+        class: [charClass.SYMPATH, charClass.CATALYST]
+    }
+];
 
 const GameScreen = () => {
     const [state, dispatch] = useContext(Context);
     const [newChar, setNewChar] = useState({
         name: '',
         password: '',
-        identity: '',
-        class: '',
         feature: {eyes: '', hair: '', height: ''},
         quirks: []
     });
     const [selectedIdentityIndex, setSelectedIdentityIndex] = useState(undefined);
+    const [selectedClass, setSelectedClass] = useState('');
     // New concept: identity and class determine bulk of base stats, quirk choices round out the rest
     // ... so, we'll be adding some SWEET SWEET 
 
@@ -91,6 +83,11 @@ const GameScreen = () => {
         setNewChar({...newChar, password: pwString});
     }
 
+    function identitySelectionHandler(val) {
+        setSelectedIdentityIndex(val);
+        setSelectedClass('');
+    }
+
     function saveNewCharacter(e) {
         e.preventDefault();
         // THIS: Passes to API via axios to create a new character.
@@ -105,7 +102,8 @@ const GameScreen = () => {
             return;
         } else {
             console.log(`Connecting to API to create this new character...`);
-            axios.post('/character/create', { newChar: newChar })
+            let myChar = {...newChar, identity: identities[selectedIdentityIndex].name, class: selectedClass}
+            axios.post('/character/create', { newChar: myChar })
                 .then(res => console.log(res.data))
                 .catch(err => console.log(err));
         }
@@ -135,15 +133,17 @@ const GameScreen = () => {
                     <CharacterIdentityDescription>What is your Identity?</CharacterIdentityDescription>
                     <CharacterAspectContainer>
                         {identities.map((identity, index) => (
-                            <CharacterIDSelector selected={index === selectedIdentityIndex} key={identity.name} onClick={() => setSelectedIdentityIndex(index)} >{identity.name}</CharacterIDSelector>
+                            <CharacterIDSelector selected={index === selectedIdentityIndex} key={identity.name} onClick={() => identitySelectionHandler(index)} >{identity.name}</CharacterIDSelector>
                         ))}
                     </CharacterAspectContainer>
                     <CharacterIdentityDescription>{identities[selectedIdentityIndex]?.description}</CharacterIdentityDescription>
 
-                    <CharacterAspectContainer>
-                        {/* HERE: some styled divs that click to select class */}
+                    <CharacterClassChoiceContainer obscured={selectedIdentityIndex === undefined}>
+                        {identities[selectedIdentityIndex]?.class.map((characterClass, index) => (
+                            <CharacterClassSelector key={characterClass.name} dark={index === 1} selected={characterClass.name === selectedClass} onClick={() => setSelectedClass(characterClass.name)}>{characterClass.name}</CharacterClassSelector>
+                        ))}
 
-                    </CharacterAspectContainer>
+                    </CharacterClassChoiceContainer>
                     <PWInput type='text' placeholder={`password`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
                     <CreateCharacterButton>Create Character!</CreateCharacterButton>
                 </CreateCharacterForm>

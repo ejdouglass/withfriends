@@ -321,6 +321,11 @@ app.post('/character/create', (req, res, next) => {
                 console.log(`Name available`)
                 // Congrats! Name is available. MAKE AND SAVE!
                 // HERE: Craft the object that will be the foundation, including salt, hash from password and salt
+                let character = {
+                    name: newChar.name,
+                    identity: newChar.identity,
+                    class: newChar.class,
+                };
 
                 // HERE: new Character() save
 
@@ -342,14 +347,6 @@ app.post('/character/create', (req, res, next) => {
             res.json({type: `failure`, message: err});
         });
 
-    // HERE: Create a fully-operational new character object that both backend and frontend can make sense of mutually
-    //  This includes: A) creating the object, B) saving it to DB, and C) assuming success move along below
-
-    // HERE: Call a function to 'load' character into server space
-
-    // HERE: Call a function to create an object for frontend to load character from, plus charToken, probably {char: {charObj}, charToken: '...'}
-
-    // HERE: res.json 
 });
 
 

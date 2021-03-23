@@ -339,6 +339,44 @@ export const CharacterIDSelector = styled.div`
     `}
 `;
 
+export const CharacterClassChoiceContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    width: calc(200px + 40vw);
+    margin-left: calc(30vw - 100px - 1rem);
+    height: 160px;
+    border: 1px solid #111;
+    ${props => props.obscured && css`
+        display: none;
+    `}
+`;
+
+export const CharacterClassSelector = styled.div`
+    display: flex;
+    box-sizing: border-box;
+    font-weight: 600;
+    height: 80%;
+    width: calc(60px + 15vw);
+    justify-content: center;
+    align-items: center;
+    font-size: calc(0.8rem + 1.5vmin);
+    border-radius: 12px;
+    background-color: hsl(180, 80%, 50%);
+    opacity: 0.7;
+    ${props => props.dark && css`
+        background-color: hsl(320, 70%, 35%);
+        color: white;
+    `}
+    ${props => props.selected && css`
+        border: 3px solid black;
+        opacity: 1;
+        font-weight: 900;
+        font-size: calc(0.9rem + 1.5vmin);
+    `}
+`;
+
 export const CharacterIdentityDescription = styled.p`
     font-size: 1.2rem;
     font-color: colors.blackish || navyblue;
