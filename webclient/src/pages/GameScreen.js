@@ -13,6 +13,7 @@ const charId = {
 // Two per... but we're already off in the weeds here :P Actually, 
 // I think I'm just being silly having this extra layer. Just... have CLASS be more inclusive. 
 // And you can add 'profession' granularity later in-game. Cool? Cool.
+// Eh, let's just do an ARRAY for the stats down below, since we're setting them in the API anyway.
 const charClass = {
     OUTLAW: {name: 'Outlaw', description: ``, stat: {}}, // thieves, bandits, con artists
     WAYFARER: {name: 'Wayfarer', description: ``, stat: {}}, // explorers, rangers, traders
@@ -45,7 +46,7 @@ const identities = [
         class: [charClass.CRAFTER, charClass.MASTER]
     },
     {
-        name: 'Caster', 
+        name: 'Wizard', 
         description: `You've realized a very liberating, basic truth: *any* problem can be solved if you throw enough MP at it.`,
         class: [charClass.SYMPATH, charClass.CATALYST]
     }
@@ -96,6 +97,7 @@ const GameScreen = () => {
         let error = ``;
         if (newChar.name.length < 5 || newChar.name.length > 12) error += `Enter a valid character name between 5 and 12 characters long. `;
         if (newChar.password.length < 4) error += `Enter a proper password (4+ characters). `;
+        if (!selectedIdentityIndex || !selectedClass) error+= `Please choose an Identity and a Class. `;
         // ADD: identity, class, quirks
 
         if (error) {

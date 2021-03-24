@@ -310,7 +310,33 @@ app.post('/character/create', (req, res, next) => {
     if (newChar.name.length > 12) error += `Character name is too long. `;
     if (newChar.name !== newChar.name.split(' ').join('')) error += `No spaces in the character name, please. `;
     if (newChar.password.length < 4) error+= `The password should be at least four characters long. `;
-    if (newChar.password !== newChar.password.split(' ').join('')) error+= `No spaces allowed in the password. `;
+    if (newChar.password !== newChar.password.split(' ').join('')) error += `No spaces allowed in the password. `;
+    switch (newChar.identity) {
+        case 'Rogue':
+        case 'Warrior':
+        case 'Tradesman':
+        case 'Wizard':
+            break;
+        default:
+            error += `Somehow, we've received an invalid identity of ${newChar.identity}.`;
+            break;
+    }
+    // Setting default stats here... will change to actual stats/skills populating later
+    switch (newChar.class) {
+        case 'Wayfarer':
+        case 'Outlaw':
+        case 'Monk':
+        case 'Mercenary':
+        case 'Crafter':
+        case 'Master':
+        case 'Sympath':
+        case 'Catalyst':
+            newChar.stat = {strength: 25, agility: 15, constitution: 20, willpower: 20, intelligence: 20, wisdom: 20, charisma: 20};
+            break;
+        default:
+            error += `API is receiving a non-existent class of ${newChar.class}. Weird!`;
+            break;
+    }
     
     if (error) res.status(406).json({message: error});
 
@@ -319,24 +345,31 @@ app.post('/character/create', (req, res, next) => {
         .then(searchResult => {
             if (searchResult === null) {
                 console.log(`Name available`)
-                // Congrats! Name is available. MAKE AND SAVE!
-                // HERE: Craft the object that will be the foundation, including salt, hash from password and salt
-                let character = {
+                // HERE: Craft the object that will be the foundation, including salt, hash from password and salt, and stats
+                const salt = createSalt();
+                const hash = createHash(newChar.password, salt);
+                let newCharacter = new Character({
                     name: newChar.name,
                     identity: newChar.identity,
                     class: newChar.class,
-                };
+                    stat: {...newChar.stat},
+                    salt: salt,
+                    hash: hash
+                });
 
                 // HERE: new Character() save
-
-                // HERE: call fxn that loads character into server-space
-
-                // HERE: Get the _id (see how folioprpl handles this?), then create a TOKEN to attach to ALL THE REQUESTS
-
-                // HERE: 
-
-                // HERE: Send back the goodies! res.json, away~
-                res.json({type: `success`, message: `That name can be used! Good show, old chap.`});
+                // + Craft token
+                // + Load into server-space
+                // + Res.json back down to client
+                newCharacter.save()
+                    .then(freshCharacter => {
+                        const token = craftAccessToken(freshCharacter.name, freshCharacter._id);
+                        const charToLoad = JSON.parse(JSON.stringify(freshCharacter));
+                        res.status(200).json({type: `success`, message: `Good news everyone! ${charToLoad.name} is saved and ready to play.`, payload: {character: charToLoad, token: token}});
+                    })
+                    .catch(err => {
+                        res.json({type: `failure`, message: `Something went wrong attempting to save the new character: ${err}`});
+                    })
             } else {
                 // Name is unavailable! Share the sad news. :P
                 res.json({type: `failure`, message: `Some brave soul by that name already adventures here. Please choose another.`});
@@ -382,7 +415,7 @@ function createSalt() {
     return crypto.randomBytes(20).toString('hex');
 }
 
-function hash(password, salt) {
+function createHash(password, salt) {
     password = password.length && typeof password === 'string' ? password : undefined;
 
     if (password && salt) {
