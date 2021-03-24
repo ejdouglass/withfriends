@@ -278,7 +278,6 @@ export const CreateCharacterScreen = styled.div`
     top: 0;
     left: 0;
     background-color: white;
-    opacity: 0.9;
 `;
 
 export const CharacterNameInput = styled.input`

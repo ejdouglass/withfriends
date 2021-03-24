@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom';
 import { Context, actions } from '../context/context';
 import { Container } from './styled';
 import axios from 'axios';
-import socketIOClient from 'socket.io-client';
+import io from 'socket.io-client';
 const ENDPOINT = 'http://localhost:5000';
 
 const Keyboard = () => {
@@ -72,7 +72,7 @@ const Keyboard = () => {
     }, [keyDownCB, keyUpCB]);
 
     // useEffect(() => {
-    //     const socket = socketIOClient(ENDPOINT);
+    //     const socket = io(ENDPOINT);
     //     setSocketActive(true);
     //     socket.on('FromAPI', data => {
     //         setResponse(data);
@@ -85,12 +85,15 @@ const Keyboard = () => {
     // }, []);
 
     useEffect(() => {
-        // Gonna see if SOCKET CONNECTION can be set up effectively in here
+        // Gonna see if SOCKET CONNECTION can be set up effectively in here ... so far, mostly yes? Might have to set up unmounting behavior.
         if (state.name !== undefined) {
-            socketToMe = socketIOClient(ENDPOINT);
-            socketToMe.emit('login', state);
+            socketToMe = io(ENDPOINT);
+            socketToMe.on('connect', () => {
+                socketToMe.emit('login', state);
+            });
             socketToMe.on('moved_dir', data => {
                 console.log(data);
+                // HERE: unpack data, adjust state via dispatch - room details, weather, time of day, etc.
             });
         } else {
             history.push('/');

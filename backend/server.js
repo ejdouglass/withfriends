@@ -21,20 +21,9 @@ mongoose.connect(process.env.DB_HOST, connectionParams)
     .then(() => console.log(`Successfully connected to With Friends database. That'll come in handy!`))
     .catch(err => console.log(`Error connecting to With Friends database: ${err}`));
 
-// Hardcoded nonsense for now, pending an actual login process. :P
-// This will eventually hold ALL the stuff associated with the character.
-// The player.'Dekar' will be player[username], so won't automatically be the same as player[username].charName. 
-let player = {
-    'Dekar': {
-        charName: 'Dekar',
-        atMap: 'lilMap',
-        atX: 1,
-        atY: 1
-    }
-};
 
-// All the characters! The 'source of truth' for each character. The client mimics these 1-to-1, ideally.
 let characters = {};
+// Almost time to slide a field goblin or two in here.
 let mobs = {};
 
 // Probably refactor this later, but can slip 'maps' such as lilmap below into this object for the short-term until I figure out a good way to scale it
@@ -112,6 +101,7 @@ let areas = {
     ]
 };
 
+// CONSIDER: now that entities store their location better, can use this 'internal data' to interface with area/map data
 function moveAnEntity(entity, direction) {
     // For now very griddy; might have more omnidirectionality later
     // Probably will need to reference entity's current map/location at some point, as well... attach to the entity in question?
@@ -120,11 +110,12 @@ function moveAnEntity(entity, direction) {
     // console.log(`Attempting to move ${entity}, who is at (${entity.atX},${entity.atY}) by (${direction.X},${direction.Y})`);
 
     // Received "DIRECTION" has X, Y, and compasssDirection to work with, neato
+
     if (direction.X === 0 && direction.Y === 0) return `You remain where you are`;
 
-    let moveAttemptFeedback = `You walk ${direction.compassDirection} `;
+    let moveAttemptFeedback = `You move ${direction.compassDirection} `;
 
-    if (entity.atX + direction.X < 0 || entity.atX + direction.X >= lilMap[0].length || entity.atY + direction.Y < 0 || entity.atY + direction.Y >= lilMap[0].length) {
+    if (entity.location.atX + direction.X < 0 || entity.location.atX + direction.X >= lilMap[0].length || entity.location.atY + direction.Y < 0 || entity.location.atY + direction.Y >= lilMap[0].length) {
         moveAttemptFeedback += `but can't seem to proceed further, so you're still`;
     }
     else {
@@ -401,25 +392,66 @@ const io = socketIo(server, {
     }
 });
 
+
+/*
+    Brainstorming... so, can I set up 'subscriptions' to, say, the room, the area, etc.?
+    A HAX to imitate this behavior could be setting up a STRINGIFIED version of the room/etc.
+        ... then have an interval'd "ping" comparing the current state of the room to the current (or timestamps of last known update)
+        ... if different, trigger an emit for the user
+    
+    Ok! Further research shows that socket.io has 'rooms' and 'namespaces,' as well as socket IDs we can emit to specifically.
+    NEATO.
+
+    Ah! So we're looking at something like
+    io.of('namespaceX').on('connection', (socket) => {}) ... for namespaces.
+
+    Each NAMESPACE is kind of like a sub-server, I guess? It has its own event handlers and 'rooms' and 'middlewares'.
+
+    As you'd expect, you can also do stuff like const usersNamespace = io.of('/users');
+
+    Ok, here we go! JOINING ROOMS:
+    io.on('connection', (socket) => {
+        socket.join('room1');
+        io.to('room1').emit('Hullo there!'); // Would socket.to('room1') also work? Hm.
+    })
+
+*/
 io.on('connection', (socket) => {
     console.log(`A client has connected to our IO shenanigans.`);
+    // HMM: maybe a lastSent object, compared against an interval-based thingy to determine if we need to send down an update to weather/time/etc.
+    let myCharacter;
+    let area;
+    let room;
 
     socket.on('login', character => {
         console.log(`${character.name} has joined the game! You are at ${character.location.atMap}: (${character.location.atX},${character.location.atY}).`);
+        if (!characters[character.name]) {
+            console.log(`Oh! Not logged in yet on the server. Beep boop, fixing.`);
+            addCharacterToGame(character);
+        }
+        myCharacter = character;
     });
+
 
     socket.on('movedir', mover => {
         // Almost ready to 'generalize' this into the entity's own map location, rather than this 'always lilMap' scenario
+        // That may or may not have to wait until after I figure out 'room subscriptions'
         const directionObj = parseKeyInput(mover.where) || {compassDirection: 'nowhere', X: 0, Y: 0};
-        console.log(`We're attempting to move ${mover.who}, loaded as the character ${characters[mover.who].name}.`);
+        // console.log(`We're attempting to move ${mover.who}, loaded as the character ${characters[mover.who].name} whose X,Y is (${characters[mover.who].location.atX}, ${characters[mover.who].location.atY}).`);
+
         let walkResult = `${moveAnEntity(characters[mover.who], directionObj)} ${lilMap[characters[mover.who].location.atY][characters[mover.who].location.atX].title}.`;
         if (characters[mover.who].location.atX === fieldGoblin.atX && characters[mover.who].location.atY === fieldGoblin.atY) walkResult += ` You see a field goblin here!`;
 
+        // Right now passing just a feedback string...
+        // But it'd be best to pass the entirety of the ROOM DATA, including what's here, its appearance, time/weather mods, etc.
+        // And maybe change the EMIT name/type to 'what I am seeing' context, with a didIMove key for client to 'animate' movement
+        // That way the emit can be 'recycled' to be used here AND on 'login' to update the user's 'sight'
         socket.emit('moved_dir', walkResult);
     });
 
     socket.on('disconnect', () => {
-        console.log(`Client has disconnected from our IO shenanigans.`);
+        console.log(`Client has disconnected from our IO shenanigans. Goodbye, ${myCharacter.name}!`);
+        removeCharacterFromGame(myCharacter);
     });
 });
 

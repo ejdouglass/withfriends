@@ -113,6 +113,7 @@ const GameScreen = () => {
                     dispatch({type: actions.LOAD_CHAR, payload: {character: res.data.payload.character}});
                     
                     // This sets the header for all subsequent axios requests; might consider using HTTP-only instead?
+                    // Also just realized setting axios headers is kinda meaningless to the socket, whoops :P
                     axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.payload.token}`;
                     history.push('/play');
                 })
