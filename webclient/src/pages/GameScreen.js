@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import axios from 'axios';
-import { Context } from '../context/context';
+import { Context, actions } from '../context/context';
 import { CreateCharacterScreen, CharacterClassSelector, CharacterClassChoiceContainer, CharacterIDSelector, CharacterIdentityDescription, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, CharacterNameInput, PWInput } from '../components/styled';
 
 const charId = {
@@ -62,8 +63,7 @@ const GameScreen = () => {
     });
     const [selectedIdentityIndex, setSelectedIdentityIndex] = useState(undefined);
     const [selectedClass, setSelectedClass] = useState('');
-    // New concept: identity and class determine bulk of base stats, quirk choices round out the rest
-    // ... so, we'll be adding some SWEET SWEET 
+    const history = useHistory();
 
     function loadCharFromToken(charToken) {
         // THIS: axios passes the charToken to the API in an attempt to load up the character in question
@@ -97,16 +97,25 @@ const GameScreen = () => {
         let error = ``;
         if (newChar.name.length < 5 || newChar.name.length > 12) error += `Enter a valid character name between 5 and 12 characters long. `;
         if (newChar.password.length < 4) error += `Enter a proper password (4+ characters). `;
-        if (!selectedIdentityIndex || !selectedClass) error+= `Please choose an Identity and a Class. `;
+        if (selectedIdentityIndex === undefined || !selectedClass) error+= `Please choose an Identity and a Class. `;
         // ADD: identity, class, quirks
 
         if (error) {
+            console.log(error);
             return;
         } else {
             console.log(`Connecting to API to create this new character...`);
             let myChar = {...newChar, identity: identities[selectedIdentityIndex].name, class: selectedClass}
             axios.post('/character/create', { newChar: myChar })
-                .then(res => console.log(res.data))
+                .then(res => {
+                    console.log(res.data);
+                    // HERE: load up the received res.data.character into LIVE MEMORY
+                    dispatch({type: actions.LOAD_CHAR, payload: {character: res.data.payload.character}});
+                    
+                    // This sets the header for all subsequent axios requests; might consider using HTTP-only instead?
+                    axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.payload.token}`;
+                    history.push('/play');
+                })
                 .catch(err => console.log(err));
         }
         // HERE: Send newChar to axios; if successful, will receive newChar full data (with location and all!), as well as charToken to localStore.

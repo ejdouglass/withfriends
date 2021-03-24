@@ -2,7 +2,7 @@ import React, { createContext, useReducer } from 'react';
 
 export const actions = {
     TOGGLE_BACKPACK: 'toggle_backpack',
-    LOAD_CHAR: 'load_from_localstorage_char',
+    LOAD_CHAR: 'load_char',
     SET_GAME_STATE: 'set_game_state',
     SET_ALERT: 'set_alert'
 }
@@ -13,8 +13,21 @@ export const Reducer = (state, action) => {
             return {...state, backpack: {...state.backpack, open: !state.backpack.open}};
         }
         case actions.LOAD_CHAR: {
-            // Receive a valid GUY or GUYETTE from the backend and set up global state accordingly
-            return state;
+            const { character } = action.payload;
+            console.log(`Loading this character: ${JSON.stringify(character)}`);
+            // Stop-gap measures below so displays properly; change when BACKGROUND/AREA data is derived from actual room and not just supplied through state
+            const above = {
+                type: 'sky',
+                imgsrc: '../assets/skyboxes/bluesky.jpg',
+                color: 'hsla(215, 90%, 75%, 0.3)'
+            };
+            const around = {type: 'field'};
+            const below = {
+                type: 'grass',
+                color: 'hsl(125, 80%, 30%)'
+            };
+
+            return {...state, ...character, above: above, around: around, below: below, alert: undefined, whatDo: mode.TRAVEL};
         }
         case actions.SET_GAME_STATE: {
             return {...state, whatDo: action.payload};

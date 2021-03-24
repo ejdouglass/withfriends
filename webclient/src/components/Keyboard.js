@@ -1,14 +1,10 @@
 import React, { useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { useHistory } from 'react-router-dom';
 import { Context, actions } from '../context/context';
 import { Container } from './styled';
 import axios from 'axios';
 import socketIOClient from 'socket.io-client';
-// const ENDPOINT = 'http://localhost:5000';
-// const socketToMe = socketIOClient(ENDPOINT);
-// socketToMe.emit('login', 'Dekar');
-// socketToMe.on('moved_dir', data => {
-//     console.log(data);
-// });
+const ENDPOINT = 'http://localhost:5000';
 
 const Keyboard = () => {
     const [state, dispatch] = useContext(Context);
@@ -18,6 +14,8 @@ const Keyboard = () => {
     const keyState = useState({});
     const keyDownCB = useCallback(keyevent => handleKeyDown(keyevent), [handleKeyDown]);
     const keyUpCB = useCallback(keyevent => handleKeyUp(keyevent), [handleKeyUp]);
+    let socketToMe = undefined;
+    const history = useHistory();
 
     // Down here we're going to be paying attention to the state, which should tell us what we're currently up to for proper reactions to keyevent(s)
     function handleKeyDown(e) {
@@ -40,17 +38,17 @@ const Keyboard = () => {
             case 'a':
             case 'q':                
                 {
+                    if (state.whatDo !== 'character_creation') {
+                        const mover = {who: state.name, where: e.key};
+                        socketToMe.emit('movedir', mover);
+                    }
                     // Right now ANY connected entity is using this code to manipulate the single 'character' dummy in API...
                     // I can think of a few ways to implement separate characters, but offhand:
                     // Use normal axios/auth stuff to log in/select character, which can then prepare global variables to ship with these requests
                     // Package in any crypto-signed goodies to measure validity of commands/origin of commands? 
                     // Well, get a basic implementation down, then expand to minFR status
-                    const mover = {who: state.name, where: e.key};
-                    // socketToMe.emit('movedir', mover);
-                    // Commenting the below out; let's see if we can do pure sockets for this one
-                    // axios.post('/moveme', { moveDir: e.key })
-                    //     .then(res => console.log(res.data.message))
-                    //     .catch(e => console.log(e));
+                    // const mover = {who: state.name, where: e.key};
+                    
                 }
         }
     }
@@ -85,6 +83,19 @@ const Keyboard = () => {
     //         setSocketActive(false);
     //     };
     // }, []);
+
+    useEffect(() => {
+        // Gonna see if SOCKET CONNECTION can be set up effectively in here
+        if (state.name !== undefined) {
+            socketToMe = socketIOClient(ENDPOINT);
+            socketToMe.emit('login', state);
+            socketToMe.on('moved_dir', data => {
+                console.log(data);
+            });
+        } else {
+            history.push('/');
+        }
+    }, [state.name])
 
     useEffect(() => {
         console.log(`Keystate has changed!`);

@@ -128,8 +128,8 @@ function moveAnEntity(entity, direction) {
         moveAttemptFeedback += `but can't seem to proceed further, so you're still`;
     }
     else {
-        entity.atX += direction.X;
-        entity.atY += direction.Y;  
+        entity.location.atX += direction.X;
+        entity.location.atY += direction.Y;  
         moveAttemptFeedback += `and arrive`;
     }
     return moveAttemptFeedback;
@@ -237,6 +237,11 @@ const lilMap = [
 // Ok! Now there are a bunch of messages that can be 'displayed.' The question becomes... how to hook these into the 'room' so a user sees them?
 // Later on, can add 'message,' 'obscurity,' 'result,' 'skillcheck,' etc. to different idle and active actions
 const fieldGoblin = {
+    location: {
+        atMap: 'lilMap',
+        atX: 0,
+        atY: 1
+    },
     atMap: 'lilMap',
     atX: 0,
     atY: 1,
@@ -365,6 +370,11 @@ app.post('/character/create', (req, res, next) => {
                     .then(freshCharacter => {
                         const token = craftAccessToken(freshCharacter.name, freshCharacter._id);
                         const charToLoad = JSON.parse(JSON.stringify(freshCharacter));
+
+                        addCharacterToGame(charToLoad);
+
+                        // Can probably just do character: charToLoad, token: token rather than add an extra 'payload' layer in the future
+                        // ... or, at least, remember that we added 'payload' as that extra layer when we parse via the client :P
                         res.status(200).json({type: `success`, message: `Good news everyone! ${charToLoad.name} is saved and ready to play.`, payload: {character: charToLoad, token: token}});
                     })
                     .catch(err => {
@@ -395,13 +405,15 @@ io.on('connection', (socket) => {
     console.log(`A client has connected to our IO shenanigans.`);
 
     socket.on('login', character => {
-        console.log(`${character.name} has joined the game!`);
+        console.log(`${character.name} has joined the game! You are at ${character.location.atMap}: (${character.location.atX},${character.location.atY}).`);
     });
 
     socket.on('movedir', mover => {
+        // Almost ready to 'generalize' this into the entity's own map location, rather than this 'always lilMap' scenario
         const directionObj = parseKeyInput(mover.where) || {compassDirection: 'nowhere', X: 0, Y: 0};
-        let walkResult = `${moveAnEntity(player[mover.who], directionObj)} ${lilMap[player[mover.who].atY][player[mover.who].atX].title}.`;
-        if (player[mover.who].atX === fieldGoblin.atX && player[mover.who].atY === fieldGoblin.atY) walkResult += ` You see a field goblin here!`;
+        console.log(`We're attempting to move ${mover.who}, loaded as the character ${characters[mover.who].name}.`);
+        let walkResult = `${moveAnEntity(characters[mover.who], directionObj)} ${lilMap[characters[mover.who].location.atY][characters[mover.who].location.atX].title}.`;
+        if (characters[mover.who].location.atX === fieldGoblin.atX && characters[mover.who].location.atY === fieldGoblin.atY) walkResult += ` You see a field goblin here!`;
 
         socket.emit('moved_dir', walkResult);
     });
