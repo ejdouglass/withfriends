@@ -9,7 +9,8 @@ const CharacterSchema = new Schema({
     hash: {type: String, required: true},
     location: {
         type: Object,
-        default: {atMap: 'lilMap', atX: 2, atY: 1, GPS: undefined, room: undefined} // As noted in webclient context, may refactor atMap into {} vs ''
+        // The atX/atY are going to go the way of the dinosaur shortly, but we'll leave in for now to avoid errors during transition
+        default: {atMap: 'tutorialGeneric', atX: 2, atY: 1, GPS: '0,0,0', roomKey: 'tutorialStart', room: undefined} // As noted in webclient context, may refactor atMap into {} vs ''
     },
     stat: {
         type: Object, 

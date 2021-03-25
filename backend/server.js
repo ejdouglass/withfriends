@@ -59,6 +59,9 @@ let mobs = {};
         }
     }
 
+    Boy oh boy defining these manually is going to get silly really fast.
+    -- Consider making these class-built and/or making a pop-up builder for Admin/Digger
+
 */
 let areas = {
     'tutorialGeneric': {
@@ -68,15 +71,55 @@ let areas = {
         worldGPS: '0,0,0',
         worldRPS: 0,
         localTime: undefined,
-        room: {
+        rooms: {
             'tutorialStart': {
-                title: 'in an open field',
+                title: 'in an open grassy field',
                 size: 5,
                 indoors: false,
                 GPS: '0,0,0',
                 RPS: 0,
                 background: {sky: undefined, ground: undefined, foreground: undefined}, // Let's get this working soon; can set up a control variable above
-                
+                type: {field: 5}, // I don't even know what this means yet :P... probably comes into play for foraging/hiding/etc.
+                typeDetail: ['wheat', 'tallgrass'],
+                structures: [], // Can pass this down and iterate to interact in client
+                ofInterest: [],
+                entities: [],
+                loot: [],
+                exits: {'w': {to: 'tutorialGeneric/tutorialWestfield', hidden: 0}}
+            },
+            'tutorialWestfield': {
+                title: 'amongst sprawling grasslands',
+                size: 5,
+                indoors: false,
+                GPS: '-10,0,0', // 10 'units' per room? Or maybe this size plus the size of the room(s) adjacent? Hm... anyway, we'll call this 'room center'
+                RPS: 0,
+                background: {sky: undefined, ground: undefined, foreground: undefined},
+                type: {field: 5}, 
+                typeDetail: ['wheat', 'tallgrass'],
+                structures: [],
+                ofInterest: [],
+                entities: [],
+                loot: [],
+                exits: {
+                    'e': {to: 'tutorialGeneric/tutorialStart', hidden: 0}, 
+                    'n': {to: 'tutorialGeneric/tutorialForestEdge', hidden: 0}}                
+            },
+            'tutorialForestEdge': {
+                title: 'at the edge of a boreal forest',
+                size: 5,
+                indoors: false,
+                GPS: '-10,-10,0', // For now, hoping I don't confuse myself horrendously doing this 'backwards Y' in a matching fashion to CSS
+                RPS: 0,
+                background: {sky: undefined, ground: undefined, foreground: undefined},
+                type: {field: 5}, 
+                typeDetail: ['wheat', 'tallgrass'],
+                structures: [],
+                ofInterest: [],
+                entities: [],
+                loot: [],
+                exits: {
+                    'e': {to: 'tutorialGeneric/tutorialStart', hidden: 0}, 
+                    'n': {to: 'tutorialGeneric/tutorialForestEdge', hidden: 0}}                    
             }
         }
     },
@@ -206,6 +249,8 @@ function parseKeyInput(key) {
 // The 'harder' way long-term is to just have an array of objects with internally defined relationships with surrounding areas.
 // Either way, exits need to know what is connected in each 'direction' that you can go, and possibly extra stuff:
 //      skill(s) required to traverse, 'room' size, exit size/type, any considerations such as being blocked by mob(s), etc.
+
+// This is now entirely defunct. Will remove in a near-future update, pending going through the notes above to make sure I integrated these ideas properly.
 const lilMap = [
     [
         {
@@ -336,7 +381,7 @@ const PORT = process.env.PORT || 5000;
 // });
 
 app.post('/player/login', (req, res, next) => {
-    // !    
+    // May just scrap this bit; decided to focus on characters over players for this design
 });
 
 app.post('/character/login', (req, res, next) => {
@@ -486,8 +531,8 @@ io.on('connection', (socket) => {
     console.log(`A client has connected to our IO shenanigans.`);
     // HMM: maybe a lastSent object, compared against an interval-based thingy to determine if we need to send down an update to weather/time/etc.
     let myCharacter;
-    let area;
-    let room;
+    let area; // Areas should be set up to be automatically unique, so no worries here about setting this one
+    let room; // If I end up setting this to the room's GPS coords, or key + GPS, that should ensure uniqueness
 
     socket.on('login', character => {
         console.log(`${character.name} has joined the game! You are at ${character.location.atMap}: (${character.location.atX},${character.location.atY}).`);
