@@ -232,15 +232,15 @@ export const CharProfileContainer = styled.div`
 
 export const CharProfileImg = styled.div`
     display: flex;
-    width: calc(100px + 15vw);
-    height: calc(100px + 15vw);
+    width: 20vmin;
+    height: 20vmin;
     background-color: blue;
 `;
 
 export const CharProfileName = styled.p`
     font-size: calc(6px + 0.5vw);
     text-align: center;
-    width: 100%;
+    padding-left: 1rem;
     font-weight: 700;
 `;
 
@@ -255,6 +255,20 @@ export const MyMapView = styled.div`
     border: 1px solid hsl(30, 75%, 45%);
     right: -7vmin;
     bottom: -5vmin;
+`;
+
+export const RoomTitle = styled.div`
+    display: flex;
+    position: absolute;
+    top: -55px;
+    width: calc(100px + 20vmin);
+    font-weight: 700;
+    height: 50px;
+    border: 1px solid red;
+    background-color: white;
+    font-size: calc(0.6rem + 1vmin);
+    justify-content: center;
+    align-items: center;
 `;
 
 export const MyMapGuy = styled.div`

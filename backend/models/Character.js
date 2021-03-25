@@ -9,7 +9,7 @@ const CharacterSchema = new Schema({
     hash: {type: String, required: true},
     location: {
         type: Object,
-        default: {atMap: 'lilMap', atX: 2, atY: 1, GPS: undefined, room: undefined} // As noted in webclient context, likely to refactor atMap into {} vs ''
+        default: {atMap: 'lilMap', atX: 2, atY: 1, GPS: undefined, room: undefined} // As noted in webclient context, may refactor atMap into {} vs ''
     },
     stat: {
         type: Object, 

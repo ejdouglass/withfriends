@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Context } from '../context/context';
-import { MainScreen, CharCard, CharProfileContainer, CharProfileImg, CharProfileName, MyMapView, MyMapGuy } from './styled';
+import { MainScreen, CharCard, CharProfileImg, CharProfileName, MyMapView, RoomTitle, MyMapGuy } from './styled';
 
 const MainView = () => {
     const [state] = useContext(Context);
@@ -21,10 +21,8 @@ const MyChar = ({ state }) => {
     // Let's go into STYLED and refactor the char portrat to be a reliable square, and put the name/stats/etc. in the rest of the 'banner.'
     return (
         <CharCard>
-            <CharProfileContainer>
-                <CharProfileImg />
-                <CharProfileName>{state.name}</CharProfileName>
-            </CharProfileContainer>
+            <CharProfileImg />
+            <CharProfileName>{state.name}</CharProfileName>
         </CharCard>
     )
 }
@@ -34,6 +32,7 @@ const MyChar = ({ state }) => {
 const MyMap = ({ state }) => {
     return (
         <MyMapView>
+            <RoomTitle>{state.location?.room?.title || 'An Empty Void'}</RoomTitle>
             <MyMapGuy />
         </MyMapView>
     )

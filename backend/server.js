@@ -27,7 +27,59 @@ let characters = {};
 let mobs = {};
 
 // Probably refactor this later, but can slip 'maps' such as lilmap below into this object for the short-term until I figure out a good way to scale it
+// NEXT: Add a new NON-lilMap area to chew on
+/*
+    What else do we need to consider to construct a good, scalable structure here?
+    areas.AREANAME is currently [] of rooms...
+    ... but maybe refactor to, say, areas.TUTORIAL = {
+        room: [] or {}?,
+        type: 'mud' or 'field' (or ???)
+    }
+
+    Exciting! Refactoring the entity-bound "location" object to: 
+    myGuy.location = {
+        atMap: 'mapname',
+        GPS: 'absolute coords', // redundant; maybe make GPS/RPS room-dependent, and then have TITLE for open-areas and TYPE 
+        RPS: 'reality position reference',
+        room: {
+            title: `at a lake's edge`,
+            size: `??`, // room size, from fairly large (outdoor area) to quite small (indoor room)... I dunno, 1 to 5 with five being biggest? Sure, for now
+            indoors: false,
+            GPS: 'absolute coords X,Y,Z',
+            RPS: 'reality id',
+            background: {sky: __, ground: __, foreground: ___},
+            weather: ___, //inherit from area?
+            timeOfDay: ___,
+            type: {city: 3, forest: 1, road: 5},
+            typeDetail: ['slums', 'darkwood', 'evil', 'crowded'],
+            structures: [],
+            entities: [],
+            stuff: [],
+            exits: {'n': {to: }}
+        }
+    }
+
+*/
 let areas = {
+    'tutorialGeneric': {
+        type: 'mud',
+        region: 'unknown',
+        weather: 'sunny',
+        worldGPS: '0,0,0',
+        worldRPS: 0,
+        localTime: undefined,
+        room: {
+            'tutorialStart': {
+                title: 'in an open field',
+                size: 5,
+                indoors: false,
+                GPS: '0,0,0',
+                RPS: 0,
+                background: {sky: undefined, ground: undefined, foreground: undefined}, // Let's get this working soon; can set up a control variable above
+                
+            }
+        }
+    },
     'lilMap': [
         [
             {
@@ -103,19 +155,21 @@ let areas = {
 
 // CONSIDER: now that entities store their location better, can use this 'internal data' to interface with area/map data
 function moveAnEntity(entity, direction) {
-    // For now very griddy; might have more omnidirectionality later
-    // Probably will need to reference entity's current map/location at some point, as well... attach to the entity in question?
+    // Ok, so now the new hotness if the "entity" we're receiving here is a reference to the full character object, so includes the area they're in.
+    const area = areas[entity.location.atMap];
 
-    // Watch the movement happen in the console. Works fine for player. Will test later for mobs.
-    // console.log(`Attempting to move ${entity}, who is at (${entity.atX},${entity.atY}) by (${direction.X},${direction.Y})`);
-
-    // Received "DIRECTION" has X, Y, and compasssDirection to work with, neato
+    // Received "DIRECTION" has X, Y, and compassDirection to work with.
+    // However, for ROOM NAV, let's set it up so that we don't mess with X,Y ... just look up a Room Reference (tbc), its exits, and yea or nay from there
+    // AREA NAV is still unexplored territory (ba dum tsss)
 
     if (direction.X === 0 && direction.Y === 0) return `You remain where you are`;
 
     let moveAttemptFeedback = `You move ${direction.compassDirection} `;
 
-    if (entity.location.atX + direction.X < 0 || entity.location.atX + direction.X >= lilMap[0].length || entity.location.atY + direction.Y < 0 || entity.location.atY + direction.Y >= lilMap[0].length) {
+    // BELOW: will ultimately refactor to check room's exits, rather than current 'basic grid'
+
+    // Also, it's currently not checking the actual 'axis' the character is in, so will break thoroughly once we're not living in the 3x3 lilMap playground.
+    if (entity.location.atX + direction.X < 0 || entity.location.atX + direction.X >= area[0].length || entity.location.atY + direction.Y < 0 || entity.location.atY + direction.Y >= area[0].length) {
         moveAttemptFeedback += `but can't seem to proceed further, so you're still`;
     }
     else {
@@ -409,11 +463,23 @@ const io = socketIo(server, {
 
     As you'd expect, you can also do stuff like const usersNamespace = io.of('/users');
 
-    Ok, here we go! JOINING ROOMS:
+    Ok, here we go! Rooms! "An arbitrary channel that sockets can JOIN and LEAVE." JOINING ROOMS:
     io.on('connection', (socket) => {
         socket.join('room1');
         io.to('room1').emit('Hullo there!'); // Would socket.to('room1') also work? Hm.
     })
+
+    Ok! Rooms are SERVER-ONLY -- the client has no idea what room(s) it is a part of, which is... fine?
+
+    Anyway, you do a socket.join('some room'), then io.to('some room').emit() OR io.in('some room').emit() (interchangeabble to/in)
+
+    Also, io.to('room1').to('area3').emit() works, and if the recipient is in BOTH, they'll only get it once. Huzzah! Smart.
+
+    Note you can also do socket.to('some room'), broadcasting from the given socket rather than a namespace. Either-or. Neat.
+
+    Now the FINAL PIECES for INTERACTION!
+    -- ensure each room has its own unique identifier (absolute plus relative coords?)
+    -- same for area, though just having a unique KEY should be fine in this case, a la 'lilMap'
 
 */
 io.on('connection', (socket) => {
@@ -434,12 +500,16 @@ io.on('connection', (socket) => {
 
 
     socket.on('movedir', mover => {
-        // Almost ready to 'generalize' this into the entity's own map location, rather than this 'always lilMap' scenario
-        // That may or may not have to wait until after I figure out 'room subscriptions'
+        // HERE: use the request from the client to plug into the character and le GO
+        const moveChar = characters[mover.who];
+        const mapToUse = areas[characters[mover.who].location.atMap];
+
+        // This works for now, but I'd really rather just get the pre-parsed info passed directly from the client and set it above
         const directionObj = parseKeyInput(mover.where) || {compassDirection: 'nowhere', X: 0, Y: 0};
         // console.log(`We're attempting to move ${mover.who}, loaded as the character ${characters[mover.who].name} whose X,Y is (${characters[mover.who].location.atX}, ${characters[mover.who].location.atY}).`);
 
-        let walkResult = `${moveAnEntity(characters[mover.who], directionObj)} ${lilMap[characters[mover.who].location.atY][characters[mover.who].location.atX].title}.`;
+        let walkResult = `${moveAnEntity(moveChar, directionObj)} ${mapToUse[moveChar.location.atY][moveChar.location.atX].title}.`;
+        // let walkResult = `${moveAnEntity(characters[mover.who], directionObj)} ${lilMap[characters[mover.who].location.atY][characters[mover.who].location.atX].title}.`;
         if (characters[mover.who].location.atX === fieldGoblin.atX && characters[mover.who].location.atY === fieldGoblin.atY) walkResult += ` You see a field goblin here!`;
 
         // Right now passing just a feedback string...
