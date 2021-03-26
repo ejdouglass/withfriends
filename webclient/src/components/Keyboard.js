@@ -4,6 +4,7 @@ import { Context, actions } from '../context/context';
 import { Container } from './styled';
 import axios from 'axios';
 import io from 'socket.io-client';
+let socketToMe;
 const ENDPOINT = 'http://localhost:5000';
 
 const Keyboard = () => {
@@ -14,7 +15,6 @@ const Keyboard = () => {
     const keyState = useState({});
     const keyDownCB = useCallback(keyevent => handleKeyDown(keyevent), [handleKeyDown]);
     const keyUpCB = useCallback(keyevent => handleKeyUp(keyevent), [handleKeyUp]);
-    let socketToMe = undefined;
     const history = useHistory();
 
     // Down here we're going to be paying attention to the state, which should tell us what we're currently up to for proper reactions to keyevent(s)
@@ -28,12 +28,13 @@ const Keyboard = () => {
             // Did a HAX below for now, but going forward, let's sort out ways to parse state.whatDo/game mode/gamestate
             case 'b': {
                 if (keysDown.current['Meta'] && state.whatDo !== 'character_creation') dispatch({type: actions.TOGGLE_BACKPACK});
+                break;
             }
             case 'w':
             case 'e':
             case 'd':
             case 'c':
-            case 'x':
+            case 's':
             case 'z':
             case 'a':
             case 'q':                
@@ -85,24 +86,41 @@ const Keyboard = () => {
     // }, []);
 
     useEffect(() => {
-        // Gonna see if SOCKET CONNECTION can be set up effectively in here ... so far, mostly yes? Might have to set up unmounting behavior.
+        // Leeeet's try... STATELY EFFECT! 
         if (state.name !== undefined) {
+            if (!socketActive) setSocketActive(true);
+
+        } else {
+            history.push('/');
+        }
+
+
+    }, [state.name])
+
+    useEffect(() => {
+        // Ok, this works! But did NOT work when I defined socketToMe's variable was declared in the component. There's a lesson in there somewhere.
+        if (socketActive) {
             socketToMe = io(ENDPOINT);
             socketToMe.on('connect', () => {
                 socketToMe.emit('login', state);
             });
             socketToMe.on('moved_dir', data => {
-                console.log(data);
+                console.log(data.feedback);
+                dispatch({type: actions.UPDATE_ROOM, payload: { updatedLocation: data.newLocation }}); // Having a state update here kills poor Mr. Socket.
                 // HERE: unpack data, adjust state via dispatch - room details, weather, time of day, etc.
             });
-        } else {
-            history.push('/');
+            
+            return () => {
+                socketToMe.disconnect();
+            }
         }
-    }, [state.name])
+    }, [socketActive]);
 
-    useEffect(() => {
-        console.log(`Keystate has changed!`);
-    }, [keyState]);
+
+
+    // useEffect(() => {
+    //     console.log(`Keystate has changed!`);
+    // }, [keyState]);
 
     return (
         <Container></Container>

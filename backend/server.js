@@ -118,8 +118,7 @@ let areas = {
                 entities: [],
                 loot: [],
                 exits: {
-                    'e': {to: 'tutorialGeneric/tutorialStart', hidden: 0}, 
-                    'n': {to: 'tutorialGeneric/tutorialForestEdge', hidden: 0}}                    
+                    's': {to: 'tutorialGeneric/tutorialWestfield', hidden: 0}}                    
             }
         }
     },
@@ -223,6 +222,27 @@ function moveAnEntity(entity, direction) {
     return moveAttemptFeedback;
 }
 
+function moveEntity(entity, direction) {
+    // New function, rather than scrapping the whole old function offhand. Let's see here...
+    // So, we have the entity, which has attached to itself the current location, including ROOM.
+
+    // Eh, we can distill it into a single 'letter' for direction, or if we-be-fancy, perhaps moveNorth, moveInto tavern, etc.
+    // Hm. In that case, let's see, how to match... 
+    if (entity.location.room.exits[direction]) {
+        let newRoomData = entity.location.room.exits[direction].to.split('/');
+        const newArea = newRoomData[0];
+        const newRoomKey = newRoomData[1];
+        entity.location.atMap = newArea;
+        entity.location.room = areas[newArea].rooms[newRoomKey];
+        entity.location.GPS = entity.location.room.GPS;
+
+        return `You move that way! Boldly, into ${entity.location.room.title}, even.`;
+    }
+    return `BONK. Can't go that way! Ouch!`;
+
+    // No wrong-warping allowed -- since we're only referring to the backend-attached entity.location.room.exits, we should be resistant to HAX
+}
+
 function parseKeyInput(key) {
     switch (key) {
         case 'w': {
@@ -236,6 +256,35 @@ function parseKeyInput(key) {
         }
         case 'a': {
             return {compassDirection: 'west', X: -1, Y: 0};
+        }
+    }
+}
+
+function keyToDirection(key) {
+    switch (key) {
+        case 'w': {
+            return 'n';
+        }
+        case 'e': {
+            return 'ne';
+        }
+        case 'd': {
+            return 'e';
+        }
+        case 'c': {
+            return 'se';
+        }
+        case 's': {
+            return 's';
+        }
+        case 'z': {
+            return 'sw';
+        }
+        case 'a': {
+            return 'w';
+        }
+        case 'q': {
+            return 'nw';
         }
     }
 }
@@ -553,9 +602,14 @@ io.on('connection', (socket) => {
         const directionObj = parseKeyInput(mover.where) || {compassDirection: 'nowhere', X: 0, Y: 0};
         // console.log(`We're attempting to move ${mover.who}, loaded as the character ${characters[mover.who].name} whose X,Y is (${characters[mover.who].location.atX}, ${characters[mover.who].location.atY}).`);
 
-        let walkResult = `${moveAnEntity(moveChar, directionObj)} ${mapToUse[moveChar.location.atY][moveChar.location.atX].title}.`;
+        const direction = keyToDirection(mover.where);
+        let walkResult = {
+            feedback: moveEntity(moveChar, direction),
+            newLocation: moveChar.location
+        };
+        // let walkResult = `${moveAnEntity(moveChar, directionObj)} ${mapToUse[moveChar.location.atY][moveChar.location.atX].title}.`;
         // let walkResult = `${moveAnEntity(characters[mover.who], directionObj)} ${lilMap[characters[mover.who].location.atY][characters[mover.who].location.atX].title}.`;
-        if (characters[mover.who].location.atX === fieldGoblin.atX && characters[mover.who].location.atY === fieldGoblin.atY) walkResult += ` You see a field goblin here!`;
+        // if (characters[mover.who].location.atX === fieldGoblin.atX && characters[mover.who].location.atY === fieldGoblin.atY) walkResult += ` You see a field goblin here!`;
 
         // Right now passing just a feedback string...
         // But it'd be best to pass the entirety of the ROOM DATA, including what's here, its appearance, time/weather mods, etc.

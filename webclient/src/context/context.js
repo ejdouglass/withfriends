@@ -39,8 +39,10 @@ export const Reducer = (state, action) => {
             return {...state, alert: alert};
         }
         case actions.UPDATE_ROOM: {
+            const { updatedLocation } = action.payload;
+            console.log(`Receiving an updated location: ${JSON.stringify(updatedLocation)}`);
             // Anytime the 'view' dictating room/area details changes, we amend it here! Just pass in a whole new 'location' bit.
-            return state;
+            return {...state, location: updatedLocation};
         }
         default: {
             return state;
@@ -102,6 +104,8 @@ const initialState = {
         atMap: undefined, //Hm, this will probably become an object rather than a string at some point
         atX: -1,
         atY: -1,
+        GPS: '0,0,0',
+        RPS: 0,
         room: {}
     },
     whatDo: mode.CHARACTER_CREATION,
