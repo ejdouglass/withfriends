@@ -72,19 +72,6 @@ const Keyboard = () => {
         }
     }, [keyDownCB, keyUpCB]);
 
-    // useEffect(() => {
-    //     const socket = io(ENDPOINT);
-    //     setSocketActive(true);
-    //     socket.on('FromAPI', data => {
-    //         setResponse(data);
-    //     });
-
-    //     return () => {
-    //         socket.disconnect();
-    //         setSocketActive(false);
-    //     };
-    // }, []);
-
     useEffect(() => {
         // Leeeet's try... STATELY EFFECT! 
         if (state.name !== undefined) {
@@ -106,7 +93,7 @@ const Keyboard = () => {
             });
             socketToMe.on('moved_dir', data => {
                 console.log(data.feedback);
-                dispatch({type: actions.UPDATE_ROOM, payload: { updatedLocation: data.newLocation }}); // Having a state update here kills poor Mr. Socket.
+                dispatch({type: actions.UPDATE_ROOM, payload: { updatedLocation: data.newLocation }});
                 // HERE: unpack data, adjust state via dispatch - room details, weather, time of day, etc.
             });
             

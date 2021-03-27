@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Context } from '../context/context';
-import { MainScreen, CharCard, CharProfileImg, CharProfileName, MyMapView, RoomTitle, MyMapGuy } from './styled';
+import { MainScreen, CharCard, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, RoomTitle, MyMapGuy } from './styled';
 
 const MainView = () => {
     const [state] = useContext(Context);
@@ -18,7 +18,8 @@ export default MainView;
 
 
 const MyChar = ({ state }) => {
-    // Let's go into STYLED and refactor the char portrat to be a reliable square, and put the name/stats/etc. in the rest of the 'banner.'
+    // Hm, a little bulky. Think about what else is going in here, maybe shrink it down to mostly fixed with a little bit of vw.
+    // Also, name shrinks far too much when screen size changes. Pump it up!
     return (
         <CharCard>
             <CharProfileImg />
@@ -30,11 +31,24 @@ const MyChar = ({ state }) => {
 
 
 const MyMap = ({ state }) => {
+    // Ok, let's rethink. MyMapView should probably be a square again, just a little compass whose arrows light up when dir is available.
+    // UP and DOWN can be on the side as sweeping arrows.
+    // This MYMAP component can render just a NavCompass in MUD rooms, and expand to be a big screen view if/when Open World opens up.
+    // We'll rejigger state variables to check that later, since we DO have it defined in AREAS on backend, each area has a 'type' such as 'mud'
+    
     return (
-        <MyMapView>
+        <MyCompassView>
             <RoomTitle>{state.location?.room?.title || 'An Empty Void'}</RoomTitle>
             <MyMapGuy />
-        </MyMapView>
+            <CompassArrow east navigable={state.location?.room?.exits?.e}/>
+            <CompassArrow southeast navigable={state.location?.room?.exits?.se}/>
+            <CompassArrow south navigable={state.location?.room?.exits?.s}/>
+            <CompassArrow southwest navigable={state.location?.room?.exits?.sw}/>
+            <CompassArrow west navigable={state.location?.room?.exits?.w}/>
+            <CompassArrow northwest navigable={state.location?.room?.exits?.nw}/>
+            <CompassArrow north navigable={state.location?.room?.exits?.n}/>
+            <CompassArrow northeast navigable={state.location?.room?.exits?.ne}/>
+        </MyCompassView>
     )
 }
 

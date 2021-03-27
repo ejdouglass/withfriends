@@ -8,6 +8,7 @@ const Character = require('./models/Character');
 // const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const { resolveSoa } = require('dns');
 require('dotenv').config();
 
 
@@ -233,10 +234,11 @@ function moveEntity(entity, direction) {
         const newArea = newRoomData[0];
         const newRoomKey = newRoomData[1];
         entity.location.atMap = newArea;
+        entity.location.roomKey = newRoomKey;
         entity.location.room = areas[newArea].rooms[newRoomKey];
         entity.location.GPS = entity.location.room.GPS;
 
-        return `You move that way! Boldly, into ${entity.location.room.title}, even.`;
+        return `Off you go!`;
     }
     return `BONK. Can't go that way! Ouch!`;
 
@@ -289,6 +291,7 @@ function keyToDirection(key) {
     }
 }
 
+// OLD NOTES that lived by lilMap, scan and condense:
 // One of the next steps is to slip this bad boy into the 'areas' object, somewhere above.
 // Adding an 'absolute' and/or 'relative' coords to each 'room' makes sense.
 // Also, attributes such as those the front-end needs to display proper images would be fantastic. Lake, forest, plains, etc.
@@ -299,78 +302,6 @@ function keyToDirection(key) {
 // Either way, exits need to know what is connected in each 'direction' that you can go, and possibly extra stuff:
 //      skill(s) required to traverse, 'room' size, exit size/type, any considerations such as being blocked by mob(s), etc.
 
-// This is now entirely defunct. Will remove in a near-future update, pending going through the notes above to make sure I integrated these ideas properly.
-const lilMap = [
-    [
-        {
-            title: 'at the edge of a forest',
-            description: `A totally nondescript forest. There are quite a few trees and plants all around.`,
-            entities: [],
-            stuff: [],
-            exits: {}
-        }, 
-        {
-            title: 'within a fluffy northern wheatfield',
-            description: `It's fluffy and full of wheat! Rolling and idyllic.`,
-            entities: [],
-            stuff: [],
-            exits: {}
-        },
-        {
-            title: `amidst rocky rubble`,
-            description: `Lots of stone here, including several areas that may have once been buildings, walls, and towers.`,
-            entities: [],
-            stuff: [],
-            exits: {}
-        }
-    ],
-    [
-        {
-            title: 'some rolling grassy fields',
-            description: `A totally nondescript forest.`,
-            entities: [],
-            stuff: [],
-            exits: {}
-        }, 
-        {
-            title: 'within a sprawling central middlefield',
-            description: `A totally nondescript forest.`,
-            entities: [],
-            stuff: [],
-            exits: {}
-        }, 
-        {
-            title: 'outside the walls of an imposing town gate',
-            description: `A totally nondescript forest.`,
-            entities: [],
-            stuff: [],
-            exits: {}
-        }, 
-    ],
-    [
-        {
-            title: 'above a deep ravine',
-            description: `A totally nondescript forest.`,
-            entities: [],
-            stuff: [],
-            exits: {}
-        }, 
-        {
-            title: 'at the edge of a lake',
-            description: `A totally nondescript forest.`,
-            entities: [],
-            stuff: [],
-            exits: {}
-        }, 
-        {
-            title: 'where lakefront meets town wall',
-            description: `A totally nondescript forest.`,
-            entities: [],
-            stuff: [],
-            exits: {}
-        }, 
-    ]
-];
 
 // The PROTOTYPE MOB. Let's try out a bunch of actions, behaviors, stats, etc. here and see what makes sense to scale up!
 // Ok! Now there are a bunch of messages that can be 'displayed.' The question becomes... how to hook these into the 'room' so a user sees them?
@@ -412,34 +343,91 @@ app.use(express.urlencoded({extended: false}));
 const PORT = process.env.PORT || 5000;
 
 
-// app.post('/moveme', (req, res, next) => {
-//     let { moveDir } = req.body || 'through spacetime';
-
-//     // HERE: Change dummyPlayer data based on the string received as a movement direction
-//     let directionMoved = '';
-//     switch (moveDir) {
-//         case 'd': {
-//             directionMoved = 'east';
-//         }
-//     }
-
-//     let movementResult = `You just moved ${directionMoved} and arrived at ${lilMap[dummyPlayer.atY][dummyPlayer.atX]}. `;
-//     if (dummyPlayer.atX === fieldGoblin.atX && dummyPlayer.atY === fieldGoblin.atY) movementResult += `A field goblin is here!`;
-
-//     res.json({ok: true, message: movementResult});
-// });
-
-app.post('/player/login', (req, res, next) => {
-    // May just scrap this bit; decided to focus on characters over players for this design
-});
-
 app.post('/character/login', (req, res, next) => {
     // Receive a CHARTOKEN, check it, and if VALID, do two important things:
     // 1) 'Load' the character live into this server space
     // 2) Pass back that character to the client, which must use this package to open a socket with the server
+    // +) Oh, this login may just receive a charname and password instead, so handle it either way
 
-    res.status(200).json({message: `API endpoint is here. Hi!`});
+    if (req.body.charToken !== undefined) {
+        const { charToken } = req.body;
+
+        // HERE: handle token login
+        const decodedToken = jwt.verify(charToken, process.env.SECRET);
+        const { name, id } = decodedToken;
+
+        Character.findOne({ name: name, _id: id })
+            .then(searchResult => {
+                if (searchResult === null) {
+                    // HERE: handle no such character now
+                    res.status(406).json({type: `failure`, message: `No such character exists yet. You can create them, if you'd like!`});
+                } else {
+                    // Token worked! Currently we make a brand-new one here to pass down, but we can play with variations on that later
+                    const token = craftAccessToken(searchResult.name, searchResult._id);
+                    const charToLoad = JSON.parse(JSON.stringify(searchResult));
+                    delete charToLoad.salt;
+                    delete charToLoad.hash;
+
+                    const alreadyInGame = addCharacterToGame(charToLoad);
+
+                    if (alreadyInGame) res.status(200).json({type: `success`, message: `Reconnecting to ${charToLoad.name}.`, payload: {character: characters[charToLoad.name], token: token}})
+                    else res.status(200).json({type: `success`, message: `Good news everyone! ${charToLoad.name} is ready to play.`, payload: {character: charToLoad, token: token}});
+
+
+
+                }
+
+
+            })
+            .catch(err => {
+                console.log(`Someone had some difficulty logging in: ${err}`);
+                res.status(406).json({type: `failure`, message: `Something went wrong logging in with these credentials.`});
+            })        
+    }
+    if (req.body.userCredentials !== undefined) {
+        const { userCredentials } = req.body;
+
+        // HERE: handle credentials login: take userCredentials.charName and userCredentials.password and go boldly:
+
+        Character.findOne({ name: userCredentials.charName })
+            .then(searchResult => {
+                if (searchResult === null) {
+                    // HERE: handle no such character now
+                    res.status(406).json({type: `failure`, message: `No such character exists yet. You can create them, if you'd like!`});
+                } else {
+                    let thisHash = createHash(userCredentials.password, searchResult.salt);
+                    if (thisHash === searchResult.hash) {
+                        // Password is good, off we go!
+                        const token = craftAccessToken(searchResult.name, searchResult._id);
+                        const charToLoad = JSON.parse(JSON.stringify(searchResult));
+                        delete charToLoad.salt;
+                        delete charToLoad.hash;
+
+                        // This will probably only work a small subset of times, actually; socket disconnection removes the char from the game
+                        const alreadyInGame = addCharacterToGame(charToLoad);
+
+                        // 
+                        if (alreadyInGame) res.status(200).json({type: `success`, message: `Reconnected to live character.`, payload: {character: characters[charToLoad.name], token: token}})
+                        else res.status(200).json({type: `success`, message: `Good news everyone! ${charToLoad.name} is ready to play.`, payload: {character: charToLoad, token: token}});                        
+
+
+                    } else {
+                        // Password is incorrect, try again... if THOU DAREST
+                        res.status(401).json({type: `failure`, message: `The supplied password is incorrect.`});
+                    }
+                }
+
+
+            })
+            .catch(err => {
+                console.log(`Someone had some difficulty logging in: ${err}`);
+                res.status(406).json({type: `failure`, message: `Something went wrong logging in with these credentials.`});
+            })
+    }
 });
+
+// I was gonna put a logout here, but I think that can be handled in the socket plus in the client instead, doesn't need its own route per se
+// Exception, maybe: if I set the JWT http-only, it might need the server to help toss it upon (intentional) logout?
 
 app.post('/character/create', (req, res, next) => {
     const { newChar } = req.body;
@@ -465,7 +453,7 @@ app.post('/character/create', (req, res, next) => {
             error += `Somehow, we've received an invalid identity of ${newChar.identity}.`;
             break;
     }
-    // Setting default stats here... will change to actual stats/skills populating later
+    // Setting default stats here... will change to actual stats/skills populating later, as well as gear
     switch (newChar.class) {
         case 'Wayfarer':
         case 'Outlaw':
@@ -509,6 +497,8 @@ app.post('/character/create', (req, res, next) => {
                     .then(freshCharacter => {
                         const token = craftAccessToken(freshCharacter.name, freshCharacter._id);
                         const charToLoad = JSON.parse(JSON.stringify(freshCharacter));
+                        delete charToLoad.salt;
+                        delete charToLoad.hash;
 
                         addCharacterToGame(charToLoad);
 
@@ -579,12 +569,12 @@ const io = socketIo(server, {
 io.on('connection', (socket) => {
     console.log(`A client has connected to our IO shenanigans.`);
     // HMM: maybe a lastSent object, compared against an interval-based thingy to determine if we need to send down an update to weather/time/etc.
-    let myCharacter;
+    let myCharacter; // NOTE: this reference isn't fully dependable; the 'best' use of this right now is just a reference that's fixed, such as name
     let area; // Areas should be set up to be automatically unique, so no worries here about setting this one
     let room; // If I end up setting this to the room's GPS coords, or key + GPS, that should ensure uniqueness
 
     socket.on('login', character => {
-        console.log(`${character.name} has joined the game! You are at ${character.location.atMap}: (${character.location.atX},${character.location.atY}).`);
+        console.log(`${character.name} has joined the game!`);
         if (!characters[character.name]) {
             console.log(`Oh! Not logged in yet on the server. Beep boop, fixing.`);
             addCharacterToGame(character);
@@ -596,11 +586,6 @@ io.on('connection', (socket) => {
     socket.on('movedir', mover => {
         // HERE: use the request from the client to plug into the character and le GO
         const moveChar = characters[mover.who];
-        const mapToUse = areas[characters[mover.who].location.atMap];
-
-        // This works for now, but I'd really rather just get the pre-parsed info passed directly from the client and set it above
-        const directionObj = parseKeyInput(mover.where) || {compassDirection: 'nowhere', X: 0, Y: 0};
-        // console.log(`We're attempting to move ${mover.who}, loaded as the character ${characters[mover.who].name} whose X,Y is (${characters[mover.who].location.atX}, ${characters[mover.who].location.atY}).`);
 
         const direction = keyToDirection(mover.where);
         let walkResult = {
@@ -611,8 +596,6 @@ io.on('connection', (socket) => {
         // let walkResult = `${moveAnEntity(characters[mover.who], directionObj)} ${lilMap[characters[mover.who].location.atY][characters[mover.who].location.atX].title}.`;
         // if (characters[mover.who].location.atX === fieldGoblin.atX && characters[mover.who].location.atY === fieldGoblin.atY) walkResult += ` You see a field goblin here!`;
 
-        // Right now passing just a feedback string...
-        // But it'd be best to pass the entirety of the ROOM DATA, including what's here, its appearance, time/weather mods, etc.
         // And maybe change the EMIT name/type to 'what I am seeing' context, with a didIMove key for client to 'animate' movement
         // That way the emit can be 'recycled' to be used here AND on 'login' to update the user's 'sight'
         socket.emit('moved_dir', walkResult);
@@ -620,7 +603,7 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log(`Client has disconnected from our IO shenanigans. Goodbye, ${myCharacter.name}!`);
-        removeCharacterFromGame(myCharacter);
+        removeCharacterFromGame(characters[myCharacter.name]);
     });
 });
 
@@ -648,14 +631,40 @@ function craftAccessToken(name, id) {
 }
 
 function addCharacterToGame(character) {
-    characters[character.name] = character;
+    if (characters[character.name] === undefined) {
+        characters[character.name] = character;
+        return true;
+    }
+    return false;
+    // Just added the true/false there -- this is to allow down-the-road handling of trying to log in an already-playing user
 }
 
 function removeCharacterFromGame(character) {
-    delete characters[character.name];
+    // HERE: add save to DB before removing from server-space
+    const filter = { name: character.name };
+    const update = { $set: character };
+    const options = { new: true, useFindAndModify: false };
+
+    Character.findOneAndUpdate(filter, update, options)
+        .then(updatedResult => {
+            console.log(`${updatedResult.name} has been updated. I have saved them as being at ${updatedResult.location.room.title}. Disconnecting from game.`);
+            delete characters[character.name];
+        })
+        .catch(err => {
+            console.log(`We encountered an error saving the character whilst disconnecting: ${err}.`);
+            delete characters[character.name];
+        })
+    
 }
 
 server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
+
+setInterval(() => {
+    console.log(`Players currently in the game:`);
+    for (const property in characters) {
+        console.log(`${property}, at ${characters[property].location.room.title}.`);
+    }
+}, 10000);
 
 
 /*

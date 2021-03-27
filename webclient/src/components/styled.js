@@ -238,23 +238,57 @@ export const CharProfileImg = styled.div`
 `;
 
 export const CharProfileName = styled.p`
-    font-size: calc(6px + 0.5vw);
+    font-size: calc(0.7rem + 0.5vw);
     text-align: center;
     padding-left: 1rem;
     font-weight: 700;
 `;
 
-export const MyMapView = styled.div`
+export const MyCompassView = styled.div`
     display: flex;
     position: absolute;
     justify-content: center;
     background-color: hsl(40, 65%, 95%);
-    width: calc(100px + 20vmin);
-    height: calc(100px + 20vmin);
-    border-radius: 40vmin;
+    width: calc(150px + 5vw);
+    height: calc(150px + 5vw);
+    border-radius: 6px;
     border: 1px solid hsl(30, 75%, 45%);
-    right: -7vmin;
-    bottom: -5vmin;
+    right: -1vw;
+    bottom: -1vw;
+`;
+
+export const CompassArrow = styled.div`
+    visibility: hidden;
+    position: absolute;
+    box-sizing: border-box;
+    width: calc(6px + 1vw);
+    height: calc(6px + 1vw);
+    border: solid black;
+    border-width: 0 calc(3px + 0.2vw) calc(3px + 0.2vw) 0;
+    padding: 3px;
+    ${props => props.navigable && css`
+        visibility: visible;
+    `}
+    ${props => props.east && css`
+        transform: rotate(-45deg);
+        top: calc(50% - 3px - 0.5vw);
+        right: 30%;
+    `}
+    ${props => props.south && css`
+        transform: rotate(45deg);
+        margin: 0 auto;
+        bottom: 30%;
+    `}
+    ${props => props.west && css`
+        transform: rotate(135deg);
+        left: 30%;
+        top: calc(50% - 3px - 0.5vw);
+    `}
+    ${props => props.north && css`
+        transform: rotate(-135deg);
+        margin: 0 auto;
+        top: 30%;
+    `}
 `;
 
 export const RoomTitle = styled.div`
@@ -272,9 +306,12 @@ export const RoomTitle = styled.div`
 `;
 
 export const MyMapGuy = styled.div`
-    align-self: center;
-    width: 2vmin;
-    height: 2vmin;
+    position: absolute;
+    box-sizing: border-box;
+    left: calc(50% - 5px - 0.25vw);
+    top: calc(50% - 5px - 0.25vw);
+    width: calc(10px + 0.5vw);
+    height: calc(10px + 0.5vw);
     border-radius: 100vmin;
     background-color: hsl(220, 85%, 50%);
     animation: ${flicker} 2s linear 0s infinite;

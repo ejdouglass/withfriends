@@ -10,7 +10,7 @@ const CharacterSchema = new Schema({
     location: {
         type: Object,
         // The atX/atY are going to go the way of the dinosaur shortly, but we'll leave in for now to avoid errors during transition
-        default: {atMap: 'tutorialGeneric', atX: 2, atY: 1, GPS: '0,0,0', roomKey: 'tutorialStart', room: {
+        default: {atMap: 'tutorialGeneric', GPS: '0,0,0', roomKey: 'tutorialStart', room: {
             title: 'in an open grassy field',
             size: 5,
             indoors: false,

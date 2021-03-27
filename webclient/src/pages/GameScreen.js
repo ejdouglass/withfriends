@@ -61,6 +61,7 @@ const GameScreen = () => {
         feature: {eyes: '', hair: '', height: ''},
         quirks: []
     });
+    const [userCredentials, setUserCredentials] = useState({charName: '', password: ''});
     const [selectedIdentityIndex, setSelectedIdentityIndex] = useState(undefined);
     const [selectedClass, setSelectedClass] = useState('');
     const history = useHistory();
@@ -68,8 +69,35 @@ const GameScreen = () => {
     function loadCharFromToken(charToken) {
         // THIS: axios passes the charToken to the API in an attempt to load up the character in question
         axios.post('/character/login', { charToken: charToken })
-            .then(res => console.log(res.data))
-            .catch(err => console.log(err));
+            .then(res => {
+                console.log(res.data);
+                dispatch({type: actions.LOAD_CHAR, payload: {character: res.data.payload.character}});
+                localStorage.setItem('withFriendsJWT', res.data.payload.token);
+                history.push('/play');
+
+                // HERE: dispatch alert if sucessfully failed :P
+            })
+            .catch(err => {
+                console.log(err);
+                // HERE: dispatch alert for user feedback
+            });
+    }
+
+    function login() {
+        // THIS: makes sure we have a valid charname and passsword, then throws it along the same /character/login path as above
+        axios.post('/character/login', { userCredentials: userCredentials })
+            .then(res => {
+                console.log(res.data);
+                dispatch({type: actions.LOAD_CHAR, payload: {character: res.data.payload.character}});
+                localStorage.setItem('withFriendsJWT', res.data.payload.token);
+                history.push('/play');                
+
+                // HERE: handle failure of login, including user feedback via dispatch alert
+            })
+            .catch(err => {
+                console.log(err);
+                // HERE: user feedback via dispatch alert
+            })
     }
 
     function parseCharNameInput(nameString) {
@@ -114,7 +142,8 @@ const GameScreen = () => {
                     
                     // This sets the header for all subsequent axios requests; might consider using HTTP-only instead?
                     // Also just realized setting axios headers is kinda meaningless to the socket, whoops :P
-                    axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.payload.token}`;
+                    // axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.payload.token}`;
+                    localStorage.setItem('withFriendsJWT', res.data.payload.token);
                     history.push('/play');
                 })
                 .catch(err => console.log(err));
@@ -127,8 +156,9 @@ const GameScreen = () => {
     useEffect(() => {
         // Ok, anyway. Here we can attempt to load up the character from localStorage, and if no such character loads up, fire up CREATION MODE
         // Which will entail using DISPATCH to change the mode so our keypresses don't, say, open the backpack :P
-        const charToken = localStorage.getItem('charToken');
+        const charToken = localStorage.getItem('withFriendsJWT');
         if (charToken) {
+            console.log(`Found a token! Attempting to load from it.`);
             loadCharFromToken(charToken);
         }
     }, []);
