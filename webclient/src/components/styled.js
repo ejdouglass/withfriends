@@ -317,7 +317,7 @@ export const MyMapGuy = styled.div`
     animation: ${flicker} 2s linear 0s infinite;
 `;
 
-export const CreateCharacterScreen = styled.div`
+export const CreateCharacterPage = styled.div`
     z-index: 9999;
     position: fixed;
     display: flex;

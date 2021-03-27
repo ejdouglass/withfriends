@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import { Context, actions } from '../context/context';
-import { CreateCharacterScreen, CharacterClassSelector, CharacterClassChoiceContainer, CharacterIDSelector, CharacterIdentityDescription, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, CharacterNameInput, PWInput } from '../components/styled';
+import { CreateCharacterPage, CharacterClassSelector, CharacterClassChoiceContainer, CharacterIDSelector, CharacterIdentityDescription, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, CharacterNameInput, PWInput } from '../components/styled';
 
 const charId = {
     ROAMER: 'roamer',
@@ -53,7 +53,7 @@ const identities = [
     }
 ];
 
-const GameScreen = () => {
+const CreateCharacterScreen = () => {
     const [state, dispatch] = useContext(Context);
     const [newChar, setNewChar] = useState({
         name: '',
@@ -168,7 +168,7 @@ const GameScreen = () => {
     return (
         <>
         {state.characterName ? (<></>) : (
-            <CreateCharacterScreen>
+            <CreateCharacterPage>
                 <CreateCharacterForm onSubmit={e => saveNewCharacter(e)}>
                     <Title>Welcome to With Friends! New here? Make a character!</Title>
                     <CharacterNameInput autoFocus={true} minLength={5} maxLength={12} type='text' placeholder={`character name`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
@@ -189,13 +189,13 @@ const GameScreen = () => {
                     <PWInput type='text' placeholder={`password`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
                     <CreateCharacterButton>Create Character!</CreateCharacterButton>
                 </CreateCharacterForm>
-            </CreateCharacterScreen>
+            </CreateCharacterPage>
         )}
         </>
     )
 }
 
-export default GameScreen;
+export default CreateCharacterScreen;
 
 /*
 

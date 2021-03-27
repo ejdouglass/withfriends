@@ -10,7 +10,9 @@ import Backpack from './components/Backpack';
 import Status from './components/Status';
 import Keyboard from './components/Keyboard';
 import Cutscene from './components/Cutscene';
-import GameScreen from './pages/GameScreen';
+import CreateCharacterScreen from './pages/CreateCharacterScreen';
+import LoginScreen from './pages/LoginScreen';
+import WelcomeScreen from './pages/WelcomeScreen';
 
 
 // Might end up plopping a lot of the "screens" down here at the keyboard level... like inventory, charsheet, etc.
@@ -31,7 +33,9 @@ const App = () => {
         <CharSheet />
         <Backpack />
         <Status />
-        <Route exact path='/' component={GameScreen} />
+        <Route exact path='/' component={WelcomeScreen} />
+        <Route exact path='/login' component={LoginScreen} />
+        <Route exact path='/create_character' component={CreateCharacterScreen} />
       </Router>
     </Store>
   )

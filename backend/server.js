@@ -659,12 +659,13 @@ function removeCharacterFromGame(character) {
 
 server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
 
-setInterval(() => {
-    console.log(`Players currently in the game:`);
-    for (const property in characters) {
-        console.log(`${property}, at ${characters[property].location.room.title}.`);
-    }
-}, 10000);
+// Handy lil' function so I can see everyone playing and their current location. Can add more robust checking later, as well as a 'pinging' function.
+// setInterval(() => {
+//     console.log(`Players currently in the game:`);
+//     for (const property in characters) {
+//         console.log(`${property}, at ${characters[property].location.room.title}.`);
+//     }
+// }, 10000);
 
 
 /*
