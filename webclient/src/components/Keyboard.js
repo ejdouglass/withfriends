@@ -127,6 +127,12 @@ const Keyboard = () => {
         }
     }, [socketActive]);
 
+    useEffect(() => {
+        if (socketActive && state.named === undefined) {
+            setSocketActive(false);
+        }
+    }, [state.name]);
+
 
 
     // useEffect(() => {
