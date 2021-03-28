@@ -13,13 +13,19 @@ const LoginScreen = () => {
     });
     const history = useHistory();
 
+    function parseNameInput(name) {
+        if (name.length > 0) name = name[0].toUpperCase() + name.slice(1);
+        name = name.split(' ').join('');
+        setLoginCredentials({...loginCredentials, charName: name});
+    }
+
     function login(e) {
         e.preventDefault();
         if (loginCredentials.charName.length > 5 && loginCredentials.charName.length < 12 && loginCredentials.password.length > 4) {
             axios.post('/character/login', { userCredentials: loginCredentials })
                 .then(res => {
-                    localStorage.setItem('withFriendsJWT', res.data.token);
-                    dispatch({type: actions.LOAD_CHAR, payload: res.data.character});
+                    localStorage.setItem('withFriendsJWT', res.data.payload.token);
+                    dispatch({type: actions.LOAD_CHAR, payload: { character: res.data.payload.character}});
                     history.push('/play');
                 })
                 .catch(err => {
@@ -35,7 +41,7 @@ const LoginScreen = () => {
             <WelcomeCard>
                 <WelcomeText>Please enter your character's login info!</WelcomeText>
                 <CredentialsForm onSubmit={e => login(e)}>
-                    <CredentialsInput type='text' placeholder={`character name`} value={loginCredentials.charName} onChange={e => setLoginCredentials({...loginCredentials, charName: e.target.value})}></CredentialsInput>
+                    <CredentialsInput type='text' placeholder={`character name`} autoFocus={true} value={loginCredentials.charName} onChange={e => parseNameInput(e.target.value)}></CredentialsInput>
                     <CredentialsInput type='text' placeholder={`password`} value={loginCredentials.password} onChange={e => setLoginCredentials({...loginCredentials, password: e.target.value})}></CredentialsInput>
                     <SubmitCredentialsButton>Log In!</SubmitCredentialsButton>
                 </CredentialsForm>

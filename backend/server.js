@@ -386,6 +386,7 @@ app.post('/character/login', (req, res, next) => {
     }
     if (req.body.userCredentials !== undefined) {
         const { userCredentials } = req.body;
+        console.log(`Someone is attempting to log in with these credentials: ${JSON.stringify(userCredentials)}`);
 
         // HERE: handle credentials login: take userCredentials.charName and userCredentials.password and go boldly:
 
@@ -406,7 +407,6 @@ app.post('/character/login', (req, res, next) => {
                         // This will probably only work a small subset of times, actually; socket disconnection removes the char from the game
                         const alreadyInGame = addCharacterToGame(charToLoad);
 
-                        // 
                         if (alreadyInGame) res.status(200).json({type: `success`, message: `Reconnected to live character.`, payload: {character: characters[charToLoad.name], token: token}})
                         else res.status(200).json({type: `success`, message: `Good news everyone! ${charToLoad.name} is ready to play.`, payload: {character: charToLoad, token: token}});                        
 

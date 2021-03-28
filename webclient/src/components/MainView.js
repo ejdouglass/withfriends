@@ -1,13 +1,14 @@
 import React, { useContext } from 'react';
-import { Context } from '../context/context';
+import { useHistory } from 'react-router-dom';
+import { actions, Context } from '../context/context';
 import { MainScreen, CharCard, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, RoomTitle, MyMapGuy } from './styled';
 
 const MainView = () => {
-    const [state] = useContext(Context);
+    const [state, dispatch] = useContext(Context);
 
     return (
         <MainScreen>
-            <MyChar state={state} />
+            <MyChar state={state} dispatch={dispatch} />
             <MyMap state={state} />
         </MainScreen>
     )
@@ -17,13 +18,23 @@ export default MainView;
 
 
 
-const MyChar = ({ state }) => {
+const MyChar = ({ state, dispatch }) => {
     // Hm, a little bulky. Think about what else is going in here, maybe shrink it down to mostly fixed with a little bit of vw.
     // Also, name shrinks far too much when screen size changes. Pump it up!
+
+    const history = useHistory();
+
+    function logout() {
+        localStorage.removeItem('withFriendsJWT');
+        dispatch({type: actions.LOGOUT_CHAR});
+        history.push('/');
+    }
+
     return (
         <CharCard>
             <CharProfileImg />
             <CharProfileName>{state.name}</CharProfileName>
+            <button style={{marginLeft: '2rem', height: '40%'}} onClick={logout}>Log Out</button>
         </CharCard>
     )
 }

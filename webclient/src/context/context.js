@@ -3,6 +3,7 @@ import React, { createContext, useReducer } from 'react';
 export const actions = {
     TOGGLE_BACKPACK: 'toggle_backpack',
     LOAD_CHAR: 'load_char',
+    LOGOUT_CHAR: 'logout_char',
     SET_GAME_STATE: 'set_game_state',
     SET_ALERT: 'set_alert',
     UPDATE_ROOM: 'update_room'
@@ -43,6 +44,9 @@ export const Reducer = (state, action) => {
             console.log(`Receiving an updated location: ${JSON.stringify(updatedLocation)}`);
             // Anytime the 'view' dictating room/area details changes, we amend it here! Just pass in a whole new 'location' bit.
             return {...state, location: updatedLocation};
+        }
+        case actions.LOGOUT_CHAR: {
+            return initialState;
         }
         default: {
             return state;

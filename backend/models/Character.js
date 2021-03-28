@@ -109,7 +109,8 @@ const CharacterSchema = new Schema({
     quirk: {
         type: Object,
         default: {}
-    }
+    },
+    admin: {type: Boolean, default: false}
 }, { minimize: false });
 
 module.exports = mongoose.model('Character', CharacterSchema);

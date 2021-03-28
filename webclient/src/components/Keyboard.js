@@ -73,6 +73,7 @@ const Keyboard = () => {
             })
             .catch(err => {
                 console.log(err);
+                history.push('/');
                 // HERE: dispatch alert for user feedback
             });
     }
