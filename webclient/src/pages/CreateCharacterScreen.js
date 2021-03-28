@@ -66,23 +66,6 @@ const CreateCharacterScreen = () => {
     const [selectedClass, setSelectedClass] = useState('');
     const history = useHistory();
 
-    function loadCharFromToken(charToken) {
-        // THIS: axios passes the charToken to the API in an attempt to load up the character in question
-        axios.post('/character/login', { charToken: charToken })
-            .then(res => {
-                console.log(res.data);
-                dispatch({type: actions.LOAD_CHAR, payload: {character: res.data.payload.character}});
-                localStorage.setItem('withFriendsJWT', res.data.payload.token);
-                history.push('/play');
-
-                // HERE: dispatch alert if sucessfully failed :P
-            })
-            .catch(err => {
-                console.log(err);
-                // HERE: dispatch alert for user feedback
-            });
-    }
-
     function login() {
         // THIS: makes sure we have a valid charname and passsword, then throws it along the same /character/login path as above
         axios.post('/character/login', { userCredentials: userCredentials })
@@ -152,16 +135,6 @@ const CreateCharacterScreen = () => {
         // CONSIDER: Hm, instead of localStorage, should I do an HTTP version JS isn't allowed to touch? Maybe.
 
     }
-
-    useEffect(() => {
-        // Ok, anyway. Here we can attempt to load up the character from localStorage, and if no such character loads up, fire up CREATION MODE
-        // Which will entail using DISPATCH to change the mode so our keypresses don't, say, open the backpack :P
-        const charToken = localStorage.getItem('withFriendsJWT');
-        if (charToken) {
-            console.log(`Found a token! Attempting to load from it.`);
-            loadCharFromToken(charToken);
-        }
-    }, []);
 
     // Can add another useEffect down below to monitor changes to state.characterName and adjust accordingly
 

@@ -318,7 +318,7 @@ export const MyMapGuy = styled.div`
 `;
 
 export const CreateCharacterPage = styled.div`
-    z-index: 9999;
+    z-index: 5000;
     position: fixed;
     display: flex;
     flex-direction: column;

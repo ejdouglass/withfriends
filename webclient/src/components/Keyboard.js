@@ -60,6 +60,23 @@ const Keyboard = () => {
         keysDown.current[e.key] = false;
     }
 
+    function loadCharFromToken(charToken) {
+        // THIS: axios passes the charToken to the API in an attempt to load up the character in question
+        axios.post('/character/login', { charToken: charToken })
+            .then(res => {
+                console.log(res.data);
+                dispatch({type: actions.LOAD_CHAR, payload: {character: res.data.payload.character}});
+                localStorage.setItem('withFriendsJWT', res.data.payload.token);
+                history.push('/play');
+
+                // HERE: dispatch alert if sucessfully failed :P
+            })
+            .catch(err => {
+                console.log(err);
+                // HERE: dispatch alert for user feedback
+            });
+    }
+
 
     
     useEffect(() => {
@@ -73,16 +90,22 @@ const Keyboard = () => {
     }, [keyDownCB, keyUpCB]);
 
     useEffect(() => {
-        // Leeeet's try... STATELY EFFECT! 
+        // This doesn't work well with our new additional screens. Rejigger this concept a bit.
         if (state.name !== undefined) {
             if (!socketActive) setSocketActive(true);
+        }
+    }, [state.name])
 
+    useEffect(() => {
+        // This super assumes there's ALWAYS a token present for a valid playing character. Shouuuuuld be a fairly safe assumption for now.
+        const charToken = localStorage.getItem('withFriendsJWT');
+        if (charToken) {
+            console.log(`Found a token! Attempting to load from it.`);
+            loadCharFromToken(charToken);
         } else {
             history.push('/');
         }
-
-
-    }, [state.name])
+    }, []);
 
     useEffect(() => {
         // Ok, this works! But did NOT work when I defined socketToMe's variable was declared in the component. There's a lesson in there somewhere.

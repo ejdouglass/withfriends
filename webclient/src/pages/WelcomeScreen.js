@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Context, actions } from '../context/context';
 import axios from 'axios';
-import { LoadingPage, WelcomePage } from '../styled/WelcomeScreenStyled';
+import { LoadingPage, LoadingText, WelcomePage, WelcomeCard, WelcomeText, WithFriendsLogo, ChoiceContainer, ChoiceButton } from '../styled/WelcomeScreenStyled';
 
 const WelcomeScreen = () => {
     const [state, dispatch] = useContext(Context);
@@ -22,6 +22,7 @@ const WelcomeScreen = () => {
             })
             .catch(err => {
                 console.log(err);
+                localStorage.removeItem('withFriendsJWT');
                 // HERE: dispatch alert for user feedback
             });
     }
@@ -38,9 +39,21 @@ const WelcomeScreen = () => {
     return (
         <>
         {JWTchecked ? (
-            <LoadingPage></LoadingPage>
+            <WelcomePage>
+                <WithFriendsLogo />
+                <WelcomeCard>
+                    <WelcomeText>Welcome to With Friends!</WelcomeText>
+                    <WelcomeText>Please Log In or Create a New Character to play.</WelcomeText>
+                    <ChoiceContainer>
+                        <ChoiceButton onClick={() => history.push('/login')}>Log In</ChoiceButton>
+                        <ChoiceButton onClick={() => history.push('/create_character')}>Create New</ChoiceButton>
+                    </ChoiceContainer>
+                </WelcomeCard>
+            </WelcomePage>
         ) : (
-            <WelcomePage></WelcomePage>
+            <LoadingPage>
+                <LoadingText>Loading...</LoadingText>
+            </LoadingPage>
         )}
         </>
     )
