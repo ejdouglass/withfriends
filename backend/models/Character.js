@@ -9,22 +9,7 @@ const CharacterSchema = new Schema({
     hash: {type: String, required: true},
     location: {
         type: Object,
-        // The atX/atY are going to go the way of the dinosaur shortly, but we'll leave in for now to avoid errors during transition
-        default: {atMap: 'tutorialGeneric', GPS: '0,0,0', RPS: 0, roomKey: 'tutorialStart', room: {
-            title: 'in an open grassy field',
-            size: 5,
-            indoors: false,
-            GPS: '0,0,0',
-            RPS: 0,
-            background: {sky: undefined, ground: undefined, foreground: undefined}, // Let's get this working soon; can set up a control variable above
-            type: {field: 5}, // I don't even know what this means yet :P... probably comes into play for foraging/hiding/etc.
-            typeDetail: ['wheat', 'tallgrass'],
-            structures: [], // Can pass this down and iterate to interact in client
-            ofInterest: [],
-            entities: [],
-            loot: [],
-            exits: {'w': {to: 'tutorialGeneric/tutorialWestfield', hidden: 0}}}
-        } // As noted in webclient context, may refactor atMap into {} vs ''
+        default: {RPS: 0, GPS: '500,500,0'}
     },
     stat: {
         type: Object, 

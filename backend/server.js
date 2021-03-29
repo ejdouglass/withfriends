@@ -212,34 +212,31 @@ let areas = {
         -> Not a problem! Still a room. Just exists outside (well, inside of) the 'multiples of 10' or whatever 'base grid.' 
         -> That way they can be 'appended' into a pre-existing room on the fly without too much yikes
         
-    Let's ponder these sub-rooms real quick...
-    So say we have a room at 10,10... the next room 'east' would be 20,10.
-    -- So does that mean the initial room has up to 15, and then next room gets 16 - 25? That's... assymetrical. Hm.
-    -- Gotta be even numbers then. 5 is too small, as a 5x5 grid "only" gives 24 sub-building 'rooms.' Actually, that sounds immense right now :P
-    -- Well hm. 10 works too I guess? So at 10,10, the 'center' is 10,10. Then moving 'west'...
-        we have 9, 8, 7, and 6. Four 'padding' rooms.
-    -- Moving east from 0,10:
-        we have 1, 2, 3, 4. Also four 'padding' rooms.
-    Ok. It all seems to work out if we remember we can add or subtract four from the 'core' numbers to make a sub-room to visit.
-    ... this is all kind of EXTRA right now in a way, since I can just wave hands and say 'there are six buildings in this area'
-        and just clicking on them opens their respective menu rather than make a whole new room for them.
-    ... ok, done, we'll do it that way for now, with only the occasionally wacky exception if I feel like it, since I've left the possibility here.
+    OK! Room size 25 means we extend 12 away from center inclusively. Neat. So 12 is max size under this model.
 
     So! These new rooms! How do they look? What's in them?
 
     Let's also think about how to handle 'spawns.' I like the idea of having spawns increase/decrease based on who is where, up to a soft and then hard cap.
         -- spawn logistics! ... requires some 'Zone awareness' from the app, so build to allow for good zone awareness.
         -- can also consider having a 'Zone reference' array (can be built programmatically, it'd be a PITA to manually do it)
-        -- 
+        -- server start/restart could create this zoneRef array after loading up all the rooms
 
 */
 let zaWarudo = {
-    '0': {
+    0: {
         '500,500,0': {
             zone: 'Town of Rivercrossing',
             room: 'Center of Town',
             indoors: 0,
-            size: 4,
+            size: 12,
+            structures: [
+                {
+                    name: 'Rivercrossing Metalworks',
+                    type: 'shop/blacksmith',
+                    image: undefined,
+                    inventory: []
+                }
+            ],
             players: [],
             npcs: [],
             mobs: [],
@@ -247,7 +244,26 @@ let zaWarudo = {
             background: {sky: undefined, ground: undefined, foreground: undefined},
             fishing: undefined,
             foraging: {},
-
+            exits: {
+                'e': {to: '525,500,0', traversal: 'walk/0', hidden: 0}
+            }
+        },
+        '525,500,0': {
+            zone: 'Town of Rivercrossing',
+            room: 'East Riverside Road',
+            indoors: 0,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'w': {to: '500,500,0', traversal: 'walk/0', hidden: 0}
+            }            
         }
     }
 }
@@ -280,19 +296,12 @@ function moveAnEntity(entity, direction) {
 }
 
 function moveEntity(entity, direction) {
-    // New function, rather than scrapping the whole old function offhand. Let's see here...
-    // So, we have the entity, which has attached to itself the current location, including ROOM.
+    // 'Final' alpha concept of room-only. Keeping in RPS for now, might still be handy for instancing.
 
-    // Eh, we can distill it into a single 'letter' for direction, or if we-be-fancy, perhaps moveNorth, moveInto tavern, etc.
-    // Hm. In that case, let's see, how to match... 
     if (entity.location.room.exits[direction]) {
-        let newRoomData = entity.location.room.exits[direction].to.split('/');
-        const newArea = newRoomData[0];
-        const newRoomKey = newRoomData[1];
-        entity.location.atMap = newArea;
-        entity.location.roomKey = newRoomKey;
-        entity.location.room = areas[newArea].rooms[newRoomKey];
-        entity.location.GPS = entity.location.room.GPS;
+        let newRoomGPS = entity.location.room.exits[direction].to;
+        entity.location.GPS = newRoomGPS;
+        entity.location.room = zaWarudo[entity.location.RPS][newRoomGPS];
 
         return `Off you go!`;
     }
@@ -626,7 +635,7 @@ io.on('connection', (socket) => {
     console.log(`A client has connected to our IO shenanigans.`);
     // HMM: maybe a lastSent object, compared against an interval-based thingy to determine if we need to send down an update to weather/time/etc.
     let myCharacter; // NOTE: this reference isn't fully dependable; the 'best' use of this right now is just a reference that's fixed, such as name
-    let area; // Areas should be set up to be automatically unique, so no worries here about setting this one
+    let zone; // Areas should be set up to be automatically unique, so no worries here about setting this one
     let room; // If I end up setting this to the room's GPS coords, or key + GPS, that should ensure uniqueness
 
     socket.on('login', character => {
@@ -688,6 +697,7 @@ function craftAccessToken(name, id) {
 
 function addCharacterToGame(character) {
     if (characters[character.name] === undefined) {
+        character.location.room = zaWarudo[character.location.RPS][character.location.GPS];
         characters[character.name] = character;
         return true;
     }

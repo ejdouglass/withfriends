@@ -101,11 +101,8 @@ const initialState = {
         charisma: 0
     },
     location: {
-        atMap: undefined, //Hm, this will probably become an object rather than a string at some point
-        atX: -1,
-        atY: -1,
-        GPS: '0,0,0',
         RPS: 0,
+        GPS: '500,500,0',
         room: {}
     },
     whatDo: mode.CHARACTER_CREATION,

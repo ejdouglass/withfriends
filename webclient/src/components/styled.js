@@ -291,16 +291,30 @@ export const CompassArrow = styled.div`
     `}
 `;
 
+export const ZoneTitle = styled.div`
+    display: flex;
+    position: absolute;
+    top: -105px;
+    width: calc(200px + 20vmin);
+    font-weight: 800;
+    height: 50px;
+    border: 1px solid green;
+    background-color: white;
+    font-size: calc(0.8rem + 1vw);
+    justify-content: center;
+    align-items: center;
+`;
+
 export const RoomTitle = styled.div`
     display: flex;
     position: absolute;
     top: -55px;
-    width: calc(100px + 20vmin);
+    width: calc(200px + 20vmin);
     font-weight: 700;
     height: 50px;
     border: 1px solid red;
     background-color: white;
-    font-size: calc(0.6rem + 1vmin);
+    font-size: calc(0.6rem + 1vw);
     justify-content: center;
     align-items: center;
 `;

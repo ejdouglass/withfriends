@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { MainScreen, CharCard, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, RoomTitle, MyMapGuy } from './styled';
+import { MainScreen, CharCard, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, RoomTitle, MyMapGuy } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -49,7 +49,8 @@ const MyMap = ({ state }) => {
     
     return (
         <MyCompassView>
-            <RoomTitle>{state.location?.room?.title || 'An Empty Void'}</RoomTitle>
+            <ZoneTitle>{state.location?.room?.zone || 'An Endless Void'}</ZoneTitle>
+            <RoomTitle>{state.location?.room?.room || 'Floating Aimlessly'}</RoomTitle>
             <MyMapGuy />
             <CompassArrow east navigable={state.location?.room?.exits?.e}/>
             <CompassArrow southeast navigable={state.location?.room?.exits?.se}/>
