@@ -198,33 +198,57 @@ let areas = {
 
 // Spitballing on 'final' areas prototype for beta
 /*
-    Rooms/areas might (or, likely, WILL) get changed; the SAFEST way to save them to characters is just the coords, which should remain absoulute;
-    -- area names can change (case in point, I don't want to call it "tutorialGeneric" above anymore :P)
-    -- so, areaKey should be an ID, not a name; roomKey could be RPS+GPS (or just GPS, if RPS is already accounted for)
-    -- how can I refactor so we can always 'find' where characters should be based on where they saved?
-        -> can introduce 'conditional loading' where, if we can't find where they're supposed to be, we make a 'best guess'
-        -> if 'best guess' doesn't come up with something, then just plop them at a hardcoded fallback spawn :P
-    
-    Still a big HMMM: the RPS+GPS concept. 
+    Ok! We've gone off the rails. Getting back ON the rails. Yay! This is the FIRST game. Lots of cool ideas, but let's KISS it kindly for now.
 
-    Some ideas:
-    -) Store a 'reference atlas' that charGPS is referenced against while loading, 'zooming in' layer by layer to plop you back to the right spot
-    -) Have different RPS be the 'root' keys in Areas, then have MAP level, then ZONE/MUD level
+    -- Everything is now on a universal GRID. There are no 'travel maps.' Everything is MUD-y.
+    -- Graphics will be very limited. Static icons for quick visible reference, and anything beyond that is a later project or much later version.
+        -> So, backpack is now just a list of items by name with a simple (easily made pixel) icon. AC-like.
+        -> Baddies can just have a Zelda II esque "monster level" icon, maybe with a different color/size at most.
+    -- Things that are 'in the room' like players can just be a little 'standing guy' icon with a number badge on it. Click/key to examine more closely,
+        and maybe they pop up at the top of the screen upon entering the room. Same with mobbies.
+    -- Since everything is aggresively ROOM-BASED, we can now just have The World just be a collection of roomKeys. Great!
+        -> roomKey: 'X,Y,Z' coords. Easy peasy.
+        -> oh hm. Ok, sub-rooms, such as a BLACKSMITH in the TOWN SQUARE. How do we handle?
+        -> Not a problem! Still a room. Just exists outside (well, inside of) the 'multiples of 10' or whatever 'base grid.' 
+        -> That way they can be 'appended' into a pre-existing room on the fly without too much yikes
+        
+    Let's ponder these sub-rooms real quick...
+    So say we have a room at 10,10... the next room 'east' would be 20,10.
+    -- So does that mean the initial room has up to 15, and then next room gets 16 - 25? That's... assymetrical. Hm.
+    -- Gotta be even numbers then. 5 is too small, as a 5x5 grid "only" gives 24 sub-building 'rooms.' Actually, that sounds immense right now :P
+    -- Well hm. 10 works too I guess? So at 10,10, the 'center' is 10,10. Then moving 'west'...
+        we have 9, 8, 7, and 6. Four 'padding' rooms.
+    -- Moving east from 0,10:
+        we have 1, 2, 3, 4. Also four 'padding' rooms.
+    Ok. It all seems to work out if we remember we can add or subtract four from the 'core' numbers to make a sub-room to visit.
+    ... this is all kind of EXTRA right now in a way, since I can just wave hands and say 'there are six buildings in this area'
+        and just clicking on them opens their respective menu rather than make a whole new room for them.
+    ... ok, done, we'll do it that way for now, with only the occasionally wacky exception if I feel like it, since I've left the possibility here.
 
-    So we have (REALITY) --> MAP --> ZONE --> SECTION --> ROOM. That work?
-    ... I keep having 'bigger ideas' but that would delay this project by a TON to implement. SCALE BACK BRO. VERSION ZERO. ZE-RO. 
-    TECH DEMO. Please now. Bring it back. :P
-    ... you can consider having a different way to 'render' the raw data later. That's fine! 
-    Ok, now that we've got that out of the way...
+    So! These new rooms! How do they look? What's in them?
 
-    What are we solving here?
-    -- I want to just save the character's "POSITION" as a simple RPS+GPS, since that's being designed to be absolute.
-    -- Set the data so that it's fairly trivial to re-load from just that RPS+GPS.
+    Let's also think about how to handle 'spawns.' I like the idea of having spawns increase/decrease based on who is where, up to a soft and then hard cap.
+        -- spawn logistics! ... requires some 'Zone awareness' from the app, so build to allow for good zone awareness.
+        -- can also consider having a 'Zone reference' array (can be built programmatically, it'd be a PITA to manually do it)
+        -- 
 
 */
 let zaWarudo = {
     '0': {
-        map1: 0
+        '500,500,0': {
+            zone: 'Town of Rivercrossing',
+            room: 'Center of Town',
+            indoors: 0,
+            size: 4,
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+
+        }
     }
 }
 

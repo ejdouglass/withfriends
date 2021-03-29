@@ -81,16 +81,12 @@ const initialState = {
         stackModifiers: {}
     },
     equipped: {
+        rightHand: {},
+        leftHand: {},
         head: {},
-        neck: {},
-        shoulders: {},
         torso: {},
-        arms: {},
-        hands: {},
-        rings: [{},{}],
-        legs: {},
-        feet: {},
-        accessories: [{},{}]
+        accessory1: {},
+        accessory2: {}
     },
     position: 'standing',
     healthStatus: 'fine',

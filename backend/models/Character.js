@@ -38,16 +38,12 @@ const CharacterSchema = new Schema({
     equipped: {
         type: Object,
         default: {
+            rightHand: {},
+            leftHand: {},
             head: {},
-            neck: {},
-            shoulders: {},
             torso: {},
-            arms: {},
-            hands: {},
-            rings: [{},{}],
-            legs: {},
-            feet: {},
-            accessories: [{},{}]
+            accessory1: {},
+            accessory2: {}
         }
     },
     position: {type: String, default: 'standing'},
