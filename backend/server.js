@@ -196,6 +196,38 @@ let areas = {
     ]
 };
 
+// Spitballing on 'final' areas prototype for beta
+/*
+    Rooms/areas might (or, likely, WILL) get changed; the SAFEST way to save them to characters is just the coords, which should remain absoulute;
+    -- area names can change (case in point, I don't want to call it "tutorialGeneric" above anymore :P)
+    -- so, areaKey should be an ID, not a name; roomKey could be RPS+GPS (or just GPS, if RPS is already accounted for)
+    -- how can I refactor so we can always 'find' where characters should be based on where they saved?
+        -> can introduce 'conditional loading' where, if we can't find where they're supposed to be, we make a 'best guess'
+        -> if 'best guess' doesn't come up with something, then just plop them at a hardcoded fallback spawn :P
+    
+    Still a big HMMM: the RPS+GPS concept. 
+
+    Some ideas:
+    -) Store a 'reference atlas' that charGPS is referenced against while loading, 'zooming in' layer by layer to plop you back to the right spot
+    -) Have different RPS be the 'root' keys in Areas, then have MAP level, then ZONE/MUD level
+
+    So we have (REALITY) --> MAP --> ZONE --> SECTION --> ROOM. That work?
+    ... I keep having 'bigger ideas' but that would delay this project by a TON to implement. SCALE BACK BRO. VERSION ZERO. ZE-RO. 
+    TECH DEMO. Please now. Bring it back. :P
+    ... you can consider having a different way to 'render' the raw data later. That's fine! 
+    Ok, now that we've got that out of the way...
+
+    What are we solving here?
+    -- I want to just save the character's "POSITION" as a simple RPS+GPS, since that's being designed to be absolute.
+    -- Set the data so that it's fairly trivial to re-load from just that RPS+GPS.
+
+*/
+let zaWarudo = {
+    '0': {
+        map1: 0
+    }
+}
+
 // CONSIDER: now that entities store their location better, can use this 'internal data' to interface with area/map data
 function moveAnEntity(entity, direction) {
     // Ok, so now the new hotness if the "entity" we're receiving here is a reference to the full character object, so includes the area they're in.
