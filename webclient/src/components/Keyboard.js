@@ -120,6 +120,9 @@ const Keyboard = () => {
                 dispatch({type: actions.UPDATE_ROOM, payload: { updatedLocation: data.newLocation }});
                 // HERE: unpack data, adjust state via dispatch - room details, weather, time of day, etc.
             });
+            socketToMe.on('room_event', stringy => {
+                console.log(stringy);
+            });
             
             return () => {
                 socketToMe.disconnect();

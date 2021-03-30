@@ -27,43 +27,6 @@ let characters = {};
 // Almost time to slide a field goblin or two in here.
 let mobs = {};
 
-// Probably refactor this later, but can slip 'maps' such as lilmap below into this object for the short-term until I figure out a good way to scale it
-// NEXT: Add a new NON-lilMap area to chew on
-/*
-    What else do we need to consider to construct a good, scalable structure here?
-    areas.AREANAME is currently [] of rooms...
-    ... but maybe refactor to, say, areas.TUTORIAL = {
-        room: [] or {}?,
-        type: 'mud' or 'field' (or ???)
-    }
-
-    Exciting! Refactoring the entity-bound "location" object to: 
-    myGuy.location = {
-        atMap: 'mapname',
-        GPS: 'absolute coords', // redundant; maybe make GPS/RPS room-dependent, and then have TITLE for open-areas and TYPE 
-        RPS: 'reality position reference',
-        room: {
-            title: `at a lake's edge`,
-            size: `??`, // room size, from fairly large (outdoor area) to quite small (indoor room)... I dunno, 1 to 5 with five being biggest? Sure, for now
-            indoors: false,
-            GPS: 'absolute coords X,Y,Z',
-            RPS: 'reality id',
-            background: {sky: __, ground: __, foreground: ___},
-            weather: ___, //inherit from area?
-            timeOfDay: ___,
-            type: {city: 3, forest: 1, road: 5},
-            typeDetail: ['slums', 'darkwood', 'evil', 'crowded'],
-            structures: [],
-            entities: [],
-            stuff: [],
-            exits: {'n': {to: }}
-        }
-    }
-
-    Boy oh boy defining these manually is going to get silly really fast.
-    -- Consider making these class-built and/or making a pop-up builder for Admin/Digger
-
-*/
 let areas = {
     'tutorialGeneric': {
         type: 'mud',
@@ -233,7 +196,9 @@ let zaWarudo = {
                 {
                     name: 'Rivercrossing Metalworks',
                     type: 'shop/blacksmith',
-                    image: undefined,
+                    roomImage: undefined,
+                    interiorImage: undefined,
+                    description: ``,
                     inventory: []
                 }
             ],
@@ -618,6 +583,8 @@ const io = socketIo(server, {
         io.to('room1').emit('Hullo there!'); // Would socket.to('room1') also work? Hm.
     })
 
+    JOIN and LEAVE are opposites. As you'd expect.
+
     Ok! Rooms are SERVER-ONLY -- the client has no idea what room(s) it is a part of, which is... fine?
 
     Anyway, you do a socket.join('some room'), then io.to('some room').emit() OR io.in('some room').emit() (interchangeabble to/in)
@@ -635,8 +602,8 @@ io.on('connection', (socket) => {
     console.log(`A client has connected to our IO shenanigans.`);
     // HMM: maybe a lastSent object, compared against an interval-based thingy to determine if we need to send down an update to weather/time/etc.
     let myCharacter; // NOTE: this reference isn't fully dependable; the 'best' use of this right now is just a reference that's fixed, such as name
-    let zone; // Areas should be set up to be automatically unique, so no worries here about setting this one
-    let room; // If I end up setting this to the room's GPS coords, or key + GPS, that should ensure uniqueness
+    let zoneString; // Areas should be set up to be automatically unique, so no worries here about setting this one
+    let roomString; // If I end up setting this to the room's GPS coords, or key + GPS, that should ensure uniqueness
 
     socket.on('login', character => {
         console.log(`${character.name} has joined the game!`);
@@ -644,6 +611,10 @@ io.on('connection', (socket) => {
             console.log(`Oh! Not logged in yet on the server. Beep boop, fixing.`);
             addCharacterToGame(character);
         }
+        roomString = character.location.RPS.toString() + '/' + character.location.GPS;
+        socket.join(roomString);
+        console.log(`Testing feedback: ${character.name} joined room known as ${roomString}.`);
+        socket.join(zaWarudo[character.location.RPS][character.location.GPS].zone);
         myCharacter = character;
     });
 
@@ -652,21 +623,33 @@ io.on('connection', (socket) => {
         // HERE: use the request from the client to plug into the character and le GO
         const moveChar = characters[mover.who];
 
+        // SOMEWHERE AROUND HERE: see if the character has left the Zone to update zone socket :P
+
+        let oldGPS = moveChar.location.GPS;
+
         const direction = keyToDirection(mover.where);
         let walkResult = {
             feedback: moveEntity(moveChar, direction),
             newLocation: moveChar.location
         };
-        // let walkResult = `${moveAnEntity(moveChar, directionObj)} ${mapToUse[moveChar.location.atY][moveChar.location.atX].title}.`;
-        // let walkResult = `${moveAnEntity(characters[mover.who], directionObj)} ${lilMap[characters[mover.who].location.atY][characters[mover.who].location.atX].title}.`;
-        // if (characters[mover.who].location.atX === fieldGoblin.atX && characters[mover.who].location.atY === fieldGoblin.atY) walkResult += ` You see a field goblin here!`;
 
-        // And maybe change the EMIT name/type to 'what I am seeing' context, with a didIMove key for client to 'animate' movement
-        // That way the emit can be 'recycled' to be used here AND on 'login' to update the user's 'sight'
+        let newGPS = moveChar.location.GPS;
+
+        if (oldGPS !== newGPS) {
+            // Movement actually occurred! Change room subscriptions while emitting properly.
+            socket.to(roomString).emit('room_event', `${moveChar.name} just went wherever the ${mover.where} key takes them.`);
+            socket.leave(roomString);
+            roomString = moveChar.location.RPS.toString() + '/' + moveChar.location.GPS;
+            socket.join(roomString);
+            socket.to(roomString).emit('room_event', `${moveChar.name} just arrived. Hi!`);
+        }
+
+
         socket.emit('moved_dir', walkResult);
     });
 
     socket.on('disconnect', () => {
+        socket.to(roomString).emit('room_event', `${myCharacter.name} just disappeared in a puff of smoke! Wow!`);
         console.log(`Client has disconnected from our IO shenanigans. Goodbye, ${myCharacter.name}!`);
         removeCharacterFromGame(characters[myCharacter.name]);
     });

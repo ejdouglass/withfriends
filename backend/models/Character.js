@@ -47,46 +47,9 @@ const CharacterSchema = new Schema({
             building: 0,
             connecting: 0,
         }
-        // default: {
-        //     gathering: {
-        //         fishing: 0,
-        //         foraging: 0,
-        //         lumberjacking: 0,
-        //         mining: 0,
-        //         skinning: 0
-        //     },
-        //     crafting: {
-        //         smithing: 0,
-        //         stitching: 0,
-        //         carving: 0,
-        //         enchanting: 0,
-        //         engineering: 0,
-        //         construction: 0,
-        //         brewing: 0
-        //     },
-        //     stealth: {
-        //         hiding: 0,
-        //         stealing: 0
-        //     },
-        //     traversal: {
-        //         swimming: 0,
-        //         climbing: 0,
-        //         running: 0
-        //     },
-        //     combat: {
-        //         marksmanship: 0,
-        //         swordplay: 0,
-        //         throwing: 0,
-        //         blocking: 0,
-        //         dodging: 0
-        //     },
-        //     mercantile: 0,
-        //     medicine: 0
-        // }
     },
-    expertise: {
-        type: Object
-    },
+    spells: Object,
+    abilities: Object,
     quirk: {
         type: Object,
         default: {}
