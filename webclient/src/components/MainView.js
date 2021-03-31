@@ -1,13 +1,14 @@
-import React, { useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { MainScreen, CharCard, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, RoomTitle, MyMapGuy } from './styled';
+import { MainScreen, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, RoomTitle, MyMapGuy } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
 
     return (
         <MainScreen>
+            <ViewBox state={state} dispatch={dispatch} />
             <MyChar state={state} dispatch={dispatch} />
             <MyMap state={state} />
         </MainScreen>
@@ -15,6 +16,58 @@ const MainView = () => {
 }
 
 export default MainView;
+
+
+
+const ViewBox = ({ state, dispatch }) => {
+    const [talkText, setTalkText] = useState('');
+    const [chatMode, setChatMode] = useState(false);
+    const chatRef = useRef(null);
+
+    function enterChatMode() {
+        dispatch({type: actions.UPDATE_WHATDO, payload: 'chat'});
+    }
+
+    function leaveChatMode() {
+        setTalkText('');
+        dispatch({type: actions.UPDATE_WHATDO, payload: 'travel'});
+    }
+
+    function handleSubmittedChatText(e) {
+        e.preventDefault();
+        if (talkText === '') {
+            dispatch({type: actions.UPDATE_WHATDO, payload: 'travel'});
+            return;
+        }
+        console.log(`Blah blah blah`);
+        dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'talk', message: talkText}});
+        setTalkText('');
+    }
+
+    useEffect(() => {
+        if (state.whatDo === 'chat') {
+            setChatMode(true);
+            chatRef.current.focus();
+        }
+    }, [state.whatDo]);
+
+    // ADD: Form wrapper with submit-y button to DO something with your words. Though the socket kinda lives in another component. Hmmm.
+    // How to fix... welp, two ways come to mind:
+    // 1) Have a DISPATCH update STATE with words to send, have KeyBoard watch for it, then emit
+    // 2) Have KeyBoard... no, yeah, the second way is absolutely bananas, no thanks. :P
+    // OK! Actually, we can extrapolate this all all BEAUTIFULLY. BEHOLD!
+    // Have a dispatch type of PACKAGEFORBACKEND (or something) so it could be talking, attacking, whatever, just send it on back. Then KeyBoard handles any response!
+
+    return (
+        <>
+            <MainViewContainer></MainViewContainer>
+            <ChatWrapper onSubmit={handleSubmittedChatText}>
+                <ChatInput type='text' ref={chatRef} readOnly={!chatMode} value={talkText} onChange={e => setTalkText(e.target.value)} autoComplete={false} autoCorrect={false} onClick={enterChatMode} onBlur={leaveChatMode}></ChatInput>
+                <ChatSubmit>!</ChatSubmit>
+            </ChatWrapper>
+        </>
+    )
+}
 
 
 
@@ -32,6 +85,7 @@ const MyChar = ({ state, dispatch }) => {
 
     return (
         <CharCard>
+            <ZoneTitle>{state.location?.room?.zone || 'An Endless Void'} - {state.location?.room?.room || 'Floating Aimlessly'}</ZoneTitle>
             <CharProfileImg />
             <CharProfileName>{state.name}</CharProfileName>
             <button style={{marginLeft: '2rem', height: '40%'}} onClick={logout}>Log Out</button>
@@ -49,8 +103,6 @@ const MyMap = ({ state }) => {
     
     return (
         <MyCompassView>
-            <ZoneTitle>{state.location?.room?.zone || 'An Endless Void'}</ZoneTitle>
-            <RoomTitle>{state.location?.room?.room || 'Floating Aimlessly'}</RoomTitle>
             <MyMapGuy />
             <CompassArrow east navigable={state.location?.room?.exits?.e}/>
             <CompassArrow southeast navigable={state.location?.room?.exits?.se}/>

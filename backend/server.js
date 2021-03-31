@@ -601,7 +601,7 @@ const io = socketIo(server, {
 io.on('connection', (socket) => {
     console.log(`A client has connected to our IO shenanigans.`);
     // HMM: maybe a lastSent object, compared against an interval-based thingy to determine if we need to send down an update to weather/time/etc.
-    let myCharacter; // NOTE: this reference isn't fully dependable; the 'best' use of this right now is just a reference that's fixed, such as name
+    let myCharacter = {name: 'The Great Serverman'}; // NOTE: this reference isn't fully dependable; the 'best' use of this right now is just a reference that's fixed, such as name
     let zoneString; // Areas should be set up to be automatically unique, so no worries here about setting this one
     let roomString; // If I end up setting this to the room's GPS coords, or key + GPS, that should ensure uniqueness
 
@@ -616,6 +616,17 @@ io.on('connection', (socket) => {
         console.log(`Testing feedback: ${character.name} joined room known as ${roomString}.`);
         socket.join(zaWarudo[character.location.RPS][character.location.GPS].zone);
         myCharacter = character;
+    });
+
+    socket.on('action', actionData => {
+        switch (actionData.action) {
+            case 'talk': {
+                // HERE, eventually: see if char CAN talk before just babbling away :P
+                socket.to(roomString).emit('room_event', `${myCharacter.name} says, "${actionData.message}"`);
+            }
+            default: 
+                break;
+        }
     });
 
 
@@ -690,20 +701,20 @@ function addCharacterToGame(character) {
 
 function removeCharacterFromGame(character) {
     // HERE: add save to DB before removing from server-space
-    const filter = { name: character.name };
-    const update = { $set: character };
-    const options = { new: true, useFindAndModify: false };
-
-    Character.findOneAndUpdate(filter, update, options)
+    if (character.name !== undefined) {
+        const filter = { name: character.name };
+        const update = { $set: character };
+        const options = { new: true, useFindAndModify: false };
+        Character.findOneAndUpdate(filter, update, options)
         .then(updatedResult => {
-            console.log(`${updatedResult.name} has been updated. I have saved them as being at ${updatedResult.location.room.title}. Disconnecting from game.`);
+            console.log(`${updatedResult.name} has been updated. I have saved them as being at ${updatedResult.location.room.room}. Disconnecting from game.`);
             delete characters[character.name];
         })
         .catch(err => {
             console.log(`We encountered an error saving the character whilst disconnecting: ${err}.`);
             delete characters[character.name];
         })
-    
+    }
 }
 
 server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));

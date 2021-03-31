@@ -6,7 +6,9 @@ export const actions = {
     LOGOUT_CHAR: 'logout_char',
     SET_GAME_STATE: 'set_game_state',
     SET_ALERT: 'set_alert',
-    UPDATE_ROOM: 'update_room'
+    UPDATE_ROOM: 'update_room',
+    UPDATE_WHATDO: 'update_whatdo',
+    PACKAGE_FOR_SERVER: 'package_for_server'
 }
 
 export const Reducer = (state, action) => {
@@ -48,15 +50,30 @@ export const Reducer = (state, action) => {
         case actions.LOGOUT_CHAR: {
             return initialState;
         }
+        case actions.UPDATE_WHATDO: {
+            return {...state, whatDo: action.payload};
+        }
+        case actions.PACKAGE_FOR_SERVER: {
+            return {...state, package: action.payload};
+        }
         default: {
             return state;
         }
     }
 }
 
+/*
+    Future possible modes:
+    -- SKYGAZE
+    -- INTROSPECT
+
+*/
 const mode = {
     TRAVEL: 'travel',
-    CHARACTER_CREATION: 'character_creation'
+    CHARACTER_CREATION: 'character_creation',
+    CHAT: 'chat',
+    RUMMAGE: 'rummage',
+    FIGHT: 'fight'
 }
 
 const initialState = {
@@ -106,7 +123,8 @@ const initialState = {
         room: {}
     },
     whatDo: mode.CHARACTER_CREATION,
-    alert: undefined
+    alert: undefined,
+    package: undefined
 }
 
 export const Context = createContext(initialState);

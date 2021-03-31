@@ -24,11 +24,17 @@ const Keyboard = () => {
         if (!keysDown.current[e.key]) {
             keysDown.current[e.key] = true;
         }
+        if (state.whatDo === 'chat') return;
         switch (e.key) {
             // Did a HAX below for now, but going forward, let's sort out ways to parse state.whatDo/game mode/gamestate
             case 'b': {
                 if (keysDown.current['Meta'] && state.whatDo !== 'character_creation') dispatch({type: actions.TOGGLE_BACKPACK});
                 break;
+            }
+            case 'Enter': {
+                if (state.whatDo === 'travel') {
+                    dispatch({type: actions.UPDATE_WHATDO, payload: 'chat'});
+                }
             }
             case 'w':
             case 'e':
@@ -136,7 +142,11 @@ const Keyboard = () => {
         }
     }, [state.name]);
 
-
+    useEffect(() => {
+        if (state?.package?.action) {
+            socketToMe.emit('action', state.package);
+        }
+    }, [state.package]);
 
     // useEffect(() => {
     //     console.log(`Keystate has changed!`);

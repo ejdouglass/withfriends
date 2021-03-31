@@ -196,11 +196,11 @@ export const BackpackContainer = styled.div`
 `;
 
 export const MainScreen = styled.div`
+    position: fixed;
     display: flex;
     background-color: white;
     opacity: 1;
     z-index: 1;
-    position: fixed;
     width: 86vw;
     height: 86vh;
     box-sizing: border-box;
@@ -214,10 +214,10 @@ export const CharCard = styled.div`
     display: flex;
     flex-direction: row;
     position: absolute;
-    width: calc(200px + 30vw);
-    height: 20vmin;
-    top: -5vmin;
-    left: -5vmin;
+    width: calc(250px + 10vw);
+    height: 100px;
+    top: -50px;
+    left: -50px;
     background-color: hsl(180, 15%, 95%);
     border-radius: 3px;
     border: 1px solid black;
@@ -232,13 +232,13 @@ export const CharProfileContainer = styled.div`
 
 export const CharProfileImg = styled.div`
     display: flex;
-    width: 20vmin;
-    height: 20vmin;
+    width: 100px;
+    height: 100px;
     background-color: blue;
 `;
 
 export const CharProfileName = styled.p`
-    font-size: calc(0.7rem + 0.5vw);
+    font-size: calc(0.5rem + 0.5vw);
     text-align: center;
     padding-left: 1rem;
     font-weight: 700;
@@ -249,73 +249,59 @@ export const MyCompassView = styled.div`
     position: absolute;
     justify-content: center;
     background-color: hsl(40, 65%, 95%);
-    width: calc(150px + 5vw);
-    height: calc(150px + 5vw);
-    border-radius: 6px;
+    width: calc(100px + 1vw);
+    height: calc(100px + 1vw);
+    border-radius: 100vw;
     border: 1px solid hsl(30, 75%, 45%);
-    right: -1vw;
-    bottom: -1vw;
+    right: calc(-50px - 0.5vw);
+    top: calc(-50px - 0.5vw);
 `;
 
 export const CompassArrow = styled.div`
     visibility: hidden;
     position: absolute;
     box-sizing: border-box;
-    width: calc(6px + 1vw);
-    height: calc(6px + 1vw);
+    width: 16px;
+    height: 16px;
     border: solid black;
-    border-width: 0 calc(3px + 0.2vw) calc(3px + 0.2vw) 0;
+    border-width: 0 4px 4px 0;
     padding: 3px;
     ${props => props.navigable && css`
         visibility: visible;
     `}
     ${props => props.east && css`
         transform: rotate(-45deg);
-        top: calc(50% - 3px - 0.5vw);
-        right: 30%;
+        top: calc(50% - 8px);
+        right: 20%;
     `}
     ${props => props.south && css`
         transform: rotate(45deg);
         margin: 0 auto;
-        bottom: 30%;
+        bottom: 20%;
     `}
     ${props => props.west && css`
         transform: rotate(135deg);
-        left: 30%;
-        top: calc(50% - 3px - 0.5vw);
+        left: 20%;
+        top: calc(50% - 8px);
     `}
     ${props => props.north && css`
         transform: rotate(-135deg);
         margin: 0 auto;
-        top: 30%;
+        top: 20%;
     `}
 `;
 
 export const ZoneTitle = styled.div`
     display: flex;
     position: absolute;
-    top: -105px;
-    width: calc(200px + 20vmin);
+    box-sizing: border-box;
+    top 50px;
+    padding-left: 1rem;
+    left: calc(250px + 10vw);
+    width: calc(300px + 20vw);
     font-weight: 800;
     height: 50px;
-    border: 1px solid green;
-    background-color: white;
-    font-size: calc(0.8rem + 1vw);
-    justify-content: center;
-    align-items: center;
-`;
-
-export const RoomTitle = styled.div`
-    display: flex;
-    position: absolute;
-    top: -55px;
-    width: calc(200px + 20vmin);
-    font-weight: 700;
-    height: 50px;
-    border: 1px solid red;
-    background-color: white;
     font-size: calc(0.6rem + 1vw);
-    justify-content: center;
     align-items: center;
 `;
 
@@ -450,3 +436,50 @@ export const CharacterIdentityDescription = styled.p`
 `;
 
 export const CharacterClassDescription = styled.p``;
+
+export const MainViewContainer = styled.div`
+    position: absolute;
+    display: flex;
+    box-sizing: border-box;    
+    width: 80%;
+    height: 80%;
+    font-weight: 500;
+    font-size: 1.2rem;
+    border: 1px solid black;
+    top: 50px;
+    left: 10%;
+`;
+
+export const ChatWrapper = styled.form`
+    position: absolute;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    height: 2rem;
+    top: calc(50px + 80%);
+    left: 10%;
+    width: 80%;
+`;
+
+export const ChatInput = styled.input`
+    display: flex;
+    box-sizing: border-box;
+    width: calc(100% - 2rem);
+    height: 2rem;
+    border: 1px solid blue;
+    top: calc(50px + 80%);
+    left: 10%;
+    padding-left: 1rem;
+    font-size: 1.2rem;
+`;
+
+export const ChatSubmit = styled.button`
+    width: 2rem;
+    height: 2rem;
+    box-sizing: border-box;
+    border: 1px solid black;
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+`;
