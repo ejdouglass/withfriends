@@ -30,12 +30,30 @@ class NPC {
         this.glance = glance;
         this.location = location;
         this.zoneLocked = true;
+        this.entityType = 'npc';
+        this.mode = 'nonsense';
         this.number = rando(1,10);
     }
 
     action() {
         // console.log(`${this.name} is doing something.`);
-        io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `${this.name} picks a number between 1 and 10. He picked ${this.number}!`);
+        let thingIDoChance = rando(1,5);
+        let emittedAction = '';
+        switch (thingIDoChance) {
+            case 1:
+            case 2:
+            case 3:
+                emittedAction = `${this.name} is enjoying the weather.`;
+                break;
+            case 4: 
+            case 5:
+                emittedAction = `${this.name} quietly recounts stories of past glories.`;
+                break;
+            default:
+                emittedAction = `${this.name} doesn't know what to do thanks to ${thingIDoChance}.`;
+                break;
+        }
+        io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', emittedAction);
         this.number = rando(1,10);
     }
 
@@ -332,6 +350,10 @@ function moveAnEntity(entity, direction) {
 
 function moveEntity(entity, direction) {
     // 'Final' alpha concept of room-only. Keeping in RPS for now, might still be handy for instancing.
+    // ADD: Remove entity from current room. Add entity to new room. This would be a lot easier if rooms weren't arrays, could just use a key. :P
+    // ... should I? Hmmm. Well anyway.
+
+    // Also, if the entity is a mob or NPC, gotta check zoneLocked. Seems inefficient, though; probably a better way to wrap stuff in their proper zone.
 
     if (entity.location.room.exits[direction]) {
         let newRoomGPS = entity.location.room.exits[direction].to;
@@ -623,7 +645,7 @@ app.post('/character/create', (req, res, next) => {
 });
 
 
-// Yup, this works! 
+// Yup, this works! Awesome. Opens up possibility for zone messaging, independent room messaging, etc. But for now, lazy clouds in the origin room.
 setInterval(() => {
     io.to('0/500,500,0').emit('room_event', `Some clouds float by in the sky.`);
 }, 10000);

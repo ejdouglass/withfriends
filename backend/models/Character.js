@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 const CharacterSchema = new Schema({
     name: {type: String, required: true},
     identity: {type: String},
+    entityType: {type: String, default: 'player'},
     class: {type: String},
     salt: {type: String, required: true},
     hash: {type: String, required: true},
