@@ -21,8 +21,9 @@ export default MainView;
 
 const ViewBox = ({ state, dispatch }) => {
     const [talkText, setTalkText] = useState('');
-    const [chatMode, setChatMode] = useState(false);
+    const [iSpy, setISpy] = useState(['So a new day of adventure begins.', 'Proceed boldly!']);
     const chatRef = useRef(null);
+    // let mainViewElement;
 
     function enterChatMode() {
         dispatch({type: actions.UPDATE_WHATDO, payload: 'chat'});
@@ -37,32 +38,49 @@ const ViewBox = ({ state, dispatch }) => {
         e.preventDefault();
         if (talkText === '') {
             dispatch({type: actions.UPDATE_WHATDO, payload: 'travel'});
+            chatRef.current.blur();
             return;
         }
-        console.log(`Blah blah blah`);
         dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'talk', message: talkText}});
         setTalkText('');
     }
 
     useEffect(() => {
         if (state.whatDo === 'chat') {
-            setChatMode(true);
             chatRef.current.focus();
         }
     }, [state.whatDo]);
 
-    // ADD: Form wrapper with submit-y button to DO something with your words. Though the socket kinda lives in another component. Hmmm.
-    // How to fix... welp, two ways come to mind:
-    // 1) Have a DISPATCH update STATE with words to send, have KeyBoard watch for it, then emit
-    // 2) Have KeyBoard... no, yeah, the second way is absolutely bananas, no thanks. :P
-    // OK! Actually, we can extrapolate this all all BEAUTIFULLY. BEHOLD!
-    // Have a dispatch type of PACKAGEFORBACKEND (or something) so it could be talking, attacking, whatever, just send it on back. Then KeyBoard handles any response!
+    useEffect(() => {
+        // console.log(`State received has changed! It is THIS: ${state.received}.`);
+        if (state.received) {
+            let newSights = [...iSpy];
+            newSights.push(state.received);
+            setISpy(newSights);
+            dispatch({type: actions.PACKAGE_FROM_SERVER, payload: undefined});
+            // HERE, probably: clear out state.received to avoid redundancies/repeats
+        }
+    }, [state.received]);
+
+    useEffect(() => {
+        // mainViewElement = document.getElementById('mainview');
+    }, []);
+
+    useEffect(() => {
+        let mainViewElement = document.getElementById('mainview');
+        mainViewElement.scrollTop = mainViewElement.scrollHeight;
+    }, [iSpy]);
 
     return (
         <>
-            <MainViewContainer></MainViewContainer>
+            <MainViewContainer id='mainview'>
+                {iSpy.map((line, index) => (
+                    <p key={index}>{line}</p>
+                ))
+                }
+            </MainViewContainer>
             <ChatWrapper onSubmit={handleSubmittedChatText}>
-                <ChatInput type='text' ref={chatRef} readOnly={!chatMode} value={talkText} onChange={e => setTalkText(e.target.value)} autoComplete={false} autoCorrect={false} onClick={enterChatMode} onBlur={leaveChatMode}></ChatInput>
+                <ChatInput type='text' ref={chatRef} readOnly={state.whatDo === 'chat' ? false : true} value={talkText} onChange={e => setTalkText(e.target.value)} autoComplete={'off'} autoCorrect={'off'} onClick={enterChatMode} onBlur={leaveChatMode}></ChatInput>
                 <ChatSubmit>!</ChatSubmit>
             </ChatWrapper>
         </>

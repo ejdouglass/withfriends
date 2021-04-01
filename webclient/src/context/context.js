@@ -8,7 +8,8 @@ export const actions = {
     SET_ALERT: 'set_alert',
     UPDATE_ROOM: 'update_room',
     UPDATE_WHATDO: 'update_whatdo',
-    PACKAGE_FOR_SERVER: 'package_for_server'
+    PACKAGE_FOR_SERVER: 'package_for_server',
+    PACKAGE_FROM_SERVER: 'package_from_server'
 }
 
 export const Reducer = (state, action) => {
@@ -55,6 +56,9 @@ export const Reducer = (state, action) => {
         }
         case actions.PACKAGE_FOR_SERVER: {
             return {...state, package: action.payload};
+        }
+        case actions.PACKAGE_FROM_SERVER: {
+            return {...state, received: action.payload};
         }
         default: {
             return state;
@@ -124,7 +128,8 @@ const initialState = {
     },
     whatDo: mode.CHARACTER_CREATION,
     alert: undefined,
-    package: undefined
+    package: undefined,
+    received: undefined
 }
 
 export const Context = createContext(initialState);

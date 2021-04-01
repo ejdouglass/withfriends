@@ -34,6 +34,7 @@ const Keyboard = () => {
             case 'Enter': {
                 if (state.whatDo === 'travel') {
                     dispatch({type: actions.UPDATE_WHATDO, payload: 'chat'});
+                    break;
                 }
             }
             case 'w':
@@ -127,7 +128,12 @@ const Keyboard = () => {
                 // HERE: unpack data, adjust state via dispatch - room details, weather, time of day, etc.
             });
             socketToMe.on('room_event', stringy => {
-                console.log(stringy);
+                // console.log(stringy);
+                dispatch({type: actions.PACKAGE_FROM_SERVER, payload: stringy});
+            });
+            socketToMe.on('own_action_result', resultString => {
+                // console.log(resultString);
+                dispatch({type: actions.PACKAGE_FROM_SERVER, payload: resultString});
             });
             
             return () => {

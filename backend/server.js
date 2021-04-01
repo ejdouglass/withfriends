@@ -11,6 +11,34 @@ const crypto = require('crypto');
 const { resolveSoa } = require('dns');
 require('dotenv').config();
 
+// Idle question for later -- can I specify multiple origins, possibly in an array?
+// Scooted this bad boy WAY UP HERE so I can reference it via NPCs and mobs. Attempting CLEVERNESS.
+const io = socketIo(server, {
+    cors: {
+        origin: 'http://localhost:4001',
+        methods: ['GET', 'POST']
+    }
+});
+
+// Doing an NPC Class here, because Class is NOT hoisted, unlike constructor functions. Will eventually just grab it from its own module. Anyhoo:
+class NPC {
+    constructor(name, glance, location) {
+        this.name = name;
+        this.glance = glance;
+        this.location = location;        
+    }
+
+    action() {
+        console.log(`${this.name} is doing something.`);
+        io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `${this.name} mumbles and snickers. How goblinesque...`);
+    }
+
+    actOut() {
+        setInterval(this.action.bind(this), 15000);
+    }
+    
+
+}
 
 const connectionParams = {
     useNewUrlParser: true,
@@ -24,8 +52,44 @@ mongoose.connect(process.env.DB_HOST, connectionParams)
 
 
 let characters = {};
-// Almost time to slide a field goblin or two in here.
+// Almost time to slide an ORCHARD goblin or two in here. ... should this be an array? Or we could do a key with like ~6 rando-ish digits plus mobname.
+// Classes or constructor function is probably the way to go here! Ultimately we'll probably scoot them into separate files for readability.
 let mobs = {};
+// For now, my thinking is that NPC's are different from mobs. In future iterations, they can all kind of be loose entities with different definitions.
+// Can set an 'activityLevel' that can be ramped up and down depending on how 'watched' they are, and a 'lastActionTime' to compare to
+// ... so if the overall game loop gets back to our NPC here, and he's supposed to be idle, can do a time-check and just skip over if it's too recent
+// ... can add a scaffold upon 'waking up' from idling to 'catch them up,' assuming there's somewhere or some self-driven state they should have been pursuing
+// let npcs = {
+//     'townguy': {
+//         name: 'Taran Wanderer',
+//         glance: 'a wandering townsperson',
+//         mode: 'active/chilling',
+//         location: {RPS: 0, GPS: '500,500,0'},
+//         zoneLocked: true,
+//         actions: {
+//             'chilling': `Taran is looking idly heroic here.` // Probably eventually make this an array of possibilities
+//         },
+//         live: function() {
+//             console.log(`What even is THIS? Maybe it's ${this.name}.`);
+//             // let unpackedMode = this.mode.split('/');
+//             // // let isActive = unpackedMode[0] === 'active' ? true : false;
+//             // let actionMode = unpackedMode[1];
+//             // switch (actionMode) {
+//             //     case 'chilling': {
+//             //         console.log(this.actions['chilling']);
+//             //     }
+//             // }
+//         },
+//         amAlive: setInterval(() => {
+//             console.log(npcs['townguy'].actions['chilling']);
+//         }, 15000)
+//     }
+// };
+const npcs = [];
+
+let newGuy = new NPC('Taran Wanderer', 'a wandering townsperson', {RPS: 0, GPS: '500,500,0'});
+newGuy.actOut();
+npcs.push(newGuy);
 
 let areas = {
     'tutorialGeneric': {
@@ -397,7 +461,7 @@ app.post('/character/login', (req, res, next) => {
                     const charToLoad = JSON.parse(JSON.stringify(searchResult));
                     delete charToLoad.salt;
                     delete charToLoad.hash;
-
+                    charToLoad.whatDo = 'travel';
                     const alreadyInGame = addCharacterToGame(charToLoad);
 
                     if (alreadyInGame) res.status(200).json({type: `success`, message: `Reconnecting to ${charToLoad.name}.`, payload: {character: characters[charToLoad.name], token: token}})
@@ -433,6 +497,7 @@ app.post('/character/login', (req, res, next) => {
                         const charToLoad = JSON.parse(JSON.stringify(searchResult));
                         delete charToLoad.salt;
                         delete charToLoad.hash;
+                        charToLoad.whatDo = 'travel';
 
                         // This will probably only work a small subset of times, actually; socket disconnection removes the char from the game
                         const alreadyInGame = addCharacterToGame(charToLoad);
@@ -552,13 +617,9 @@ app.post('/character/create', (req, res, next) => {
 });
 
 
-// Idle question for later -- can I specify multiple origins, possibly in an array?
-const io = socketIo(server, {
-    cors: {
-        origin: 'http://localhost:4001',
-        methods: ['GET', 'POST']
-    }
-});
+setInterval(() => {
+    io.to('0/500,500,0').emit('room_event', `Some clouds float by in the sky.`);
+}, 10000);
 
 
 /*
@@ -613,6 +674,7 @@ io.on('connection', (socket) => {
         }
         roomString = character.location.RPS.toString() + '/' + character.location.GPS;
         socket.join(roomString);
+        socket.to(roomString).emit('room_event', `${character.name} just appeared as if from nowhere! Wowee!`);
         console.log(`Testing feedback: ${character.name} joined room known as ${roomString}.`);
         socket.join(zaWarudo[character.location.RPS][character.location.GPS].zone);
         myCharacter = character;
@@ -623,6 +685,7 @@ io.on('connection', (socket) => {
             case 'talk': {
                 // HERE, eventually: see if char CAN talk before just babbling away :P
                 socket.to(roomString).emit('room_event', `${myCharacter.name} says, "${actionData.message}"`);
+                socket.emit('own_action_result', `You say, "${actionData.message}"`);
             }
             default: 
                 break;
@@ -653,6 +716,7 @@ io.on('connection', (socket) => {
             roomString = moveChar.location.RPS.toString() + '/' + moveChar.location.GPS;
             socket.join(roomString);
             socket.to(roomString).emit('room_event', `${moveChar.name} just arrived. Hi!`);
+            socket.emit('own_action_result', `You move to a new location.`);
         }
 
 
@@ -699,25 +763,33 @@ function addCharacterToGame(character) {
     // Just added the true/false there -- this is to allow down-the-road handling of trying to log in an already-playing user
 }
 
-function removeCharacterFromGame(character) {
+function removeCharacterFromGame(characterName) {
     // HERE: add save to DB before removing from server-space
-    if (character.name !== undefined) {
-        const filter = { name: character.name };
-        const update = { $set: character };
+    if (characterName !== undefined) {
+        const filter = { name: characterName };
+        const update = { $set: characters[characterName] };
         const options = { new: true, useFindAndModify: false };
         Character.findOneAndUpdate(filter, update, options)
         .then(updatedResult => {
             console.log(`${updatedResult.name} has been updated. I have saved them as being at ${updatedResult.location.room.room}. Disconnecting from game.`);
-            delete characters[character.name];
+            delete characters[characterName];
         })
         .catch(err => {
             console.log(`We encountered an error saving the character whilst disconnecting: ${err}.`);
-            delete characters[character.name];
+            delete characters[characterName];
         })
     }
 }
 
 server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
+
+// HERE: trying our hand at a rudimentary server-side game loop functionality
+// const firstNPCLoop = setInterval(npcs['townguy'].live, 5000);
+
+/*
+    AROUND HERE, PROBABLY: some handlers, one for popping new mobs/NPC's (back) into existence and 'starting them up', and one for loading from DB when server (re)starts
+
+*/
 
 // Handy lil' function so I can see everyone playing and their current location. Can add more robust checking later, as well as a 'pinging' function.
 // setInterval(() => {

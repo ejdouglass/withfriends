@@ -440,7 +440,10 @@ export const CharacterClassDescription = styled.p``;
 export const MainViewContainer = styled.div`
     position: absolute;
     display: flex;
-    box-sizing: border-box;    
+    flex-direction: column;
+    overflow-y: scroll;
+    box-sizing: border-box;
+    padding: 1rem;
     width: 80%;
     height: 80%;
     font-weight: 500;
