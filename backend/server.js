@@ -8,7 +8,6 @@ const Character = require('./models/Character');
 // const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { resolveSoa } = require('dns');
 require('dotenv').config();
 
 // Idle question for later -- can I specify multiple origins, possibly in an array?
@@ -20,17 +19,24 @@ const io = socketIo(server, {
     }
 });
 
+function rando(min, max) {
+    return Math.floor(Math.random() * max) + min; // Just a guess; make sure this is right :P
+}
+
 // Doing an NPC Class here, because Class is NOT hoisted, unlike constructor functions. Will eventually just grab it from its own module. Anyhoo:
 class NPC {
     constructor(name, glance, location) {
         this.name = name;
         this.glance = glance;
-        this.location = location;        
+        this.location = location;
+        this.zoneLocked = true;
+        this.number = rando(1,10);
     }
 
     action() {
-        console.log(`${this.name} is doing something.`);
-        io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `${this.name} mumbles and snickers. How goblinesque...`);
+        // console.log(`${this.name} is doing something.`);
+        io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `${this.name} picks a number between 1 and 10. He picked ${this.number}!`);
+        this.number = rando(1,10);
     }
 
     actOut() {
@@ -617,6 +623,7 @@ app.post('/character/create', (req, res, next) => {
 });
 
 
+// Yup, this works! 
 setInterval(() => {
     io.to('0/500,500,0').emit('room_event', `Some clouds float by in the sky.`);
 }, 10000);
@@ -781,7 +788,7 @@ function removeCharacterFromGame(characterName) {
     }
 }
 
-server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
+server.listen(PORT, '0.0.0.0', () => console.log(`With Friends server active on Port ${PORT}.`));
 
 // HERE: trying our hand at a rudimentary server-side game loop functionality
 // const firstNPCLoop = setInterval(npcs['townguy'].live, 5000);

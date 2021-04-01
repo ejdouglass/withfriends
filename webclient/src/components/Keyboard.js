@@ -151,6 +151,7 @@ const Keyboard = () => {
     useEffect(() => {
         if (state?.package?.action) {
             socketToMe.emit('action', state.package);
+            dispatch({type: actions.PACKAGE_FOR_SERVER, payload: undefined});
         }
     }, [state.package]);
 
