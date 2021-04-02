@@ -20,12 +20,68 @@ const io = socketIo(server, {
 });
 
 function rando(min, max) {
-    return Math.floor(Math.random() * max) + min; // Just a guess; make sure this is right :P
+    return Math.floor(Math.random() * (max - min) + min);
 }
+
+function generateRandomID() {
+    let dateSeed = new Date();
+    let randomSeed = Math.random().toString(36).replace('0.', '');
+    console.log(`Random Seed result: ${randomSeed}`);
+    return dateSeed.getMonth() + '' + dateSeed.getDate() + '' + dateSeed.getHours() + '' + dateSeed.getMinutes() + '' + dateSeed.getSeconds() + '' + randomSeed;
+}
+
+let zaWarudo = {
+    0: {
+        '500,500,0': {
+            zone: 'Town of Rivercrossing',
+            room: 'Center of Town',
+            indoors: 0,
+            size: 12,
+            structures: [
+                {
+                    name: 'Rivercrossing Metalworks',
+                    type: 'shop/blacksmith',
+                    roomImage: undefined,
+                    interiorImage: undefined,
+                    description: ``,
+                    inventory: []
+                }
+            ],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'e': {to: '525,500,0', traversal: 'walk/0', hidden: 0}
+            }
+        },
+        '525,500,0': {
+            zone: 'Town of Rivercrossing',
+            room: 'East Riverside Road',
+            indoors: 0,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'w': {to: '500,500,0', traversal: 'walk/0', hidden: 0}
+            }            
+        }
+    }
+};
 
 // Doing an NPC Class here, because Class is NOT hoisted, unlike constructor functions. Will eventually just grab it from its own module. Anyhoo:
 class NPC {
     constructor(name, glance, location) {
+        this.entityID = 'npc' + generateRandomID(); // Highly unlikely to be duplicated, but can add populate checks later to ensure it more reliably
         this.name = name;
         this.glance = glance;
         this.location = location;
@@ -54,6 +110,12 @@ class NPC {
                 break;
         }
         io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', emittedAction);
+        // Cool! It works! That's fantastic. Ok, so now NPC/mob interaction with players is possible. Further, we should be able to send down meaningful player data.
+        // Now, *ideally*, we switch it over to an _id system instead (lest we randomly generate unique names for every mob evermore). For now name is ok to test.
+        // let leerTarget;
+        // if (zaWarudo[this.location.RPS][this.location.GPS].players.length > 0) leerTarget = zaWarudo[this.location.RPS][this.location.GPS].players[0]
+        // else leerTarget `the sky`;
+        // io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `${this.name} stares intently at ${leerTarget}.`);
         this.number = rando(1,10);
     }
 
@@ -109,11 +171,33 @@ let mobs = {};
 //         }, 15000)
 //     }
 // };
+
+// A global npcs array, eh? Interesting, interesting. But what IF. We had an object whose keys were IDs. Eh? EHH?
+// Maybe same for characters, though that's less fraught because names are kept 'pure' and non-colliding (hopefully).
+// That said, having the same basic engine moving players, npcs, and mobs around would be pretty fantastic. Let's consider the objectification process.
 const npcs = [];
 
 let newGuy = new NPC('Taran Wanderer', 'a wandering townsperson', {RPS: 0, GPS: '500,500,0'});
+populateRoom(newGuy);
 newGuy.actOut();
 npcs.push(newGuy);
+
+function populateRoom(entity) {
+    let arrayType;
+    switch (entity.entityType) {
+        case 'player': {
+            arrayType = 'players';
+            break;
+        }
+        case 'npc': {
+            arrayType = 'npc';
+            break;
+        }
+    }
+    console.log(`Attempting to populate room with ${entity.entityID} who is ${entity.name}`)
+    // Ultimately, we want ID, not name! Name is fine for the short term only.
+    zaWarudo[entity.location.RPS][entity.location.GPS][`${entity.entityType + 's'}`].push(entity.entityID);
+}
 
 let areas = {
     'tutorialGeneric': {
@@ -273,53 +357,7 @@ let areas = {
         -- server start/restart could create this zoneRef array after loading up all the rooms
 
 */
-let zaWarudo = {
-    0: {
-        '500,500,0': {
-            zone: 'Town of Rivercrossing',
-            room: 'Center of Town',
-            indoors: 0,
-            size: 12,
-            structures: [
-                {
-                    name: 'Rivercrossing Metalworks',
-                    type: 'shop/blacksmith',
-                    roomImage: undefined,
-                    interiorImage: undefined,
-                    description: ``,
-                    inventory: []
-                }
-            ],
-            players: [],
-            npcs: [],
-            mobs: [],
-            loot: [],
-            background: {sky: undefined, ground: undefined, foreground: undefined},
-            fishing: undefined,
-            foraging: {},
-            exits: {
-                'e': {to: '525,500,0', traversal: 'walk/0', hidden: 0}
-            }
-        },
-        '525,500,0': {
-            zone: 'Town of Rivercrossing',
-            room: 'East Riverside Road',
-            indoors: 0,
-            size: 12,
-            structures: [],
-            players: [],
-            npcs: [],
-            mobs: [],
-            loot: [],
-            background: {sky: undefined, ground: undefined, foreground: undefined},
-            fishing: undefined,
-            foraging: {},
-            exits: {
-                'w': {to: '500,500,0', traversal: 'walk/0', hidden: 0}
-            }            
-        }
-    }
-}
+
 
 // CONSIDER: now that entities store their location better, can use this 'internal data' to interface with area/map data
 function moveAnEntity(entity, direction) {
@@ -350,14 +388,39 @@ function moveAnEntity(entity, direction) {
 
 function moveEntity(entity, direction) {
     // 'Final' alpha concept of room-only. Keeping in RPS for now, might still be handy for instancing.
+
     // ADD: Remove entity from current room. Add entity to new room. This would be a lot easier if rooms weren't arrays, could just use a key. :P
     // ... should I? Hmmm. Well anyway.
 
     // Also, if the entity is a mob or NPC, gotta check zoneLocked. Seems inefficient, though; probably a better way to wrap stuff in their proper zone.
 
     if (entity.location.room.exits[direction]) {
+        // HERE, at some point: checking to see if anything 'else' would restrict movement, like status or external factors not yet counted
+        let roomArrayTarget;
+        switch (entity.entityType) {
+            case 'player': {
+                roomArrayTarget = 'players';
+                break;
+            }
+            case 'npc': {
+                roomArrayTarget = 'npcs';
+                break;
+            }
+            case 'mob': {
+                roomArrayTarget = 'mobs';
+                break;
+            }
+        }
+
+        // Ok great! I now have a populateRoom(entity) function. Can use that here, it'll work fine. 
+        // Consider making an idMaker function for all NEW SOULS (entities) and we can go from there, swap over to id-based instead of name-based entity wrangling.
+        //  CAUTION: a LOT of stuff uses characters[character.name] right now, so... uh, be careful about that transition.
+        // console.log(`I am attempting to move someone from the array target ${roomArrayTarget}.`);
+        // Interesting! And not great. Anyway, zaWarudo[rps][gps][target] below is 'circular'... hm. OK NEW THING WE DO, only charNames listed. Done? Let's hope so!
+        zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget] = zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget].filter((roomEntityID) => roomEntityID !== entity.entityID);
         let newRoomGPS = entity.location.room.exits[direction].to;
         entity.location.GPS = newRoomGPS;
+        zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget].push(entity.entityID);
         entity.location.room = zaWarudo[entity.location.RPS][newRoomGPS];
 
         return `Off you go!`;
@@ -492,7 +555,7 @@ app.post('/character/login', (req, res, next) => {
                     charToLoad.whatDo = 'travel';
                     const alreadyInGame = addCharacterToGame(charToLoad);
 
-                    if (alreadyInGame) res.status(200).json({type: `success`, message: `Reconnecting to ${charToLoad.name}.`, payload: {character: characters[charToLoad.name], token: token}})
+                    if (alreadyInGame) res.status(200).json({type: `success`, message: `Reconnecting to ${charToLoad.name}.`, payload: {character: characters[charToLoad.entityID], token: token}})
                     else res.status(200).json({type: `success`, message: `Good news everyone! ${charToLoad.name} is ready to play.`, payload: {character: charToLoad, token: token}});
 
 
@@ -530,7 +593,7 @@ app.post('/character/login', (req, res, next) => {
                         // This will probably only work a small subset of times, actually; socket disconnection removes the char from the game
                         const alreadyInGame = addCharacterToGame(charToLoad);
 
-                        if (alreadyInGame) res.status(200).json({type: `success`, message: `Reconnected to live character.`, payload: {character: characters[charToLoad.name], token: token}})
+                        if (alreadyInGame) res.status(200).json({type: `success`, message: `Reconnected to live character.`, payload: {character: characters[charToLoad.entityID], token: token}})
                         else res.status(200).json({type: `success`, message: `Good news everyone! ${charToLoad.name} is ready to play.`, payload: {character: charToLoad, token: token}});                        
 
 
@@ -566,6 +629,8 @@ app.post('/character/create', (req, res, next) => {
     if (newChar.name !== newChar.name.split(' ').join('')) error += `No spaces in the character name, please. `;
     if (newChar.password.length < 4) error+= `The password should be at least four characters long. `;
     if (newChar.password !== newChar.password.split(' ').join('')) error += `No spaces allowed in the password. `;
+
+    // Hm, be mindful of this section when changing frontend to more 'basic' loadout
     switch (newChar.identity) {
         case 'Rogue':
         case 'Warrior':
@@ -599,12 +664,13 @@ app.post('/character/create', (req, res, next) => {
     Character.findOne({ name: newChar.name })
         .then(searchResult => {
             if (searchResult === null) {
-                console.log(`Name available`)
+                console.log(`Name for new character is available!`);
                 // HERE: Craft the object that will be the foundation, including salt, hash from password and salt, and stats
                 const salt = createSalt();
                 const hash = createHash(newChar.password, salt);
                 let newCharacter = new Character({
                     name: newChar.name,
+                    entityID: generateRandomID(),
                     identity: newChar.identity,
                     class: newChar.class,
                     stat: {...newChar.stat},
@@ -697,15 +763,15 @@ io.on('connection', (socket) => {
 
     socket.on('login', character => {
         console.log(`${character.name} has joined the game!`);
-        if (!characters[character.name]) {
+        if (!characters[character.entityID]) {
             console.log(`Oh! Not logged in yet on the server. Beep boop, fixing.`);
             addCharacterToGame(character);
         }
         roomString = character.location.RPS.toString() + '/' + character.location.GPS;
         socket.join(roomString);
         socket.to(roomString).emit('room_event', `${character.name} just appeared as if from nowhere! Wowee!`);
-        console.log(`Testing feedback: ${character.name} joined room known as ${roomString}.`);
         socket.join(zaWarudo[character.location.RPS][character.location.GPS].zone);
+        populateRoom(character);
         myCharacter = character;
     });
 
@@ -755,7 +821,7 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         socket.to(roomString).emit('room_event', `${myCharacter.name} just disappeared in a puff of smoke! Wow!`);
         console.log(`Client has disconnected from our IO shenanigans. Goodbye, ${myCharacter.name}!`);
-        removeCharacterFromGame(characters[myCharacter.name]);
+        removeCharacterFromGame(myCharacter);
     });
 });
 
@@ -783,29 +849,32 @@ function craftAccessToken(name, id) {
 }
 
 function addCharacterToGame(character) {
-    if (characters[character.name] === undefined) {
+    if (characters[character.entityID] === undefined) {
         character.location.room = zaWarudo[character.location.RPS][character.location.GPS];
-        characters[character.name] = character;
+        characters[character.entityID] = character;
         return true;
     }
     return false;
     // Just added the true/false there -- this is to allow down-the-road handling of trying to log in an already-playing user
 }
 
-function removeCharacterFromGame(characterName) {
+// Can probably generalize it to mobs and npcs as well. We'll see!
+function removeCharacterFromGame(character) {
     // HERE: add save to DB before removing from server-space
-    if (characterName !== undefined) {
-        const filter = { name: characterName };
-        const update = { $set: characters[characterName] };
+    const targetLocation = characters[character.entityID].location;
+    zaWarudo[targetLocation.RPS][targetLocation.GPS]['players'].filter(playerID => playerID !== character.entityID);
+    if (character.name !== undefined) {
+        const filter = { name: character.name };
+        const update = { $set: characters[character.entityID] };
         const options = { new: true, useFindAndModify: false };
         Character.findOneAndUpdate(filter, update, options)
         .then(updatedResult => {
             console.log(`${updatedResult.name} has been updated. I have saved them as being at ${updatedResult.location.room.room}. Disconnecting from game.`);
-            delete characters[characterName];
+            delete characters[character.entityID];
         })
         .catch(err => {
             console.log(`We encountered an error saving the character whilst disconnecting: ${err}.`);
-            delete characters[characterName];
+            delete characters[character.entityID];
         })
     }
 }

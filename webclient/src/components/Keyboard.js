@@ -47,7 +47,7 @@ const Keyboard = () => {
             case 'q':                
                 {
                     if (state.whatDo !== 'character_creation') {
-                        const mover = {who: state.name, where: e.key};
+                        const mover = {who: state.entityID, where: e.key};
                         socketToMe.emit('movedir', mover);
                     }
                     // Right now ANY connected entity is using this code to manipulate the single 'character' dummy in API...

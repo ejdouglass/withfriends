@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+// Interesting! Passing in 'unaccounted for' variables results in them being trimmed out? entityID was purged until I added it here.
 const CharacterSchema = new Schema({
     name: {type: String, required: true},
     identity: {type: String},
     entityType: {type: String, default: 'player'},
+    entityID: {type: String, required: true},
     class: {type: String},
     salt: {type: String, required: true},
     hash: {type: String, required: true},
