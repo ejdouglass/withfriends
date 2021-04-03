@@ -46,7 +46,8 @@ const Keyboard = () => {
             case 'a':
             case 'q':                
                 {
-                    if (state.whatDo !== 'character_creation') {
+                    // Sometimes doesn't trigger, but that's always been the case. Hm. Mostly when I save here and it reloads over there. But not always!
+                    if (state.whatDo === 'travel') {
                         const mover = {who: state.entityID, where: e.key};
                         socketToMe.emit('movedir', mover);
                     }

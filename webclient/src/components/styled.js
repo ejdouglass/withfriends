@@ -292,16 +292,23 @@ export const CompassArrow = styled.div`
 
 export const ZoneTitle = styled.div`
     display: flex;
+    justify-content: flex-end;
     position: absolute;
     box-sizing: border-box;
-    top 50px;
-    padding-left: 1rem;
-    left: calc(250px + 10vw);
-    width: calc(300px + 20vw);
-    font-weight: 800;
-    height: 50px;
-    font-size: calc(0.6rem + 1vw);
+    font-weight: 600;
+    height: 20px;
+    top: 101px;
+    right: calc(200px + 1.75vw);
+    width: calc(175px + 1vw);
+    background-color: white;
+    font-size: calc(0.6rem + 0.5vw);
     align-items: center;
+    text-align: center;
+    ${props => props.room && css`
+        font-size: calc(0.5rem + 0.4vw);
+        font-weight: 500;
+        top: 121px;
+    `}
 `;
 
 export const MyMapGuy = styled.div`
@@ -487,5 +494,17 @@ export const ChatSubmit = styled.button`
 `;
 
 export const CurrentFocus = styled.div`
+    position: fixed;
+    z-index: 7000;
+    left: calc(202px + 10vw + 7%);
+    width: calc(82vw - 200px);
+    height: 400px;
+    border: 1px solid blue;
+    top: 0;
+    width: 
+    // Left 7% but offset 50px?
+`;
 
+export const EyeSpyLine = styled.p`
+    font-size: calc(0.5rem + 0.5vw);
 `;

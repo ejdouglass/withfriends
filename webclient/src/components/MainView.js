@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { MainScreen, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus } from './styled';
+import { MainScreen, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
 
     return (
         <MainScreen>
+            <CurrentFocusBox state={state} dispatch={dispatch} />
             <ViewBox state={state} dispatch={dispatch} />
             <MyChar state={state} dispatch={dispatch} />
             <MyMap state={state} />
@@ -18,8 +19,29 @@ const MainView = () => {
 export default MainView;
 
 
+const LeftMenu = ({ state, dispatch }) => {
+    // Actions! -- Cast, Use Item, Do, Search, Forage/Fish, Hide, ___...
+    return null;
+}
+
+const RightMenu = ({ state, dispatch }) => {
+    return null;
+}
+
+
 const CurrentFocusBox = ({ state, dispatch }) => {
     const [mode, setMode] = useState(undefined);
+
+    function toggleFocusMode() {
+        if (state.whatDo === 'travel') return dispatch({type: actions.UPDATE_WHATDO, payload: 'focus/magic'});
+        return dispatch({type: actions.UPDATE_WHATDO, payload: 'travel'});
+    }
+
+    useEffect(() => {
+        if (state.whatDo.split('/')[0] === 'focus') {
+            console.log(`Focus up, man!`);
+        }
+    }, [state.whatDo]);
 
     /*
         Some FOCUS modes, which would correspond to whatDo situations (for key responses):
@@ -31,9 +53,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             -- Crafting
             -- Hiding!
             
-        Where do I go? I'm thinking TOP RIGHT. Move the compass into CharCard, and then you're good!
-        ... We can have it take up a HUGE chunk of the screen, including 'off-screen' of the main (and can set the main view to dim a little)
-        ... might need to scoot the room title around a little as well, but I think it's possible to shrink and maybe put it under the CharCard off left?
+        Gets a bit wacky narrow at lower widths, but the shrinking text of the main view shows we can probably accomodate that ok.
 
         More screen refitting:
         -- right side: buildings/shops/etc, npcs, mobs
@@ -45,6 +65,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
 
     return (
         <CurrentFocus>
+            <button onClick={toggleFocusMode}>FOCUS MODE TEST</button>
             {/* In here: several different FOCUS styles depending on said focus */}
         </CurrentFocus>
     )
@@ -108,7 +129,7 @@ const ViewBox = ({ state, dispatch }) => {
         <>
             <MainViewContainer id='mainview'>
                 {iSpy.map((line, index) => (
-                    <p key={index}>{line}</p>
+                    <EyeSpyLine key={index}>{line}</EyeSpyLine>
                 ))
                 }
             </MainViewContainer>
@@ -136,7 +157,8 @@ const MyChar = ({ state, dispatch }) => {
 
     return (
         <CharCard>
-            <ZoneTitle>{state.location?.room?.zone || 'An Endless Void'} - {state.location?.room?.room || 'Floating Aimlessly'}</ZoneTitle>
+            <ZoneTitle>{state.location?.room?.zone || 'An Endless Void'}</ZoneTitle>
+            <ZoneTitle room>{state.location?.room?.room || `Floating Aimlessly`}</ZoneTitle>
             <CharProfileImg />
             <CharProfileName>{state.name}</CharProfileName>
             <button style={{marginLeft: '2rem', height: '40%'}} onClick={logout}>Log Out</button>
