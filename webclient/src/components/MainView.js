@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { MainScreen, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, RoomTitle, MyMapGuy } from './styled';
+import { MainScreen, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -16,6 +16,39 @@ const MainView = () => {
 }
 
 export default MainView;
+
+
+const CurrentFocusBox = ({ state, dispatch }) => {
+    const [mode, setMode] = useState(undefined);
+
+    /*
+        Some FOCUS modes, which would correspond to whatDo situations (for key responses):
+            -- NPC interaction
+            -- Shopping
+            -- Combat
+            -- Fishing
+            -- Foraging?
+            -- Crafting
+            -- Hiding!
+            
+        Where do I go? I'm thinking TOP RIGHT. Move the compass into CharCard, and then you're good!
+        ... We can have it take up a HUGE chunk of the screen, including 'off-screen' of the main (and can set the main view to dim a little)
+        ... might need to scoot the room title around a little as well, but I think it's possible to shrink and maybe put it under the CharCard off left?
+
+        More screen refitting:
+        -- right side: buildings/shops/etc, npcs, mobs
+        -- below chat: 'also here', or maybe bottom right?
+        -- left side: actions (cast, use, do, search, forage/fish, etc.)
+        
+    
+    */
+
+    return (
+        <CurrentFocus>
+            {/* In here: several different FOCUS styles depending on said focus */}
+        </CurrentFocus>
+    )
+}
 
 
 
@@ -107,6 +140,17 @@ const MyChar = ({ state, dispatch }) => {
             <CharProfileImg />
             <CharProfileName>{state.name}</CharProfileName>
             <button style={{marginLeft: '2rem', height: '40%'}} onClick={logout}>Log Out</button>
+            <MyCompassView>
+                <MyMapGuy />
+                <CompassArrow east navigable={state.location?.room?.exits?.e}/>
+                <CompassArrow southeast navigable={state.location?.room?.exits?.se}/>
+                <CompassArrow south navigable={state.location?.room?.exits?.s}/>
+                <CompassArrow southwest navigable={state.location?.room?.exits?.sw}/>
+                <CompassArrow west navigable={state.location?.room?.exits?.w}/>
+                <CompassArrow northwest navigable={state.location?.room?.exits?.nw}/>
+                <CompassArrow north navigable={state.location?.room?.exits?.n}/>
+                <CompassArrow northeast navigable={state.location?.room?.exits?.ne}/>
+            </MyCompassView>
         </CharCard>
     )
 }
@@ -120,17 +164,7 @@ const MyMap = ({ state }) => {
     // We'll rejigger state variables to check that later, since we DO have it defined in AREAS on backend, each area has a 'type' such as 'mud'
     
     return (
-        <MyCompassView>
-            <MyMapGuy />
-            <CompassArrow east navigable={state.location?.room?.exits?.e}/>
-            <CompassArrow southeast navigable={state.location?.room?.exits?.se}/>
-            <CompassArrow south navigable={state.location?.room?.exits?.s}/>
-            <CompassArrow southwest navigable={state.location?.room?.exits?.sw}/>
-            <CompassArrow west navigable={state.location?.room?.exits?.w}/>
-            <CompassArrow northwest navigable={state.location?.room?.exits?.nw}/>
-            <CompassArrow north navigable={state.location?.room?.exits?.n}/>
-            <CompassArrow northeast navigable={state.location?.room?.exits?.ne}/>
-        </MyCompassView>
+        <></>
     )
 }
 

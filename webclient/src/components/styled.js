@@ -212,6 +212,7 @@ export const MainScreen = styled.div`
 // Width needs a minimum value; since it needs a certain width to do its job well; see if we can find a good responsive way to get that rejiggered
 export const CharCard = styled.div`
     display: flex;
+    position: absolute;
     flex-direction: row;
     position: absolute;
     width: calc(250px + 10vw);
@@ -247,14 +248,12 @@ export const CharProfileName = styled.p`
 export const MyCompassView = styled.div`
     display: flex;
     position: absolute;
+    right: 0;
     justify-content: center;
     background-color: hsl(40, 65%, 95%);
-    width: calc(100px + 1vw);
-    height: calc(100px + 1vw);
-    border-radius: 100vw;
-    border: 1px solid hsl(30, 75%, 45%);
-    right: calc(-50px - 0.5vw);
-    top: calc(-50px - 0.5vw);
+    width: 100px;
+    height: 100px;
+    border-left: 1px solid hsl(30, 75%, 45%);
 `;
 
 export const CompassArrow = styled.div`
@@ -485,4 +484,8 @@ export const ChatSubmit = styled.button`
     display: flex;
     justify-content: center;
     align-items: center;
+`;
+
+export const CurrentFocus = styled.div`
+
 `;

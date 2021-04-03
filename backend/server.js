@@ -30,11 +30,26 @@ function generateRandomID() {
     return dateSeed.getMonth() + '' + dateSeed.getDate() + '' + dateSeed.getHours() + '' + dateSeed.getMinutes() + '' + dateSeed.getSeconds() + '' + randomSeed;
 }
 
+
+/*
+    For this 'hardcoded' final alpha world:
+    RIVERCROSSING:
+        - Town Center
+        - Weapon & Armor Shop, Apothecary, Magic Shop
+        - Forge, Alchemy Area, Church?, Bank, Healing House
+        - Trainers?
+        - Some roads
+        - A couple of guilds
+    WEST FIELDS:
+        - Orchard (goblins!)
+        - Farmland
+        
+*/
 let zaWarudo = {
     0: {
         '500,500,0': {
             zone: 'Town of Rivercrossing',
-            room: 'Center of Town',
+            room: 'Town Square',
             indoors: 0,
             size: 12,
             structures: [
@@ -44,7 +59,10 @@ let zaWarudo = {
                     roomImage: undefined,
                     interiorImage: undefined,
                     description: ``,
-                    inventory: []
+                    inventory: [],
+                    onInteract: undefined, // Can choose to define here what happens when interacted with, in this case, opens shopping menu!
+                    keyboardInteract: undefined
+                    // Extra thought: if shops/portals/etc. have hours or special conditions, can define those in here, as well... statusManager?
                 }
             ],
             players: [],
@@ -55,7 +73,54 @@ let zaWarudo = {
             fishing: undefined,
             foraging: {},
             exits: {
-                'e': {to: '525,500,0', traversal: 'walk/0', hidden: 0}
+                'e': {to: '525,500,0', traversal: 'walk/0', hidden: 0},
+                'w': {to: '475,500,0', traversal: 'walk/0', hidden: 0}
+            }
+        },
+        '475,500,0': {
+            zone: 'Town of Rivercrossing',
+            room: 'West Riverside Road',
+            indoors: 0,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'e': {to: '500,500,0', traversal: 'walk/0', hidden: 0},
+                'w': {to: '450,500,0', traversal: 'walk/0', hidden: 0}
+            }
+        },
+        '450,500,0': {
+            zone: 'Town of Rivercrossing',
+            room: 'West Gate',
+            indoors: 0,
+            size: 12,
+            structures: [
+                {
+                    name: 'the western gatehouse',
+                    type: 'portal',
+                    status: 'open',
+                    roomImage: undefined, // 
+                    description: ``,
+                    goes: {to: '425,500,0'}, // Can give this a try once ROOM STRUCTURES are operational!
+                    onInteract: undefined,
+                    keyboardInteract: undefined
+                }
+            ],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'e': {to: '475,500,0', traversal: 'walk/0', hidden: 0}
             }
         },
         '525,500,0': {
@@ -78,8 +143,36 @@ let zaWarudo = {
     }
 };
 
-// Doing an NPC Class here, because Class is NOT hoisted, unlike constructor functions. Will eventually just grab it from its own module. Anyhoo:
+// Doing an NPC Class way up here, because Class is NOT hoisted, unlike constructor functions. Will eventually just grab it from its own module. Anyhoo:
 class NPC {
+
+    /*
+        All ideas herewrit shall apply to NPCs and mobs alike. Hurrah!
+
+        Anyway:
+        -- Weighted action spread? Like one mode might be (travel: 2, search: 1) would roll the dice and have twice the odds of traveling vs searching.
+        -- can throw stuff in like doNothing for chance of just waiting until the next 'tick' to do anything
+        -- can be modified by entity's Nature and State (so an aggressive entity would get a multiplier to combat-oriented actions)
+        -- State would be based on their current condition primarily, so being wounded rapidly might cause a Panic state
+        -- State can be reactive in genesis, but could also be directed: add Goal(s) that predict moving to another State
+        -- Pretty robust AI foundation? We'll see!
+        -- Maybe some Needs that can be literally or 'play' met, which would modify State as well
+        -- Nature could also make different states more or less likely in addition to modifying likelihoods within States
+
+        STATE PONDERING:
+        -- Wanderlust: entity just wants to move around. 
+
+        TIMEOUT WITHIN INTERVAL
+            ... once it's started, in this case, I don't really have a good way currently to stop and reset the interval with a new value
+            ... can do an "NPC/mob reset" functionality down the line for this
+            ... miiiight be able to launch individual setTimeouts to do 'extra' actions within the interval, which could be handy
+            ... though the "NPC/Mob Reset" functionality could be also an 'Adjuster' that ramps down activity if nobody's "looking" at them
+            ... in this model, could build up 'action points' that get spent en masse when they need to 'catch up' when someone starts watching again?
+
+        Eventually I'd like relationship-building with NPCs, as well as a robust system for personality and 'growing with' interested players...
+            ... buuuuut that's WELL outside the scope of Alpha, so just bear it in mind while scaffolding capabilities
+    */
+
     constructor(name, glance, location) {
         this.entityID = 'npc' + generateRandomID(); // Highly unlikely to be duplicated, but can add populate checks later to ensure it more reliably
         this.name = name;
@@ -389,8 +482,7 @@ function moveAnEntity(entity, direction) {
 function moveEntity(entity, direction) {
     // 'Final' alpha concept of room-only. Keeping in RPS for now, might still be handy for instancing.
 
-    // ADD: Remove entity from current room. Add entity to new room. This would be a lot easier if rooms weren't arrays, could just use a key. :P
-    // ... should I? Hmmm. Well anyway.
+    // ADD: skill checking, if applicable, to see if the entity can proceed (currently there's no actual barrier :P)
 
     // Also, if the entity is a mob or NPC, gotta check zoneLocked. Seems inefficient, though; probably a better way to wrap stuff in their proper zone.
 
@@ -450,28 +542,28 @@ function parseKeyInput(key) {
 function keyToDirection(key) {
     switch (key) {
         case 'w': {
-            return 'n';
+            return {long: 'north', short: 'n'};
         }
         case 'e': {
-            return 'ne';
+            return {long: 'northeast', short: 'ne'};
         }
         case 'd': {
-            return 'e';
+            return {short: 'e', long: 'east'};
         }
         case 'c': {
-            return 'se';
+            return {short: 'se', long: 'southeast'};
         }
         case 's': {
-            return 's';
+            return {short: 's', long: 'south'};
         }
         case 'z': {
-            return 'sw';
+            return {short: 'sw', long: 'southwest'};
         }
         case 'a': {
-            return 'w';
+            return {short: 'w', long: 'west'};
         }
         case 'q': {
-            return 'nw';
+            return {short: 'nw', long: 'northwest'};
         }
     }
 }
@@ -769,6 +861,7 @@ io.on('connection', (socket) => {
         }
         roomString = character.location.RPS.toString() + '/' + character.location.GPS;
         socket.join(roomString);
+        socket.join(character.name);
         socket.to(roomString).emit('room_event', `${character.name} just appeared as if from nowhere! Wowee!`);
         socket.join(zaWarudo[character.location.RPS][character.location.GPS].zone);
         populateRoom(character);
@@ -798,7 +891,7 @@ io.on('connection', (socket) => {
 
         const direction = keyToDirection(mover.where);
         let walkResult = {
-            feedback: moveEntity(moveChar, direction),
+            feedback: moveEntity(moveChar, direction.short),
             newLocation: moveChar.location
         };
 
@@ -811,7 +904,7 @@ io.on('connection', (socket) => {
             roomString = moveChar.location.RPS.toString() + '/' + moveChar.location.GPS;
             socket.join(roomString);
             socket.to(roomString).emit('room_event', `${moveChar.name} just arrived. Hi!`);
-            socket.emit('own_action_result', `You move to a new location.`);
+            socket.emit('own_action_result', `You move ${direction.long} to ${moveChar.location.room.room}.`);
         }
 
 
