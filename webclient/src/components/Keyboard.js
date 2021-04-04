@@ -24,11 +24,11 @@ const Keyboard = () => {
         if (!keysDown.current[e.key]) {
             keysDown.current[e.key] = true;
         }
-        if (state.whatDo === 'chat') return;
+        if (state.whatDo === 'chat' || state.whatDo === 'character_creation') return;
         switch (e.key) {
             // Did a HAX below for now, but going forward, let's sort out ways to parse state.whatDo/game mode/gamestate
             case 'b': {
-                if (keysDown.current['Meta'] && state.whatDo !== 'character_creation') dispatch({type: actions.TOGGLE_BACKPACK});
+                if (keysDown.current['Meta']) dispatch({type: actions.TOGGLE_BACKPACK});
                 break;
             }
             case 'Enter': {
@@ -47,6 +47,7 @@ const Keyboard = () => {
             case 'q':                
                 {
                     // Sometimes doesn't trigger, but that's always been the case. Hm. Mostly when I save here and it reloads over there. But not always!
+                    // Might just be failure to add event listener at some step? 
                     if (state.whatDo === 'travel') {
                         const mover = {who: state.entityID, where: e.key};
                         socketToMe.emit('movedir', mover);

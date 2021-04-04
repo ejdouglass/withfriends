@@ -196,7 +196,7 @@ export const BackpackContainer = styled.div`
 `;
 
 export const MainScreen = styled.div`
-    position: fixed;
+    position: absolute;
     display: flex;
     background-color: white;
     opacity: 1;
@@ -222,6 +222,27 @@ export const CharCard = styled.div`
     background-color: hsl(180, 15%, 95%);
     border-radius: 3px;
     border: 1px solid black;
+`;
+
+export const TopMenu = styled.div`
+    position: absolute;
+    flex-direction: row;
+    box-sizing: border-box;
+    display: flex;
+    width: calc(60vw - 150px);
+    height: 100px;
+    border: 1px solid pink;
+    left: calc(251px + 10vw);
+    background-color: hsl(0, 70%, 90%);
+`;
+
+export const StructureContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    width: 100px;
+    background-color: #ccc;
 `;
 
 export const CharProfileContainer = styled.div`
@@ -299,9 +320,9 @@ export const ZoneTitle = styled.div`
     height: 20px;
     top: 101px;
     right: calc(200px + 1.75vw);
-    width: calc(175px + 1vw);
+    width: calc(140px + 5vw);
     background-color: white;
-    font-size: calc(0.6rem + 0.5vw);
+    font-size: calc(0.5rem + 0.5vw);
     align-items: center;
     text-align: center;
     ${props => props.room && css`
@@ -494,17 +515,63 @@ export const ChatSubmit = styled.button`
 `;
 
 export const CurrentFocus = styled.div`
-    position: fixed;
-    z-index: 7000;
-    left: calc(202px + 10vw + 7%);
-    width: calc(82vw - 200px);
-    height: 400px;
+    position: absolute;
+    display: flex;
+    z-index: 700;
+    box-sizing: border-box;
+    width: 80%;
+    height: 40%;
+    top: 50px;
+    left: 10%;
+    font-size: 1.2rem;
+    font-weight: 500;
     border: 1px solid blue;
-    top: 0;
-    width: 
-    // Left 7% but offset 50px?
 `;
 
 export const EyeSpyLine = styled.p`
     font-size: calc(0.5rem + 0.5vw);
+`;
+
+export const LeftMenu = styled.div`
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    padding-top: 30px;
+    box-sizing: border-box;
+    border-left: 1px solid red;
+    border-bottom: 1px solid red;
+    width: calc(40px + 10vw);
+    height: calc(80% - 40px);
+    top: 90px;
+    right: 90%;
+    background-color: white;
+`;
+
+export const ActionButton = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #DDD;
+    font-weight: 600;
+    width: 80%;
+    height: 50px;
+    margin-bottom: 30px;
+    border: 1px solid hsl(240, 70%, 5%);
+    border-radius: 10px;
+    &:hover {
+        background-color: #EEF;
+    }
+`;
+
+export const RightMenu = styled.div`
+    position: absolute;
+    box-sizing: border-box;
+    border: 1px solid green;
+    width: calc(40px + 10vw);
+    top: 50px;
+    height: 80%;
+    background-color: white;
+    right: calc(10% - 40px - 10vw);
 `;

@@ -60,7 +60,7 @@ let zaWarudo = {
                     interiorImage: undefined,
                     description: ``,
                     inventory: [],
-                    onInteract: undefined, // Can choose to define here what happens when interacted with, in this case, opens shopping menu!
+                    onInteract: undefined, // Can choose to define here what happens when interacted with, in this case, opens shopping menu. OR the client can figure it out!
                     keyboardInteract: undefined
                     // Extra thought: if shops/portals/etc. have hours or special conditions, can define those in here, as well... statusManager?
                 }
@@ -173,11 +173,12 @@ class NPC {
             ... buuuuut that's WELL outside the scope of Alpha, so just bear it in mind while scaffolding capabilities
     */
 
-    constructor(name, glance, location) {
+    constructor(name, glance, location, description) {
         this.entityID = 'npc' + generateRandomID(); // Highly unlikely to be duplicated, but can add populate checks later to ensure it more reliably
         this.name = name;
         this.glance = glance;
         this.location = location;
+        this.description = description || `This being is very nondescript.`;
         this.zoneLocked = true;
         this.entityType = 'npc';
         this.mode = 'nonsense';
@@ -270,7 +271,7 @@ let mobs = {};
 // That said, having the same basic engine moving players, npcs, and mobs around would be pretty fantastic. Let's consider the objectification process.
 const npcs = [];
 
-let newGuy = new NPC('Taran Wanderer', 'a wandering townsperson', {RPS: 0, GPS: '500,500,0'});
+let newGuy = new NPC('Taran Wanderer', 'a wandering townsperson', {RPS: 0, GPS: '500,500,0'}, `A young fellow with shoulder-length dark hair and wearing rough-worn traveler's attire.`);
 populateRoom(newGuy);
 newGuy.actOut();
 npcs.push(newGuy);

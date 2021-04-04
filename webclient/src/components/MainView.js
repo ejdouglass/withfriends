@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { MainScreen, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
+import { LeftMenu, ActionButton, RightMenu, TopMenu, MainScreen, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -12,6 +12,8 @@ const MainView = () => {
             <ViewBox state={state} dispatch={dispatch} />
             <MyChar state={state} dispatch={dispatch} />
             <MyMap state={state} />
+            <LeftMenuBox state={state} dispatch={dispatch} />
+            <RightMenuBox state={state} dispatch={dispatch} />
         </MainScreen>
     )
 }
@@ -19,28 +21,64 @@ const MainView = () => {
 export default MainView;
 
 
-const LeftMenu = ({ state, dispatch }) => {
+const LeftMenuBox = ({ state, dispatch }) => {
+    const [actionArray, setActionArray] = useState(['Cast', 'Ability', 'Hide', 'Search', 'Forage', 'Inventory']);
     // Actions! -- Cast, Use Item, Do, Search, Forage/Fish, Hide, ___...
-    return null;
+
+    function handleActionSelection(actionName) {
+        actionName = actionName.toLowerCase();
+        switch (actionName) {
+            case 'inventory': {
+                // HERE: well, right now it'd be actions.TOGGLE_BACKPACK, but that's kind of a separate mode, sooooooooo update for that
+            }
+        }
+        dispatch({type: actions.UPDATE_WHATDO, payload: `focus/${actionName}`});
+    }
+
+    return (
+        <LeftMenu>
+            {actionArray.map((actButton, index) => (
+                <ActionButton key={index} onClick={() => handleActionSelection(actButton)}>{actButton}</ActionButton>
+            ))}
+        </LeftMenu>
+    );
 }
 
-const RightMenu = ({ state, dispatch }) => {
-    return null;
+const RightMenuBox = ({ state, dispatch }) => {
+    // Entities! -- NPCs, mobs, players
+    return (
+        <RightMenu>
+            {state.location.room?.structures?.map((structure, index) => (
+                <p>{structure.name}</p>
+            ))}
+        </RightMenu>
+    );
+}
+
+const TopMenuBox = ({ state, dispatch }) => {
+    return (
+        <TopMenu>
+            
+        </TopMenu>
+    );
 }
 
 
 const CurrentFocusBox = ({ state, dispatch }) => {
-    const [mode, setMode] = useState(undefined);
+    const [mode, setMode] = useState({focused: false, type: undefined});
 
-    function toggleFocusMode() {
-        if (state.whatDo === 'travel') return dispatch({type: actions.UPDATE_WHATDO, payload: 'focus/magic'});
-        return dispatch({type: actions.UPDATE_WHATDO, payload: 'travel'});
+    function doneFocusing() {
+        console.log(`Done focusing, probably`);
+        dispatch({type: actions.UPDATE_WHATDO, payload: 'travel'});
     }
 
     useEffect(() => {
-        if (state.whatDo.split('/')[0] === 'focus') {
-            console.log(`Focus up, man!`);
+        let amIFocused = state.whatDo.split('/');
+        if (amIFocused[0] === 'focus') {
+            console.log(`Focusing on ${amIFocused[1]} now.`);
+            return setMode({focused: true, type: amIFocused[1]});
         }
+        return setMode({focused: false, type: undefined});
     }, [state.whatDo]);
 
     /*
@@ -59,13 +97,16 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         -- right side: buildings/shops/etc, npcs, mobs
         -- below chat: 'also here', or maybe bottom right?
         -- left side: actions (cast, use, do, search, forage/fish, etc.)
+
+        Idea: leftFocus and rightFocus, so if you're CASTING, that's maybe a right-side thing, and COMBAT lives on the left, so they 'mix' well?
+
         
     
     */
 
     return (
-        <CurrentFocus>
-            <button onClick={toggleFocusMode}>FOCUS MODE TEST</button>
+        <CurrentFocus style={{display: mode.focused ? 'block' : 'none'}}>
+            <button onClick={doneFocusing}>Done Focusing</button>
             {/* In here: several different FOCUS styles depending on said focus */}
         </CurrentFocus>
     )
@@ -157,6 +198,7 @@ const MyChar = ({ state, dispatch }) => {
 
     return (
         <CharCard>
+            <TopMenuBox state={state} dispatch={dispatch} />
             <ZoneTitle>{state.location?.room?.zone || 'An Endless Void'}</ZoneTitle>
             <ZoneTitle room>{state.location?.room?.room || `Floating Aimlessly`}</ZoneTitle>
             <CharProfileImg />
