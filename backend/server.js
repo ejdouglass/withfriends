@@ -97,7 +97,7 @@ let zaWarudo = {
         },
         '450,500,0': {
             zone: 'Town of Rivercrossing',
-            room: 'West Gate',
+            room: 'Inside the West Gate',
             indoors: 0,
             size: 12,
             structures: [
@@ -107,7 +107,7 @@ let zaWarudo = {
                     status: 'open',
                     roomImage: undefined, // What it looks like in the bar (imgsrc)
                     description: ``,
-                    goes: {to: '425,500,0'}, // Can give this a try once ROOM STRUCTURES are operational!
+                    goes: {to: '425,500,0'},
                     onInteract: undefined,
                     keyboardInteract: undefined
                 }
@@ -130,7 +130,7 @@ let zaWarudo = {
             size: 12,
             structures: [
                 {
-                    name: 'western town gates',
+                    name: 'outer western town gates',
                     type: 'portal',
                     status: 'open',
                     roomImage: undefined,
@@ -148,9 +148,26 @@ let zaWarudo = {
             fishing: undefined,
             foraging: {},
             exits: {
-                'e': {to: '475,500,0', traversal: 'walk/0', hidden: 0}
+                'w': {to: '400,500,0', traversal: 'walk/0', hidden: 0}
             }
-        },        
+        },
+        '400,500,0': {
+            zone: 'West of Rivercrossing',
+            room: 'Well-Worn Farmland Road',
+            indoors: 0,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'e': {to: '425,500,0', traversal: 'walk/0', hidden: 0}
+            }            
+        },    
         '525,500,0': {
             zone: 'Town of Rivercrossing',
             room: 'East Riverside Road',
@@ -304,20 +321,14 @@ populateRoom(newGuy);
 newGuy.actOut();
 npcs.push(newGuy);
 
+function depopulateRoom(entity) {
+    let roomArrayTarget = `${entity.entityType + 's'}`;
+    console.log(`Removing entity ${entity.name} from GPS ${entity.location.GPS}`)
+    zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget] = zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget].filter((roomEntityID) => roomEntityID !== entity.entityID);
+}
+
 function populateRoom(entity) {
-    let arrayType;
-    switch (entity.entityType) {
-        case 'player': {
-            arrayType = 'players';
-            break;
-        }
-        case 'npc': {
-            arrayType = 'npc';
-            break;
-        }
-    }
-    console.log(`Attempting to populate room with ${entity.entityID} who is ${entity.name}`)
-    // Ultimately, we want ID, not name! Name is fine for the short term only.
+    console.log(`Attempting to populate room with ${entity.entityID} who is ${entity.name} at new GPS ${entity.location.GPS}`)
     zaWarudo[entity.location.RPS][entity.location.GPS][`${entity.entityType + 's'}`].push(entity.entityID);
 }
 
@@ -508,12 +519,28 @@ function moveAnEntity(entity, direction) {
     return moveAttemptFeedback;
 }
 
-function moveEntity(entity, direction) {
+function moveEntity(entity, direction, whiskTarget) {
     // 'Final' alpha concept of room-only. Keeping in RPS for now, might still be handy for instancing.
 
     // ADD: skill checking, if applicable, to see if the entity can proceed (currently there's no actual barrier :P)
 
     // Also, if the entity is a mob or NPC, gotta check zoneLocked. Seems inefficient, though; probably a better way to wrap stuff in their proper zone.
+
+    if (whiskTarget) {
+        // Funny variable name, I know, but basically a catch-all for PORTAL usage, being forcibly moved, teleporting, or other non-standard travel modes.
+
+        // Anyway, whisking. We now have populateRoom(entity) and depopulateRoom(entity) to help us out here.
+        // HERE, eventually: we can add the whiskType to see if anything would prevent it. For now, OFF WE GO! :D
+
+        // whiskTarget is just GPS coords.
+        depopulateRoom(entity);
+        console.log(`I am trying to move ${entity.name} to ${whiskTarget}.`)
+        entity.location.GPS = whiskTarget;
+        entity.location.room = zaWarudo[entity.location.RPS][whiskTarget];
+        console.log(`${entity.name} is NOW LOCATED AT ${entity.location.GPS}!`);
+        populateRoom(entity);
+        return `Off you go!`;
+    }
 
     if (entity.location.room.exits[direction]) {
         // HERE, at some point: checking to see if anything 'else' would restrict movement, like status or external factors not yet counted
@@ -897,6 +924,20 @@ io.on('connection', (socket) => {
         myCharacter = character;
     });
 
+    /*
+        PORTAL SHIELD
+    {
+        name: 'western town gates',
+        type: 'portal',
+        status: 'open',
+        roomImage: undefined,
+        description: ``,
+        goes: {to: '450,500,0'}, // Can give this a try once ROOM STRUCTURES are operational!
+        onInteract: undefined,
+        keyboardInteract: undefined
+    }    
+    */
+
     socket.on('action', actionData => {
         switch (actionData.action) {
             // Ok, so we're setting this up to be a passed object of the format {action: ACTION_TO_RESPOND_TO}...
@@ -908,7 +949,18 @@ io.on('connection', (socket) => {
                 break;
             }
             case 'enter_portal': {
-                socket.emit('own_action_result', `BONK! You can't figure out that portal at all!`);
+                // Alright! We're being passed the NAME of the structure. Good start. actionData.target is the string for the name.
+                // Above is the FORMAT for the room structures. Lives in an array, so we need to grab that, or find whether it exists at all.
+                let existingPortal = undefined;
+                if (myCharacter.location.room.structures.length > 0) {
+                    existingPortal = myCharacter.location.room.structures.filter(struct => struct.name === actionData.target);
+                    existingPortal = existingPortal[0];
+                    // HERE, eventually: do any skill/status checks that would apply ... or let the moveEntity handle it down the road, but will have to feed it more data
+                    console.log(`I am going to new coords! They are ${existingPortal.goes.to}`)
+                    moveEntity(myCharacter, null, existingPortal.goes.to);
+                    socket.emit('own_action_result', `You move through the ${existingPortal.name} to ${myCharacter.location.room.room}.`);
+                    socket.emit('moved_dir', {newLocation: myCharacter.location});
+                } else socket.emit('own_action_result', `BONK! You can't figure out that portal at all!`);
                 break;
             }
             default: 
