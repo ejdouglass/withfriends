@@ -55,7 +55,7 @@ let zaWarudo = {
             structures: [
                 {
                     name: 'Rivercrossing Metalworks',
-                    type: 'shop/blacksmith',
+                    type: 'shop',
                     roomImage: undefined,
                     interiorImage: undefined,
                     description: ``,
@@ -105,7 +105,7 @@ let zaWarudo = {
                     name: 'the western gatehouse',
                     type: 'portal',
                     status: 'open',
-                    roomImage: undefined, // 
+                    roomImage: undefined, // What it looks like in the bar (imgsrc)
                     description: ``,
                     goes: {to: '425,500,0'}, // Can give this a try once ROOM STRUCTURES are operational!
                     onInteract: undefined,
@@ -123,6 +123,34 @@ let zaWarudo = {
                 'e': {to: '475,500,0', traversal: 'walk/0', hidden: 0}
             }
         },
+        '425,500,0': {
+            zone: 'West of Rivercrossing',
+            room: 'Outside the West Gate',
+            indoors: 0,
+            size: 12,
+            structures: [
+                {
+                    name: 'western town gates',
+                    type: 'portal',
+                    status: 'open',
+                    roomImage: undefined,
+                    description: ``,
+                    goes: {to: '450,500,0'}, // Can give this a try once ROOM STRUCTURES are operational!
+                    onInteract: undefined,
+                    keyboardInteract: undefined
+                }
+            ],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'e': {to: '475,500,0', traversal: 'walk/0', hidden: 0}
+            }
+        },        
         '525,500,0': {
             zone: 'Town of Rivercrossing',
             room: 'East Riverside Road',
@@ -871,12 +899,20 @@ io.on('connection', (socket) => {
 
     socket.on('action', actionData => {
         switch (actionData.action) {
+            // Ok, so we're setting this up to be a passed object of the format {action: ACTION_TO_RESPOND_TO}...
+            // And then we can just add whatever other actions and data we want/need.
             case 'talk': {
                 // HERE, eventually: see if char CAN talk before just babbling away :P
                 socket.to(roomString).emit('room_event', `${myCharacter.name} says, "${actionData.message}"`);
                 socket.emit('own_action_result', `You say, "${actionData.message}"`);
+                break;
+            }
+            case 'enter_portal': {
+                socket.emit('own_action_result', `BONK! You can't figure out that portal at all!`);
+                break;
             }
             default: 
+                socket.emit('own_action_result', `You try to do a thing, but for some reason can't figure out what you're doing or how to do it.`);
                 break;
         }
     });

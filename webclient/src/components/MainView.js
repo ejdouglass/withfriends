@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, RightMenu, TopMenu, MainScreen, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
+import { LeftMenu, ActionButton, RightMenu, TopMenu, StructureContainer, MainScreen, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -22,7 +22,7 @@ export default MainView;
 
 
 const LeftMenuBox = ({ state, dispatch }) => {
-    const [actionArray, setActionArray] = useState(['Cast', 'Ability', 'Hide', 'Search', 'Forage', 'Inventory']);
+    const [actionArray, setActionArray] = useState(['Cast', 'Ability', 'Hide', 'Search', 'Forage', 'Inventory', 'Craft']);
     // Actions! -- Cast, Use Item, Do, Search, Forage/Fish, Hide, ___...
 
     function handleActionSelection(actionName) {
@@ -48,17 +48,38 @@ const RightMenuBox = ({ state, dispatch }) => {
     // Entities! -- NPCs, mobs, players
     return (
         <RightMenu>
-            {state.location.room?.structures?.map((structure, index) => (
-                <p>{structure.name}</p>
-            ))}
         </RightMenu>
     );
 }
 
 const TopMenuBox = ({ state, dispatch }) => {
+
+    function handleStructureInteraction(structure) {
+        console.log(`You interact with ${structure.name}! Good for you.`);
+        // For real, though. What happens when you BOOP a structure? What kind of structures we talkin'?
+        /*
+            HERE: parse the structure type. We'll do our now-usual split for '/', index 0 will be the core 'type.
+
+            TYPES:
+            -- portal
+            -- shop
+            -- crafting
+        */
+       switch (structure.type) {
+           case 'portal': {
+               // Gotta figure out how this'll parse on the backend. Well, we have scaffolding for it, so let's find out together!
+               // actions.PACKAGE_FOR_SERVER
+               // structures can have IDs eventually, replace name with ID at that point
+               dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'enter_portal', target: structure.name}})
+           }
+       }
+    }
+    
     return (
         <TopMenu>
-            
+            {state.location.room?.structures?.map((structure, index) => (
+                <StructureContainer key={index} onClick={() => handleStructureInteraction(structure)}>{structure.name}</StructureContainer>
+            ))}
         </TopMenu>
     );
 }

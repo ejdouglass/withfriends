@@ -227,6 +227,7 @@ export const CharCard = styled.div`
 export const TopMenu = styled.div`
     position: absolute;
     flex-direction: row;
+    align-items: center;
     box-sizing: border-box;
     display: flex;
     width: calc(60vw - 150px);
@@ -238,6 +239,13 @@ export const TopMenu = styled.div`
 
 export const StructureContainer = styled.div`
     display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: calc(0.4rem + 0.3vw);
+    font-weight: 800;
+    box-sizing: border-box;
+    border: 1px solid #111;
     justify-content: center;
     align-items: center;
     height: 100px;
@@ -557,7 +565,7 @@ export const ActionButton = styled.div`
     font-weight: 600;
     width: 80%;
     height: 50px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     border: 1px solid hsl(240, 70%, 5%);
     border-radius: 10px;
     &:hover {
