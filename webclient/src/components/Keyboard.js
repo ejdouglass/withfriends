@@ -119,6 +119,8 @@ const Keyboard = () => {
 
     useEffect(() => {
         // Ok, this works! But did NOT work when I defined socketToMe's variable was declared in the component. There's a lesson in there somewhere.
+
+        // New consideration/realization: almost EVERY emit from backend should include a room update to be parsed here
         if (socketActive) {
             socketToMe = io(ENDPOINT);
             socketToMe.on('connect', () => {

@@ -221,9 +221,10 @@ class NPC {
     constructor(name, glance, location, description) {
         this.entityID = 'npc' + generateRandomID(); // Highly unlikely to be duplicated, but can add populate checks later to ensure it more reliably
         this.name = name;
-        this.glance = glance;
+        this.glance = glance; // Room/sidebar text
         this.location = location;
         this.description = description || `This being is very nondescript.`;
+        this.race = 'human';
         this.zoneLocked = true;
         this.entityType = 'npc';
         this.mode = 'nonsense';
@@ -231,7 +232,9 @@ class NPC {
     }
 
     action() {
-        // console.log(`${this.name} is doing something.`);
+        // For any given action state, we can "birth" this entity with weighting, like 3 movement, 7 ponder life, 1 cast spell...
+        // Then we can define ranges from that (1 - 3, 4 - 10, 11), roll the dice, and resolve the action.
+        // Naturally this will require a pretty extensive library of actions/etc. if we want granular entities at some point.
         let thingIDoChance = rando(1,5);
         let emittedAction = '';
         switch (thingIDoChance) {
@@ -245,7 +248,7 @@ class NPC {
                 emittedAction = `${this.name} quietly recounts stories of past glories.`;
                 break;
             default:
-                emittedAction = `${this.name} doesn't know what to do thanks to ${thingIDoChance}.`;
+                emittedAction = `${this.name} stares around blankly.`;
                 break;
         }
         io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', emittedAction);
@@ -263,6 +266,20 @@ class NPC {
     }
     
 
+}
+
+// 'Generic' Mob class will probably get divided up into stuff like new Goblin()... will look into class logistics and refine
+class Mob {
+    constructor(glance, stats, location, description, race) {
+        this.name = '';
+        this.glance = glance;
+        this.stats = JSON.parse(JSON.stringify(stats));
+        this.location = location;
+        this.description = description || `This being is very nondescript.`;
+        this.race = race;
+    }
+
+    // If NAMED, can have a separate functionality in here that's called post-creation
 }
 
 const connectionParams = {
@@ -1061,10 +1078,28 @@ function removeCharacterFromGame(character) {
     }
 }
 
-server.listen(PORT, '0.0.0.0', () => console.log(`With Friends server active on Port ${PORT}.`));
+// Actually, probably get everything online BEFORE the server starts listening. :P
+// Tap the DB, load up everything in their current state(s), load up all spells and abilities, fire up NPC's and such, prepare the field for everything to load properly
+//      and sequentially (don't load NPC's before their abilities exist, for example)
 
-// HERE: trying our hand at a rudimentary server-side game loop functionality
-// const firstNPCLoop = setInterval(npcs['townguy'].live, 5000);
+// THIS: the GameMaster object sees all and dictates things happening in the game; a rudimentary "meta AI" dictating everything
+// Define it, then have a method of GameMaster.wake() or something to get it going
+// Right now we have a loose room that just emits clouds floating by, which is lovely, but we can extrapolate through the GM
+/*
+    This will be built to handle:
+    -- weather
+    -- area creation/destruction
+    -- mob spawning
+    -- NPC spawning, maybe
+    -- "events" (raids, etc.)
+
+    How will it accomplish all this? Greaaaat question. :P Internal Interval-driven methods is what I'm thinking at this point.
+*/
+const GameMaster = {};
+
+server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
+
+
 
 /*
     AROUND HERE, PROBABLY: some handlers, one for popping new mobs/NPC's (back) into existence and 'starting them up', and one for loading from DB when server (re)starts

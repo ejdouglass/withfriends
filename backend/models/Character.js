@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 // Interesting! Passing in 'unaccounted for' variables results in them being trimmed out? entityID was purged until I added it here.
 const CharacterSchema = new Schema({
     name: {type: String, required: true},
-    identity: {type: String},
+    identity: {type: String}, // May change this to "background," though won't do that until I'm able to go through all related files/code to change properly
     entityType: {type: String, default: 'player'},
     entityID: {type: String, required: true},
     class: {type: String},
@@ -19,6 +19,11 @@ const CharacterSchema = new Schema({
         required: true,
         default: {strength: 20, agility: 20, constitution: 20, willpower: 20, intelligence: 20, wisdom: 20, charisma: 20}
     },
+    derivedStat: {
+        type: Object,
+        default: {HP: undefined, MP: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined}
+    },
+    combatTarget: String, // Just leaving this here for now... thinking through its implementation, may remove or reconfigure
     backpack: {
         type: Object,
         default: {open: false, contents: [], size: 10, stackModifiers: {}}
@@ -37,8 +42,8 @@ const CharacterSchema = new Schema({
     position: {type: String, default: 'standing'},
     skill: {
         type: Object,
-        // Ok, we're gonna shrinky-dink all this pure nonsense. :P Basic-basics, with EXPERTISE that's earned through use that levels this stuff up.
-        // Idle thought: 3 to one, 2 to two, 1 to three, rest zero, keep it 'basic' :P
+        // Scale: 0 - 100, 'Perk' can be purchased/trained every 5 points of expertise
+        // May reconfigure to do something like fighting: {level: 0, perks: []} ... think about how that'll scale in practice
         default: {
             fighting: 0,
             gathering: 0,
@@ -51,8 +56,8 @@ const CharacterSchema = new Schema({
             connecting: 0,
         }
     },
-    spells: Object,
-    abilities: Object,
+    spells: Array,
+    abilities: Array,
     quirk: {
         type: Object,
         default: {}
