@@ -551,7 +551,7 @@ function moveEntity(entity, direction, whiskTarget) {
 
         // whiskTarget is just GPS coords.
         depopulateRoom(entity);
-        console.log(`I am trying to move ${entity.name} to ${whiskTarget}.`)
+        console.log(`WHISK! I am trying to move ${entity.name} to ${whiskTarget}.`)
         entity.location.GPS = whiskTarget;
         entity.location.room = zaWarudo[entity.location.RPS][whiskTarget];
         console.log(`${entity.name} is NOW LOCATED AT ${entity.location.GPS}!`);
@@ -938,7 +938,7 @@ io.on('connection', (socket) => {
         socket.to(roomString).emit('room_event', `${character.name} just appeared as if from nowhere! Wowee!`);
         socket.join(zaWarudo[character.location.RPS][character.location.GPS].zone);
         populateRoom(character);
-        myCharacter = character;
+        myCharacter = characters[character.entityID]; // Quick 'fix' here to change the myCharacter reference... should hopefully repair all the busted nonsense?
     });
 
     /*
@@ -965,6 +965,40 @@ io.on('connection', (socket) => {
                 socket.emit('own_action_result', `You say, "${actionData.message}"`);
                 break;
             }
+            case 'interact_with_structure': {
+                // We need the INDEX, then we figure out what kind of structure it is, and act accordingly
+                let myRoomStructures = zaWarudo[myCharacter.location.RPS][myCharacter.location.GPS].structures;
+                console.log(`${myCharacter.name} wants to do a structure interaction, index ${actionData.index}. They are standing in ${myCharacter.location.room.room}. Hopefully.`);
+                // Yup. The above is... frequently borked. Keeps thinking I'm in places I'm not.
+                if (myRoomStructures.length === 0) break;
+                let myStructureType = myRoomStructures[actionData.index].type;
+                // if (myStructureType === 'portal') {
+                //     socket.emit('own_action_result', `You want to access a portal called ${myRoomStructures[actionData.index].name} from ${myCharacter.location.room.room}, but can't figure out how.`);
+                //     break;
+                // }
+                switch (myStructureType) {
+                    case 'portal': {
+                        console.log(`A character wants to go through a portal using the number key. Let's try it!`);
+                        console.log(`Specifically, we're at ${myCharacter.location.GPS} and heading through to ${myCharacter.location.room.structures[actionData.index].goes.to}`)
+                        moveEntity(myCharacter, null, myCharacter.location.room.structures[actionData.index].goes.to);
+                        socket.emit('own_action_result', `You move through the ${myCharacter.location.room.structures[actionData.index].name} to ${myCharacter.location.room.room}.`);
+                        socket.emit('moved_dir', {newLocation: myCharacter.location});
+                        break;
+                    }
+                    case 'shop': {
+                        socket.emit('own_action_result', `You wish to go shopping! But can't figure out how. Awkward.`);
+                        break;
+                    }
+                    default: {
+                        console.log(`Hm. No currently interactable structure found. It's all for show. Oh well!`);
+                        break;
+                    }
+                    // HERE: add the other, non-portal structure types
+                }
+                break;
+            }
+            // Ok, this worked great before, doesn't really work so well anymore, so re-assess this after fixing number-nav.
+            // Actually, the below ALWAYS worked until I added the above. Something about the above is... unhappy.
             case 'enter_portal': {
                 // Alright! We're being passed the NAME of the structure. Good start. actionData.target is the string for the name.
                 // Above is the FORMAT for the room structures. Lives in an array, so we need to grab that, or find whether it exists at all.
@@ -1017,6 +1051,11 @@ io.on('connection', (socket) => {
         socket.emit('moved_dir', walkResult);
     });
 
+    // Fascinating. Yeah, myCharacter is holding some STALE-ASS data most of the time. WTF. If I can fix that, we'll be GOLDEN (hearts get broken).
+    // setInterval(() => {
+    //     socket.emit(`own_action_result`, `You are standing at ${myCharacter.location.room.room}.`)
+    // }, 1000);
+
     socket.on('disconnect', () => {
         socket.to(roomString).emit('room_event', `${myCharacter.name} just disappeared in a puff of smoke! Wow!`);
         console.log(`Client has disconnected from our IO shenanigans. Goodbye, ${myCharacter.name}!`);
@@ -1061,7 +1100,8 @@ function addCharacterToGame(character) {
 function removeCharacterFromGame(character) {
     // HERE: add save to DB before removing from server-space
     const targetLocation = characters[character.entityID].location;
-    zaWarudo[targetLocation.RPS][targetLocation.GPS]['players'].filter(playerID => playerID !== character.entityID);
+    // zaWarudo[targetLocation.RPS][targetLocation.GPS]['players'].filter(playerID => playerID !== character.entityID);
+    depopulateRoom(character);
     if (character.name !== undefined) {
         const filter = { name: character.name };
         const update = { $set: characters[character.entityID] };

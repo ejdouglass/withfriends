@@ -8,6 +8,7 @@ export const actions = {
     SET_ALERT: 'set_alert',
     UPDATE_ROOM: 'update_room',
     UPDATE_WHATDO: 'update_whatdo',
+    UPDATE_ACTION_INDEX: 'update_action_index',
     PACKAGE_FOR_SERVER: 'package_for_server',
     PACKAGE_FROM_SERVER: 'package_from_server'
 }
@@ -32,7 +33,7 @@ export const Reducer = (state, action) => {
                 color: 'hsl(125, 80%, 30%)'
             };
 
-            return {...state, ...character, above: above, around: around, below: below, alert: undefined, whatDo: mode.TRAVEL};
+            return {...state, ...character, above: above, around: around, below: below, alert: undefined, whatDo: mode.EXPLORE};
         }
         case actions.SET_GAME_STATE: {
             return {...state, whatDo: action.payload};
@@ -54,6 +55,9 @@ export const Reducer = (state, action) => {
         case actions.UPDATE_WHATDO: {
             return {...state, whatDo: action.payload};
         }
+        case actions.UPDATE_ACTION_INDEX: {
+            return {...state, actionIndex: action.payload};
+        }
         case actions.PACKAGE_FOR_SERVER: {
             return {...state, package: action.payload};
         }
@@ -74,6 +78,7 @@ export const Reducer = (state, action) => {
 */
 const mode = {
     TRAVEL: 'travel',
+    EXPLORE: 'explore',
     CHARACTER_CREATION: 'character_creation',
     CHAT: 'chat',
     RUMMAGE: 'rummage',
@@ -127,6 +132,8 @@ const initialState = {
         room: {}
     },
     whatDo: mode.CHARACTER_CREATION,
+    actionIndex: 0,
+    currentActionBar: ['Explore', 'Talk', 'Magic', 'Survey Area', 'Inventory'],
     alert: undefined,
     package: undefined,
     received: undefined

@@ -22,23 +22,18 @@ export default MainView;
 
 
 const LeftMenuBox = ({ state, dispatch }) => {
-    const [actionArray, setActionArray] = useState(['Cast', 'Ability', 'Hide', 'Search', 'Forage', 'Inventory', 'Craft']);
-    // Actions! -- Cast, Use Item, Do, Search, Forage/Fish, Hide, ___...
+    // What action bar items are we missing? Hm...
 
     function handleActionSelection(actionName) {
         actionName = actionName.toLowerCase();
-        switch (actionName) {
-            case 'inventory': {
-                // HERE: well, right now it'd be actions.TOGGLE_BACKPACK, but that's kind of a separate mode, sooooooooo update for that
-            }
-        }
-        dispatch({type: actions.UPDATE_WHATDO, payload: `focus/${actionName}`});
+        
+        dispatch({type: actions.UPDATE_WHATDO, payload: `${actionName}`});
     }
 
     return (
         <LeftMenu>
-            {actionArray.map((actButton, index) => (
-                <ActionButton key={index} onClick={() => handleActionSelection(actButton)}>{actButton}</ActionButton>
+            {state.currentActionBar.map((actButton, index) => (
+                <ActionButton key={index} selected={index === state.actionIndex ? true : false} onClick={() => handleActionSelection(actButton)}>{actButton}</ActionButton>
             ))}
         </LeftMenu>
     );
@@ -54,31 +49,36 @@ const RightMenuBox = ({ state, dispatch }) => {
 
 const TopMenuBox = ({ state, dispatch }) => {
 
-    function handleStructureInteraction(structure) {
-        console.log(`You interact with ${structure.name}! Good for you.`);
-        // For real, though. What happens when you BOOP a structure? What kind of structures we talkin'?
-        /*
-            HERE: parse the structure type. We'll do our now-usual split for '/', index 0 will be the core 'type.
+    // Idly pondering setting up multiple states this can hold. It's valuable real estate!
+    // Regardless, I want to set up keybinding here. I want to be able to tap the number button while 'Exploring' to interact with a structure.
+    // So, how to set that up...
 
-            TYPES:
-            -- portal
-            -- shop
-            -- crafting
-        */
-       switch (structure.type) {
-           case 'portal': {
-               // Gotta figure out how this'll parse on the backend. Well, we have scaffolding for it, so let's find out together!
-               // actions.PACKAGE_FOR_SERVER
-               // structures can have IDs eventually, replace name with ID at that point
-               dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'enter_portal', target: structure.name}})
-           }
-       }
+    function handleStructureInteraction(structIndex) {
+        return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'interact_with_structure', index: structIndex}});
+    //     console.log(`You interact with ${structure.name}! Good for you.`);
+    //     // For real, though. What happens when you BOOP a structure? What kind of structures we talkin'?
+    //     /*
+    //         HERE: parse the structure type. We'll do our now-usual split for '/', index 0 will be the core 'type.
+
+    //         TYPES:
+    //         -- portal
+    //         -- shop
+    //         -- crafting
+    //     */
+    //    switch (structure.type) {
+    //        case 'portal': {
+    //            // Gotta figure out how this'll parse on the backend. Well, we have scaffolding for it, so let's find out together!
+    //            // actions.PACKAGE_FOR_SERVER
+    //            // structures can have IDs eventually, replace name with ID at that point
+    //            dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'enter_portal', target: structure.name}})
+    //        }
+    //    }
     }
     
     return (
         <TopMenu>
             {state.location.room?.structures?.map((structure, index) => (
-                <StructureContainer key={index} onClick={() => handleStructureInteraction(structure)}>{structure.name}</StructureContainer>
+                <StructureContainer key={index} onClick={() => handleStructureInteraction(index)}>{index + 1} : {structure.name}</StructureContainer>
             ))}
         </TopMenu>
     );
@@ -142,7 +142,7 @@ const ViewBox = ({ state, dispatch }) => {
     // let mainViewElement;
 
     function enterChatMode() {
-        dispatch({type: actions.UPDATE_WHATDO, payload: 'chat'});
+        dispatch({type: actions.UPDATE_WHATDO, payload: 'talk'});
     }
 
     function leaveChatMode() {
@@ -162,7 +162,7 @@ const ViewBox = ({ state, dispatch }) => {
     }
 
     useEffect(() => {
-        if (state.whatDo === 'chat') {
+        if (state.whatDo === 'talk') {
             chatRef.current.focus();
         }
     }, [state.whatDo]);
@@ -196,7 +196,7 @@ const ViewBox = ({ state, dispatch }) => {
                 }
             </MainViewContainer>
             <ChatWrapper onSubmit={handleSubmittedChatText}>
-                <ChatInput type='text' ref={chatRef} readOnly={state.whatDo === 'chat' ? false : true} value={talkText} onChange={e => setTalkText(e.target.value)} autoComplete={'off'} autoCorrect={'off'} onClick={enterChatMode} onBlur={leaveChatMode}></ChatInput>
+                <ChatInput type='text' ref={chatRef} readOnly={state.whatDo === 'talk' ? false : true} value={talkText} onChange={e => setTalkText(e.target.value)} autoComplete={'off'} autoCorrect={'off'} onClick={enterChatMode} onBlur={leaveChatMode}></ChatInput>
                 <ChatSubmit>!</ChatSubmit>
             </ChatWrapper>
         </>

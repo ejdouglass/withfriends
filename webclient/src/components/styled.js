@@ -571,6 +571,10 @@ export const ActionButton = styled.div`
     &:hover {
         background-color: #EEF;
     }
+    ${props => props.selected && css`
+        width: 90%;
+        border: 2px solid hsl(240, 80%, 10%);
+    `}
 `;
 
 export const RightMenu = styled.div`

@@ -62,7 +62,9 @@ const CharacterSchema = new Schema({
         type: Object,
         default: {}
     },
-    admin: {type: Boolean, default: false}
+    admin: {type: Boolean, default: false},
+    actionIndex: {type: Number, default: 0},
+    currentActionBar: {type: Array, default: ['Explore', 'Talk', 'Magic', 'Survey Area', 'Inventory']}
 }, { minimize: false });
 
 module.exports = mongoose.model('Character', CharacterSchema);

@@ -20,20 +20,39 @@ const Keyboard = () => {
     // Down here we're going to be paying attention to the state, which should tell us what we're currently up to for proper reactions to keyevent(s)
     function handleKeyDown(e) {
         // console.log(`Pressed ${e.key}`);
+        // ArrowUp, ArrowDown, ArrowLeft, ArrowRight, 1, 2, 3, 4, etc.
         // NOTE: Currently NOT preventing default, but we may wish to in some cases.
         if (!keysDown.current[e.key]) {
             keysDown.current[e.key] = true;
         }
-        if (state.whatDo === 'chat' || state.whatDo === 'character_creation') return;
+        if (state.whatDo === 'talk' || state.whatDo === 'character_creation') return; // Change: 'chat' to 'talk' or maybe 'talk/rest'
         switch (e.key) {
             // Did a HAX below for now, but going forward, let's sort out ways to parse state.whatDo/game mode/gamestate
+            case '1': {
+                dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'interact_with_structure', index: 0}});
+                break;
+            }
+            case 'ArrowUp': {
+                let newIndex;
+                if (state.actionIndex === 0) newIndex = state.currentActionBar.length - 1
+                else newIndex = state.actionIndex + 1;
+                dispatch({type: actions.UPDATE_ACTION_INDEX, payload: newIndex});
+                break;
+            }
+            case 'ArrowDown': {
+                let newIndex;
+                if (state.actionIndex === state.currentActionBar.length - 1) newIndex = 0
+                else newIndex = state.actionIndex - 1;
+                dispatch({type: actions.UPDATE_ACTION_INDEX, payload: newIndex});
+                break;
+            }
             case 'b': {
                 if (keysDown.current['Meta']) dispatch({type: actions.TOGGLE_BACKPACK});
                 break;
             }
             case 'Enter': {
-                if (state.whatDo === 'travel') {
-                    dispatch({type: actions.UPDATE_WHATDO, payload: 'chat'});
+                if (state.whatDo === 'explore') {
+                    dispatch({type: actions.UPDATE_WHATDO, payload: 'talk'});
                     break;
                 }
             }
@@ -48,7 +67,7 @@ const Keyboard = () => {
                 {
                     // Sometimes doesn't trigger, but that's always been the case. Hm. Mostly when I save here and it reloads over there. But not always!
                     // Might just be failure to add event listener at some step? 
-                    if (state.whatDo === 'travel') {
+                    if (state.whatDo === 'explore') {
                         const mover = {who: state.entityID, where: e.key};
                         socketToMe.emit('movedir', mover);
                     }
