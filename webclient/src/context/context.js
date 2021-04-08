@@ -56,7 +56,7 @@ export const Reducer = (state, action) => {
             return {...state, whatDo: action.payload};
         }
         case actions.UPDATE_ACTION_INDEX: {
-            return {...state, actionIndex: action.payload};
+            return {...state, actionIndex: action.payload, whatDo: state.currentActionBar[action.payload].toLowerCase()};
         }
         case actions.PACKAGE_FOR_SERVER: {
             return {...state, package: action.payload};

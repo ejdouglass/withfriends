@@ -69,17 +69,19 @@ let zaWarudo = {
             npcs: [],
             mobs: [],
             loot: [],
+            effects: [],
             background: {sky: undefined, ground: undefined, foreground: undefined},
             fishing: undefined,
             foraging: {},
             exits: {
                 'e': {to: '525,500,0', traversal: 'walk/0', hidden: 0},
-                'w': {to: '475,500,0', traversal: 'walk/0', hidden: 0}
+                'w': {to: '475,500,0', traversal: 'walk/0', hidden: 0},
+                's': {to: '500,475,0', traversal: 'walk/0', hidden: 0}
             }
         },
-        '475,500,0': {
+        '500,475,0': {
             zone: 'Town of Rivercrossing',
-            room: 'West Riverside Road',
+            room: 'South Central Street',
             indoors: 0,
             size: 12,
             structures: [],
@@ -87,6 +89,25 @@ let zaWarudo = {
             npcs: [],
             mobs: [],
             loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'n': {to: '500,500,0', traversal: 'walk/0', hidden: 0}
+            }
+        },        
+        '475,500,0': {
+            zone: 'Town of Rivercrossing',
+            room: 'West Central Street',
+            indoors: 0,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
             background: {sky: undefined, ground: undefined, foreground: undefined},
             fishing: undefined,
             foraging: {},
@@ -116,13 +137,33 @@ let zaWarudo = {
             npcs: [],
             mobs: [],
             loot: [],
+            effects: [],
             background: {sky: undefined, ground: undefined, foreground: undefined},
             fishing: undefined,
             foraging: {},
             exits: {
-                'e': {to: '475,500,0', traversal: 'walk/0', hidden: 0}
+                'e': {to: '475,500,0', traversal: 'walk/0', hidden: 0},
+                's': {to: '450,475,0', traversal: 'walk/0', hidden: 0}
             }
         },
+        '450,475,0': {
+            zone: 'Town of Rivercrossing',
+            room: 'Southern Westgate Road',
+            indoors: 0,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'n': {to: '450,500,0', traversal: 'walk/0', hidden: 0}
+            }
+        },        
         '425,500,0': {
             zone: 'West of Rivercrossing',
             room: 'Outside the West Gate',
@@ -144,13 +185,33 @@ let zaWarudo = {
             npcs: [],
             mobs: [],
             loot: [],
+            effects: [],
             background: {sky: undefined, ground: undefined, foreground: undefined},
             fishing: undefined,
             foraging: {},
             exits: {
-                'w': {to: '400,500,0', traversal: 'walk/0', hidden: 0}
+                'w': {to: '400,500,0', traversal: 'walk/0', hidden: 0},
+                's': {to: '425,475,0', traversal: 'walk/0', hidden: 0}
             }
         },
+        '425,475,0': {
+            zone: 'West of Rivercrossing',
+            room: 'Along the Outer West Wall',
+            indoors: 0,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'n': {to: '425,500,0', traversal: 'walk/0', hidden: 0}
+            }
+        },        
         '400,500,0': {
             zone: 'West of Rivercrossing',
             room: 'Well-Worn Farmland Road',
@@ -161,6 +222,7 @@ let zaWarudo = {
             npcs: [],
             mobs: [],
             loot: [],
+            effects: [],
             background: {sky: undefined, ground: undefined, foreground: undefined},
             fishing: undefined,
             foraging: {},
@@ -170,7 +232,7 @@ let zaWarudo = {
         },    
         '525,500,0': {
             zone: 'Town of Rivercrossing',
-            room: 'East Riverside Road',
+            room: 'East Central Street',
             indoors: 0,
             size: 12,
             structures: [],
@@ -178,6 +240,7 @@ let zaWarudo = {
             npcs: [],
             mobs: [],
             loot: [],
+            effects: [],
             background: {sky: undefined, ground: undefined, foreground: undefined},
             fishing: undefined,
             foraging: {},
@@ -228,6 +291,7 @@ class NPC {
         this.zoneLocked = true;
         this.entityType = 'npc';
         this.mode = 'nonsense';
+        this.actInterval = 15000;
         this.number = rando(1,10);
     }
 
@@ -239,11 +303,17 @@ class NPC {
         let emittedAction = '';
         switch (thingIDoChance) {
             case 1:
+                emittedAction = `${this.name} partially unsheaths the misshappen iron sword at his hip, examines something on the hilt, then slides it back to rest.`;
+                break;
             case 2:
+                emittedAction = `${this.name} idly adjusts his Wayfarer's Garb.`;
+                break;
             case 3:
                 emittedAction = `${this.name} is enjoying the weather.`;
                 break;
             case 4: 
+                emittedAction = `${this.name} gently chants the words of a lesser incantation, causing a few motes of multicolored light to flicker in the air.`;
+                break;
             case 5:
                 emittedAction = `${this.name} quietly recounts stories of past glories.`;
                 break;
@@ -258,11 +328,18 @@ class NPC {
         // if (zaWarudo[this.location.RPS][this.location.GPS].players.length > 0) leerTarget = zaWarudo[this.location.RPS][this.location.GPS].players[0]
         // else leerTarget `the sky`;
         // io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `${this.name} stares intently at ${leerTarget}.`);
-        this.number = rando(1,10);
+        // this.number = rando(1,10);
+
+        this.actOut();
     }
 
     actOut() {
-        setInterval(this.action.bind(this), 15000);
+        // setInterval(this.action.bind(this), this.actInterval);
+        // NOTE: we *may* be able to dodge having to use 'bind' here if I do setTimeout(() => this.action, this.actInterval)?
+        // Test result: YUP! Nice. Doing the anonymous function this way preserves the proper scope of the thing. The this thing. Good to know.
+        setTimeout(() => this.action(), this.actInterval);
+        // setTimeout(this.action.bind(this), this.actInterval);
+        this.actInterval = rando(5,12) * 1000;
     }
     
 
@@ -333,6 +410,7 @@ let mobs = {};
 // That said, having the same basic engine moving players, npcs, and mobs around would be pretty fantastic. Let's consider the objectification process.
 const npcs = [];
 
+// 'Birth of an NPC' process as it currently stands. We can functionalize this for the GameMaster!
 let newGuy = new NPC('Taran Wanderer', 'a wandering townsperson', {RPS: 0, GPS: '500,500,0'}, `A young fellow with shoulder-length dark hair and wearing rough-worn traveler's attire.`);
 populateRoom(newGuy);
 newGuy.actOut();
@@ -877,9 +955,10 @@ app.post('/character/create', (req, res, next) => {
 
 
 // Yup, this works! Awesome. Opens up possibility for zone messaging, independent room messaging, etc. But for now, lazy clouds in the origin room.
-setInterval(() => {
-    io.to('0/500,500,0').emit('room_event', `Some clouds float by in the sky.`);
-}, 10000);
+// Some rooms can have their own special messaging quirks/events, but mostly I'd leave it for zones and sub-zones (should I have subzones?)
+// setInterval(() => {
+//     io.to('0/500,500,0').emit('room_event', `Some clouds float by in the sky.`);
+// }, 10000);
 
 
 /*

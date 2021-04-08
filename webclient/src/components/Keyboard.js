@@ -25,6 +25,14 @@ const Keyboard = () => {
         if (!keysDown.current[e.key]) {
             keysDown.current[e.key] = true;
         }
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            let newIndex;
+            let changeAmount = (e.key === 'ArrowUp') ? -1 : 1;
+            newIndex = state.actionIndex + changeAmount;
+            if (newIndex < 0) newIndex = state.currentActionBar.length - 1;
+            if (newIndex >= state.currentActionBar.length) newIndex = 0;
+            dispatch({type: actions.UPDATE_ACTION_INDEX, payload: newIndex});
+        }
         if (state.whatDo === 'talk' || state.whatDo === 'character_creation') return; // Change: 'chat' to 'talk' or maybe 'talk/rest'
         switch (e.key) {
             // Did a HAX below for now, but going forward, let's sort out ways to parse state.whatDo/game mode/gamestate
@@ -32,29 +40,23 @@ const Keyboard = () => {
                 dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'interact_with_structure', index: 0}});
                 break;
             }
-            case 'ArrowUp': {
-                let newIndex;
-                if (state.actionIndex === 0) newIndex = state.currentActionBar.length - 1
-                else newIndex = state.actionIndex + 1;
-                dispatch({type: actions.UPDATE_ACTION_INDEX, payload: newIndex});
-                break;
-            }
-            case 'ArrowDown': {
-                let newIndex;
-                if (state.actionIndex === state.currentActionBar.length - 1) newIndex = 0
-                else newIndex = state.actionIndex - 1;
-                dispatch({type: actions.UPDATE_ACTION_INDEX, payload: newIndex});
-                break;
-            }
+            // case 'ArrowUp': {
+            //     let newIndex;
+            //     if (state.actionIndex === 0) newIndex = state.currentActionBar.length - 1
+            //     else newIndex = state.actionIndex - 1;
+            //     dispatch({type: actions.UPDATE_ACTION_INDEX, payload: newIndex});
+            //     break;
+            // }
+            // case 'ArrowDown': {
+            //     let newIndex;
+            //     if (state.actionIndex === state.currentActionBar.length - 1) newIndex = 0
+            //     else newIndex = state.actionIndex + 1;
+            //     dispatch({type: actions.UPDATE_ACTION_INDEX, payload: newIndex});
+            //     break;
+            // }
             case 'b': {
                 if (keysDown.current['Meta']) dispatch({type: actions.TOGGLE_BACKPACK});
                 break;
-            }
-            case 'Enter': {
-                if (state.whatDo === 'explore') {
-                    dispatch({type: actions.UPDATE_WHATDO, payload: 'talk'});
-                    break;
-                }
             }
             case 'w':
             case 'e':

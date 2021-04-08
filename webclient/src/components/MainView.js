@@ -141,20 +141,9 @@ const ViewBox = ({ state, dispatch }) => {
     const chatRef = useRef(null);
     // let mainViewElement;
 
-    function enterChatMode() {
-        dispatch({type: actions.UPDATE_WHATDO, payload: 'talk'});
-    }
-
-    function leaveChatMode() {
-        setTalkText('');
-        dispatch({type: actions.UPDATE_WHATDO, payload: 'travel'});
-    }
-
     function handleSubmittedChatText(e) {
         e.preventDefault();
         if (talkText === '') {
-            dispatch({type: actions.UPDATE_WHATDO, payload: 'travel'});
-            chatRef.current.blur();
             return;
         }
         dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'talk', message: talkText}});
@@ -164,6 +153,8 @@ const ViewBox = ({ state, dispatch }) => {
     useEffect(() => {
         if (state.whatDo === 'talk') {
             chatRef.current.focus();
+        } else {
+            setTalkText('');
         }
     }, [state.whatDo]);
 
@@ -196,7 +187,7 @@ const ViewBox = ({ state, dispatch }) => {
                 }
             </MainViewContainer>
             <ChatWrapper onSubmit={handleSubmittedChatText}>
-                <ChatInput type='text' ref={chatRef} readOnly={state.whatDo === 'talk' ? false : true} value={talkText} onChange={e => setTalkText(e.target.value)} autoComplete={'off'} autoCorrect={'off'} onClick={enterChatMode} onBlur={leaveChatMode}></ChatInput>
+                <ChatInput type='text' ref={chatRef} readOnly={state.whatDo === 'talk' ? false : true} value={talkText} onChange={e => setTalkText(e.target.value)} autoComplete={'off'} autoCorrect={'off'}></ChatInput>
                 <ChatSubmit>!</ChatSubmit>
             </ChatWrapper>
         </>
