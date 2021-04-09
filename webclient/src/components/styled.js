@@ -478,14 +478,49 @@ export const MainViewContainer = styled.div`
     flex-direction: column;
     overflow-y: scroll;
     box-sizing: border-box;
-    padding: 1rem;
     width: 80%;
     height: 80%;
     font-weight: 500;
     font-size: 1.2rem;
-    border: 1px solid black;
+    border: 2px solid red;
     top: 50px;
     left: 10%;
+`;
+
+export const EyeView = styled.div`
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 20%;
+    height: 80%;
+    width: 100%;
+    overflow-y: scroll;
+    box-sizing: border-box;
+    border: 1px solid yellow;
+`;
+
+export const RoomView = styled.div`
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 20%;
+    border: 2px solid blue;
+    background-color: white;
+`;
+
+export const RoomName = styled.div`
+    width: 100%;
+    border: 3px solid green;
+    font-size: calc(0.6rem + 0.5vw);
+    padding-left: calc(0.5rem + 0.5vw);
+    height: calc(1rem + 0.6vw);
+    box-sizing: border-box;
+`;
+
+export const RoomDetails = styled.div`
+    display: flex;
+    flex-direction: row;
 `;
 
 export const ChatWrapper = styled.form`

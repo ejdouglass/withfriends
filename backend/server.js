@@ -341,6 +341,8 @@ class NPC {
         // setTimeout(this.action.bind(this), this.actInterval);
         this.actInterval = rando(5,12) * 1000;
     }
+
+    // HERE: maybe add a "wake()" function (or live or whatever) that "boots up" the entity to live its best life
     
 
 }
@@ -357,6 +359,14 @@ class Mob {
     }
 
     // If NAMED, can have a separate functionality in here that's called post-creation
+
+    /*
+        MOBLORE
+        - Hm, thinking for these (and maybe NPCs), have a selfCheck timeout fxn that assesses itself and decides what to be "up to"
+        - Add who/what being targeted
+        - For bosses, HP break points
+        - Add special 'onReceiveDamage' listeners?
+    */
 }
 
 const connectionParams = {
@@ -1178,7 +1188,7 @@ function addCharacterToGame(character) {
 // Can probably generalize it to mobs and npcs as well. We'll see!
 function removeCharacterFromGame(character) {
     // HERE: add save to DB before removing from server-space
-    const targetLocation = characters[character.entityID].location;
+    // const targetLocation = characters[character.entityID].location;
     // zaWarudo[targetLocation.RPS][targetLocation.GPS]['players'].filter(playerID => playerID !== character.entityID);
     depopulateRoom(character);
     if (character.name !== undefined) {

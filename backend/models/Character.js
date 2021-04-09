@@ -14,6 +14,10 @@ const CharacterSchema = new Schema({
         type: Object,
         default: {RPS: 0, GPS: '500,500,0'}
     },
+    characterLevel: {type: Number, default: 1},
+    experience: {type: Object, default: {
+        exp: 0
+    }},
     stat: {
         type: Object, 
         required: true,
@@ -21,9 +25,12 @@ const CharacterSchema = new Schema({
     },
     derivedStat: {
         type: Object,
-        default: {HP: undefined, MP: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined}
+        default: {HP: undefined, MP: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, DFL: undefined}
     },
+    injuries: Array,
     combatTarget: String, // Just leaving this here for now... thinking through its implementation, may remove or reconfigure
+    buffs: Object, // Or array. Haven't decided yet :P
+    debuffs: Object,
     backpack: {
         type: Object,
         default: {open: false, contents: [], size: 10, stackModifiers: {}}
@@ -59,7 +66,7 @@ const CharacterSchema = new Schema({
     spells: Array,
     abilities: Array,
     quirk: {
-        type: Object,
+        type: Object, // Proooobably gonna rename this fella
         default: {}
     },
     admin: {type: Boolean, default: false},

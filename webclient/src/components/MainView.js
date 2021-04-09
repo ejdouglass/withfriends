@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, RightMenu, TopMenu, StructureContainer, MainScreen, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
+import { LeftMenu, ActionButton, RoomName, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -178,13 +178,21 @@ const ViewBox = ({ state, dispatch }) => {
         mainViewElement.scrollTop = mainViewElement.scrollHeight;
     }, [iSpy]);
 
+    // Rejiggering the view below. Hm. Ok, makes the most sense to wrap the EyeSpy stuff in a separate container, so the RoomView can live there too.
+
     return (
         <>
-            <MainViewContainer id='mainview'>
-                {iSpy.map((line, index) => (
-                    <EyeSpyLine key={index}>{line}</EyeSpyLine>
-                ))
-                }
+            
+            <MainViewContainer>
+                <RoomView>
+                    <RoomName>{state.location?.room?.zone} - {state.location?.room?.room}</RoomName>
+                </RoomView>
+                <EyeView id='mainview'>
+                    {iSpy.map((line, index) => (
+                        <EyeSpyLine key={index}>{line}</EyeSpyLine>
+                    ))
+                    }
+                </EyeView>
             </MainViewContainer>
             <ChatWrapper onSubmit={handleSubmittedChatText}>
                 <ChatInput type='text' ref={chatRef} readOnly={state.whatDo === 'talk' ? false : true} value={talkText} onChange={e => setTalkText(e.target.value)} autoComplete={'off'} autoCorrect={'off'}></ChatInput>
