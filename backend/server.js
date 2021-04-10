@@ -51,6 +51,7 @@ let zaWarudo = {
             zone: 'Town of Rivercrossing',
             room: 'Town Square',
             indoors: 0,
+            description: `Well-worn cobblestone roads criss-cross through this area, encircling an open central plaza before winding off in every direction.`,
             size: 12,
             structures: [
                 {
@@ -83,6 +84,7 @@ let zaWarudo = {
             zone: 'Town of Rivercrossing',
             room: 'South Central Street',
             indoors: 0,
+            description: `Coming off the Town Square to the north, the roads here are a little less ragged and give way to several narrower streets that turn in haphazard angles around collections of buildings that appear to have been dropped loosely and at random in the area.`,
             size: 12,
             structures: [],
             players: [],
@@ -101,6 +103,7 @@ let zaWarudo = {
             zone: 'Town of Rivercrossing',
             room: 'West Central Street',
             indoors: 0,
+            description: `What a lovely area to be in!`,
             size: 12,
             structures: [],
             players: [],
@@ -120,6 +123,7 @@ let zaWarudo = {
             zone: 'Town of Rivercrossing',
             room: 'Inside the West Gate',
             indoors: 0,
+            description: `What a lovely area to be in!`,
             size: 12,
             structures: [
                 {
@@ -150,6 +154,7 @@ let zaWarudo = {
             zone: 'Town of Rivercrossing',
             room: 'Southern Westgate Road',
             indoors: 0,
+            description: `What a lovely area to be in!`,
             size: 12,
             structures: [],
             players: [],
@@ -168,6 +173,7 @@ let zaWarudo = {
             zone: 'West of Rivercrossing',
             room: 'Outside the West Gate',
             indoors: 0,
+            description: `What a lovely area to be in!`,
             size: 12,
             structures: [
                 {
@@ -198,6 +204,7 @@ let zaWarudo = {
             zone: 'West of Rivercrossing',
             room: 'Along the Outer West Wall',
             indoors: 0,
+            description: `What a lovely area to be in!`,
             size: 12,
             structures: [],
             players: [],
@@ -216,6 +223,7 @@ let zaWarudo = {
             zone: 'West of Rivercrossing',
             room: 'Well-Worn Farmland Road',
             indoors: 0,
+            description: `What a lovely area to be in!`,
             size: 12,
             structures: [],
             players: [],
@@ -234,6 +242,7 @@ let zaWarudo = {
             zone: 'Town of Rivercrossing',
             room: 'East Central Street',
             indoors: 0,
+            description: `What a lovely area to be in!`,
             size: 12,
             structures: [],
             players: [],
@@ -291,6 +300,7 @@ class NPC {
         this.zoneLocked = true;
         this.entityType = 'npc';
         this.mode = 'nonsense';
+        this.wanderlust = 0;
         this.actInterval = 15000;
         this.number = rando(1,10);
     }
@@ -299,23 +309,44 @@ class NPC {
         // For any given action state, we can "birth" this entity with weighting, like 3 movement, 7 ponder life, 1 cast spell...
         // Then we can define ranges from that (1 - 3, 4 - 10, 11), roll the dice, and resolve the action.
         // Naturally this will require a pretty extensive library of actions/etc. if we want granular entities at some point.
-        let thingIDoChance = rando(1,5);
+
         let emittedAction = '';
+
+        let moveChance = rando(0, 100);
+        if (moveChance < this.wanderlust) {
+            // Here's where the movement happens! ... how do I parse moveEntity for this fella...
+            // RETURN here after setting wanderlust back to 0
+            emittedAction = `${this.name} wishes to live up to his name and wander about, but can't seem to figure out how yet.`;
+            io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', emittedAction);
+            this.wanderlust = 0;
+            return this.actOut();
+        }
+        
+
+        // Currently everything down there is random just for flavor. Eventually, everything should be 'purposeful,' fufilling a 'need' of some sort
+        // These needs can be defined pretty broadly to begin with
+        let thingIDoChance = rando(1,5);
+        
         switch (thingIDoChance) {
             case 1:
-                emittedAction = `${this.name} partially unsheaths the misshappen iron sword at his hip, examines something on the hilt, then slides it back to rest.`;
+                emittedAction = `${this.name} absentmindedly grasps the hilt of the sword at his hip as he squints into the distance.`;
+                this.wanderlust += 5;
                 break;
             case 2:
                 emittedAction = `${this.name} idly adjusts his Wayfarer's Garb.`;
+                this.wanderlust += 5;
                 break;
             case 3:
                 emittedAction = `${this.name} is enjoying the weather.`;
+                this.wanderlust += 2;
                 break;
             case 4: 
-                emittedAction = `${this.name} gently chants the words of a lesser incantation, causing a few motes of multicolored light to flicker in the air.`;
+                emittedAction = `${this.name} squints at the signs and markings of several nearby buildings.`;
+                this.wanderlust += 5;
                 break;
             case 5:
                 emittedAction = `${this.name} quietly recounts stories of past glories.`;
+                this.wanderlust += 2;
                 break;
             default:
                 emittedAction = `${this.name} stares around blankly.`;
@@ -666,14 +697,15 @@ function moveEntity(entity, direction, whiskTarget) {
         }
 
         // Ok great! I now have a populateRoom(entity) function. Can use that here, it'll work fine. 
-        // Consider making an idMaker function for all NEW SOULS (entities) and we can go from there, swap over to id-based instead of name-based entity wrangling.
-        //  CAUTION: a LOT of stuff uses characters[character.name] right now, so... uh, be careful about that transition.
         // console.log(`I am attempting to move someone from the array target ${roomArrayTarget}.`);
-        // Interesting! And not great. Anyway, zaWarudo[rps][gps][target] below is 'circular'... hm. OK NEW THING WE DO, only charNames listed. Done? Let's hope so!
-        zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget] = zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget].filter((roomEntityID) => roomEntityID !== entity.entityID);
+
+        
+        // zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget] = zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget].filter((roomEntityID) => roomEntityID !== entity.entityID);
+        depopulateRoom(entity);
         let newRoomGPS = entity.location.room.exits[direction].to;
         entity.location.GPS = newRoomGPS;
-        zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget].push(entity.entityID);
+        // zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget].push(entity.entityID);
+        populateRoom(entity);
         entity.location.room = zaWarudo[entity.location.RPS][newRoomGPS];
 
         return `Off you go!`;

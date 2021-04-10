@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, RoomName, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
+import { LeftMenu, ActionButton, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -186,6 +186,12 @@ const ViewBox = ({ state, dispatch }) => {
             <MainViewContainer>
                 <RoomView>
                     <RoomName>{state.location?.room?.zone} - {state.location?.room?.room}</RoomName>
+                    <RoomDetails>
+                        <RoomImg />
+                        <RoomDesc>
+                            {state.location?.room?.description}
+                        </RoomDesc>
+                    </RoomDetails>
                 </RoomView>
                 <EyeView id='mainview'>
                     {iSpy.map((line, index) => (

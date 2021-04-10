@@ -521,6 +521,20 @@ export const RoomName = styled.div`
 export const RoomDetails = styled.div`
     display: flex;
     flex-direction: row;
+    height: 100%;
+`;
+
+export const RoomImg = styled.div`
+    background: linear-gradient(#17F, #03D);
+    height: 100%;
+    width: 100px;
+`;
+
+export const RoomDesc = styled.div`
+    height: 100%;
+    font-size: calc(0.5rem + 0.5vw);
+    width: calc(100% - 100px);
+    padding: 0.5rem;
 `;
 
 export const ChatWrapper = styled.form`
@@ -573,6 +587,7 @@ export const CurrentFocus = styled.div`
 
 export const EyeSpyLine = styled.p`
     font-size: calc(0.5rem + 0.5vw);
+    padding-left: 1rem;
 `;
 
 export const LeftMenu = styled.div`
