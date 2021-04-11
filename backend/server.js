@@ -45,6 +45,7 @@ function generateRandomID() {
         - Farmland
         
 */
+
 let zaWarudo = {
     0: {
         '500,500,0': {
@@ -260,6 +261,31 @@ let zaWarudo = {
     }
 };
 
+// ZONE ROUNDUP: 'Town of Rivercrossing' , 'West of Rivercrossing'
+
+class Zone {
+    constructor(name) {
+        this.name = name;
+    }
+
+    // Methods go here
+}
+
+class SpawnMap {
+    constructor() {
+        
+    }
+
+    /*
+        HRMM
+        
+    */
+}
+
+let Rivercrossing = new Zone('Town of Rivercrossing');
+let WestOfRivercrossing = new Zone('West of Rivercrossing');
+
+
 // Doing an NPC Class way up here, because Class is NOT hoisted, unlike constructor functions. Will eventually just grab it from its own module. Anyhoo:
 class NPC {
 
@@ -293,6 +319,7 @@ class NPC {
     constructor(name, glance, location, description) {
         this.entityID = 'npc' + generateRandomID(); // Highly unlikely to be duplicated, but can add populate checks later to ensure it more reliably
         this.name = name;
+        this.level = 1; // Placeholder for now
         this.glance = glance; // Room/sidebar text
         this.location = location;
         this.description = description || `This being is very nondescript.`;
@@ -459,13 +486,20 @@ npcs.push(newGuy);
 
 function depopulateRoom(entity) {
     let roomArrayTarget = `${entity.entityType + 's'}`;
-    console.log(`Removing entity ${entity.name} from GPS ${entity.location.GPS}`)
-    zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget] = zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget].filter((roomEntityID) => roomEntityID !== entity.entityID);
+    // console.log(`Removing entity ${entity.name} from GPS ${entity.location.GPS}`)
+    zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget] = zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget].filter((roomEntity) => roomEntity.entityID !== entity.entityID);
 }
 
 function populateRoom(entity) {
-    console.log(`Attempting to populate room with ${entity.entityID} who is ${entity.name} at new GPS ${entity.location.GPS}`)
-    zaWarudo[entity.location.RPS][entity.location.GPS][`${entity.entityType + 's'}`].push(entity.entityID);
+    // console.log(`Attempting to populate room with ${entity.entityID} who is ${entity.name} at new GPS ${entity.location.GPS}`);
+    let roomArrayObject = {
+        id: entity.entityID,
+        name: entity.name || '',
+        level: entity.level || 0,
+        health: 100,
+        condition: [] // asleep, stunned, not-so-alive, etc.
+    }
+    zaWarudo[entity.location.RPS][entity.location.GPS][`${entity.entityType + 's'}`].push(roomArrayObject);
 }
 
 let areas = {
@@ -655,6 +689,7 @@ function moveAnEntity(entity, direction) {
     return moveAttemptFeedback;
 }
 
+
 function moveEntity(entity, direction, whiskTarget) {
     // 'Final' alpha concept of room-only. Keeping in RPS for now, might still be handy for instancing.
 
@@ -669,11 +704,13 @@ function moveEntity(entity, direction, whiskTarget) {
         // HERE, eventually: we can add the whiskType to see if anything would prevent it. For now, OFF WE GO! :D
 
         // whiskTarget is just GPS coords.
+        
         depopulateRoom(entity);
-        console.log(`WHISK! I am trying to move ${entity.name} to ${whiskTarget}.`)
+        // console.log(`WHISK! I am trying to move ${entity.name} to ${whiskTarget}.`)
         entity.location.GPS = whiskTarget;
         entity.location.room = zaWarudo[entity.location.RPS][whiskTarget];
-        console.log(`${entity.name} is NOW LOCATED AT ${entity.location.GPS}!`);
+        // console.log(`${entity.name} is NOW LOCATED AT ${entity.location.GPS}!`);
+
         populateRoom(entity);
         return `Off you go!`;
     }
@@ -1099,10 +1136,17 @@ io.on('connection', (socket) => {
                 // }
                 switch (myStructureType) {
                     case 'portal': {
-                        console.log(`A character wants to go through a portal using the number key. Let's try it!`);
-                        console.log(`Specifically, we're at ${myCharacter.location.GPS} and heading through to ${myCharacter.location.room.structures[actionData.index].goes.to}`)
+                        // console.log(`A character wants to go through a portal using the number key. Let's try it!`);
+                        // console.log(`Specifically, we're at ${myCharacter.location.GPS} and heading through to ${myCharacter.location.room.structures[actionData.index].goes.to}`)
+                        let portalName = myCharacter.location.room.structures[actionData.index].name;
+                        let roomString = `${myCharacter.location.RPS}/${myCharacter.location.GPS}`;
+                        socket.to(roomString).emit('room_event', `${myCharacter.name} went through ${portalName}`);
+                        socket.leave(roomString);                        
                         moveEntity(myCharacter, null, myCharacter.location.room.structures[actionData.index].goes.to);
-                        socket.emit('own_action_result', `You move through the ${myCharacter.location.room.structures[actionData.index].name} to ${myCharacter.location.room.room}.`);
+                        roomString = `${myCharacter.location.RPS}/${myCharacter.location.GPS}`;
+                        socket.join(roomString);
+                        socket.to(roomString).emit('room_event', `${myCharacter.name} just arrived through ${portalName}.`); // Might have to change. Or not!
+                        socket.emit('own_action_result', `You move through the ${portalName} to ${myCharacter.location.room.room}.`);
                         socket.emit('moved_dir', {newLocation: myCharacter.location});
                         break;
                     }

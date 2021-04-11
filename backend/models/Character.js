@@ -14,7 +14,7 @@ const CharacterSchema = new Schema({
         type: Object,
         default: {RPS: 0, GPS: '500,500,0'}
     },
-    characterLevel: {type: Number, default: 1},
+    level: {type: Number, default: 1},
     experience: {type: Object, default: {
         exp: 0
     }},
