@@ -277,7 +277,16 @@ class SpawnMap {
     }
 
     /*
-        HRMM
+        HRMM -- what goes into a SpawnMap?
+        -- an array of rooms
+        -- how often it 'ticks'
+        -- mob(s) spawned, and their 'cost' if applicable (if SpawnMap is temporary in particular)
+        -- ruleset for spawning (most basic: players present during tick)
+        -- target(s): particularly aggressive SpawnMaps (or riled up ones... think hornet's nest/goblin camp) can get peeved at particular player(s),
+            spawning more frequently, more aggressively, angrier mobs, stronger mobs from its 'deck' if applicable, etc.
+        
+
+        NOTE -- class is defined here, but we gotta wait to actually create the SpawnMaps further down in the file, since at this point there are no mobs defined yet
         
     */
 }

@@ -59,8 +59,8 @@ const CharacterSchema = new Schema({
             crafting: 0,
             casting: 0,
             knowing: 0,
-            building: 0,
-            connecting: 0,
+            sensing: 0, // hmmm
+            building: 0
         }
     },
     spells: Array,
