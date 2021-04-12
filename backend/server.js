@@ -174,7 +174,7 @@ let zaWarudo = {
             zone: 'West of Rivercrossing',
             room: 'Outside the West Gate',
             indoors: 0,
-            description: `What a lovely area to be in!`,
+            description: `You are on a dirt road leading to the western wall of Rivercrossing, which sprawls out of sight north into forest and south towards the Tradewind River. The road itself winds westward toward farmland, while a small footpath leads south along the wall.`,
             size: 12,
             structures: [
                 {
@@ -205,7 +205,7 @@ let zaWarudo = {
             zone: 'West of Rivercrossing',
             room: 'Along the Outer West Wall',
             indoors: 0,
-            description: `What a lovely area to be in!`,
+            description: `Lovely.`,
             size: 12,
             structures: [],
             players: [],
@@ -236,9 +236,253 @@ let zaWarudo = {
             fishing: undefined,
             foraging: {},
             exits: {
-                'e': {to: '425,500,0', traversal: 'walk/0', hidden: 0}
+                'e': {to: '425,500,0', traversal: 'walk/0', hidden: 0},
+                'nw': {to: '375,525,0', traversal: 'walk/0', hidden: 0},
+                'n': {to: '400,525,0', traversal: 'walk/0', hidden: 0}
             }            
-        },    
+        },
+        '400,525,0': {
+            zone: 'West of Rivercrossing',
+            room: 'South of Orchards',
+            indoors: 0,
+            description: `What a lovely area to be in! You see many trees.`,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                's': {to: '400,500,0', traversal: 'walk/0', hidden: 0},
+                'n': {to: '400,550,0', traversal: 'walk/0', hidden: 0}
+            }            
+        },
+        '400,550,0': {
+            zone: 'West of Rivercrossing',
+            room: `At Orchard's Edge`,
+            indoors: 0,
+            description: `What a lovely area to be in! You see many trees.`,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                's': {to: '400,525,0', traversal: 'walk/0', hidden: 0},
+                'w': {to: '375,550,0', traversal: 'walk/0', hidden: 0},
+                'nw': {to: '375,575,0', traversal: 'walk/0', hidden: 0},
+                'n': {to: '400,575,0', traversal: 'walk/0', hidden: 0},
+                'ne': {to: '425,575,0', traversal: 'walk/0', hidden: 0},
+                'e': {to: '425,550,0', traversal: 'walk/0', hidden: 0}
+            }            
+        },
+        '375,550,0': {
+            zone: 'West of Rivercrossing',
+            room: `Southwestern Orchards`,
+            indoors: 0,
+            description: `What a lovely area to be in! You see many trees.`,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'e': {to: '400,550,0', traversal: 'walk/0', hidden: 0},
+                'n': {to: '375,575,0', traversal: 'walk/0', hidden: 0},
+                'ne': {to: '400,575,0', traversal: 'walk/0', hidden: 0}
+            }            
+        },
+        '425,550,0': {
+            zone: 'West of Rivercrossing',
+            room: `Southeastern Orchards`,
+            indoors: 0,
+            description: `What a lovely area to be in! You see many trees.`,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'w': {to: '400,550,0', traversal: 'walk/0', hidden: 0},
+                'nw': {to: '400,575,0', traversal: 'walk/0', hidden: 0},
+                'n': {to: '425,575,0', traversal: 'walk/0', hidden: 0}
+            }            
+        },
+        '375,575,0': {
+            zone: 'West of Rivercrossing',
+            room: `Western Orchards`,
+            indoors: 0,
+            description: `What a lovely area to be in! You see many trees.`,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                's': {to: '375,550,0', traversal: 'walk/0', hidden: 0},
+                'se': {to: '400,550,0', traversal: 'walk/0', hidden: 0},
+                'e': {to: '400,575,0', traversal: 'walk/0', hidden: 0},
+                'ne': {to: '400,600,0', traversal: 'walk/0', hidden: 0},
+                'n': {to: '375,600,0', traversal: 'walk/0', hidden: 0}
+            }            
+        },
+        '400,575,0': {
+            zone: 'West of Rivercrossing',
+            room: `At Orchard's Center`,
+            indoors: 0,
+            description: `What a lovely area to be in! You see SOOOO many trees.`,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                's': {to: '400,550,0', traversal: 'walk/0', hidden: 0},
+                'se': {to: '425,550,0', traversal: 'walk/0', hidden: 0},
+                'e': {to: '425,575,0', traversal: 'walk/0', hidden: 0},
+                'ne': {to: '425,600,0', traversal: 'walk/0', hidden: 0},
+                'n': {to: '400,600,0', traversal: 'walk/0', hidden: 0},
+                'nw': {to: '375,600,0', traversal: 'walk/0', hidden: 0},
+                'w': {to: '375,575,0', traversal: 'walk/0', hidden: 0},
+                'sw': {to: '375,550,0', traversal: 'walk/0', hidden: 0}                
+            }            
+        },
+        '425,575,0': {
+            zone: 'West of Rivercrossing',
+            room: `Eastern Orchards`,
+            indoors: 0,
+            description: `What a lovely area to be in! You see many trees.`,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'n': {to: '425,600,0', traversal: 'walk/0', hidden: 0},
+                'nw': {to: '400,600,0', traversal: 'walk/0', hidden: 0},
+                'w': {to: '400,575,0', traversal: 'walk/0', hidden: 0},
+                'sw': {to: '400,550,0', traversal: 'walk/0', hidden: 0},
+                's': {to: '425,550,0', traversal: 'walk/0', hidden: 0}
+            }            
+        },
+        '425,600,0': {
+            zone: 'West of Rivercrossing',
+            room: `Northeastern Orchards`,
+            indoors: 0,
+            description: `What a lovely area to be in! You see many trees.`,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'w': {to: '400,600,0', traversal: 'walk/0', hidden: 0},
+                'sw': {to: '400,575,0', traversal: 'walk/0', hidden: 0},
+                's': {to: '425,575,0', traversal: 'walk/0', hidden: 0}
+            }            
+        },
+        '400,600,0': {
+            zone: 'West of Rivercrossing',
+            room: `Northern Orchards`,
+            indoors: 0,
+            description: `What a lovely area to be in! You see many trees.`,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'e': {to: '425,600,0', traversal: 'walk/0', hidden: 0},
+                'se': {to: '425,575,0', traversal: 'walk/0', hidden: 0},
+                's': {to: '400,575,0', traversal: 'walk/0', hidden: 0},
+                'sw': {to: '375,575,0', traversal: 'walk/0', hidden: 0},
+                'w': {to: '375,600,0', traversal: 'walk/0', hidden: 0}
+            }            
+        },
+        '375,600,0': {
+            zone: 'West of Rivercrossing',
+            room: `Northwestern Orchards`,
+            indoors: 0,
+            description: `What a lovely area to be in! You see many trees.`,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                's': {to: '375,575,0', traversal: 'walk/0', hidden: 0},
+                'se': {to: '400,575,0', traversal: 'walk/0', hidden: 0},
+                'e': {to: '400,600,0', traversal: 'walk/0', hidden: 0}
+            }            
+        },
+        '375,525,0': {
+            zone: 'West of Rivercrossing',
+            room: 'Farmland Road Through Wheat Fields',
+            indoors: 0,
+            description: `What a lovely area to be in!`,
+            size: 12,
+            structures: [],
+            players: [],
+            npcs: [],
+            mobs: [],
+            loot: [],
+            effects: [],
+            background: {sky: undefined, ground: undefined, foreground: undefined},
+            fishing: undefined,
+            foraging: {},
+            exits: {
+                'se': {to: '400,500,0', traversal: 'walk/0', hidden: 0}
+            }            
+        }, 
         '525,500,0': {
             zone: 'Town of Rivercrossing',
             room: 'East Central Street',

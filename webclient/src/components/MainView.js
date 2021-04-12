@@ -225,8 +225,6 @@ const MyChar = ({ state, dispatch }) => {
     return (
         <CharCard>
             <TopMenuBox state={state} dispatch={dispatch} />
-            <ZoneTitle>{state.location?.room?.zone || 'An Endless Void'}</ZoneTitle>
-            <ZoneTitle room>{state.location?.room?.room || `Floating Aimlessly`}</ZoneTitle>
             <CharProfileImg />
             <CharProfileName>{state.name}</CharProfileName>
             <button style={{marginLeft: '2rem', height: '40%'}} onClick={logout}>Log Out</button>

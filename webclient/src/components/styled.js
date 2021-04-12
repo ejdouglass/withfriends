@@ -317,6 +317,26 @@ export const CompassArrow = styled.div`
         margin: 0 auto;
         top: 20%;
     `}
+    ${props => props.northeast && css`
+        transform: rotate(-90deg);
+        right: 20%;
+        top: 20%;
+    `}
+    ${props => props.southeast && css`
+        transform: rotate(0deg);
+        right: 20%;
+        bottom: 20%;
+    `}
+    ${props => props.southwest && css`
+        transform: rotate(90deg);
+        left: 20%;
+        bottom: 20%;
+    `}
+    ${props => props.northwest && css`
+        transform: rotate(180deg);
+        left: 20%;
+        top: 20%;
+`}
 `;
 
 export const ZoneTitle = styled.div`
