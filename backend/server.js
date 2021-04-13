@@ -538,6 +538,31 @@ class SpawnMap {
 let Rivercrossing = new Zone('Town of Rivercrossing');
 let WestOfRivercrossing = new Zone('West of Rivercrossing');
 
+class Item {
+    constructor(type, name, description, atk, mag, def, res, size, weight, special, construction, materials, value) {
+        this.type = type;
+        this.name = name;
+        this.description = description;
+        this.atk = atk;
+        this.mag = mag;
+        this.def = def;
+        this.res = res;
+        this.size = size;
+        this.weight = weight;
+        this.special = special;
+        this.construction = construction; // durability, broadly
+        this.materials = materials; // materials made of, and in what quantities, measured in "ingot" levels
+        this.value = value;
+    }
+}
+
+let venturesomeAxe = new Item(
+    'weapon',
+    'a Venturesome Axe',
+    `A simple but effective warrior's weapon.`,
+    18
+)
+
 
 // Doing an NPC Class way up here, because Class is NOT hoisted, unlike constructor functions. Will eventually just grab it from its own module. Anyhoo:
 class NPC {
