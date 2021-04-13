@@ -556,12 +556,46 @@ class Item {
     }
 }
 
-let venturesomeAxe = new Item(
-    'weapon',
-    'a Venturesome Axe',
-    `A simple but effective warrior's weapon.`,
-    18
-)
+class Weapon extends Item {
+    constructor(name, description, atk, mag, def, res, size, weight, special, construction, materials, value) {
+        super('weapon', name, description, atk, mag, def, res, size, weight, special, construction, materials, value);
+    }
+}
+
+class Armor extends Item {
+    constructor(name, description, atk, mag, def, res, size, weight, special, construction, materials, value) {
+        super('armor', name, description, atk, mag, def, res, size, weight, special, construction, materials, value);
+    }
+}
+
+let venturesomeAxe = new Weapon(
+    'a venturesome axe',
+    `It's a starter axe fit for a warrior!`,
+    18,
+    0,
+    0,
+    0,
+    3,
+    20,
+    [],
+    100,
+    ['iron/3', 'oak/1'],
+    250    
+);
+
+let reinforcedLeatherArmor = new Armor(
+    'reinforced leather armor',
+    `Hardened armor made of stud-reinforced leather carefully stiffened and layered to provide a good blend of mobility and protection.`,
+    0,
+    0,
+    15,
+    5,
+    6,
+    100,
+    [],
+    ['leather/6', 'iron/1'],
+    300
+);
 
 
 // Doing an NPC Class way up here, because Class is NOT hoisted, unlike constructor functions. Will eventually just grab it from its own module. Anyhoo:
