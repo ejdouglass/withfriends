@@ -516,16 +516,30 @@ class Zone {
 }
 
 class SpawnMap {
-    constructor() {
-        
+    constructor(mobArray, tickRate, spawnRooms, spawnRules) {
+        this.mobArray = mobArray; // array of objects: mob to use, level range, etc.
+        this.tickRate = tickRate; // how often to check itself to see if it needs to spawn
+        this.spawnRooms = spawnRooms; // array of rooms to potentially spawn in
+        this.spawnRules = spawnRules;
+
+        this.mobs = []; // keep track of mobs spawned, see how they're doing, make more if necessary
+        this.active = false; // variable that controls whether this SpawnMap is currently active
+    }
+
+    activate() {
+        // HERE: set first Timeout for self-checking and monitoring
+    }
+
+    spawn() {
+        // HERE: spawn moar mobs!
     }
 
     /*
         HRMM -- what goes into a SpawnMap?
         -- an array of rooms
         -- how often it 'ticks'
-        -- mob(s) spawned, and their 'cost' if applicable (if SpawnMap is temporary in particular)
-        -- ruleset for spawning (most basic: players present during tick)
+        -- mob(s) spawned including their level range if applicable
+        -- spawn rule(s), including "X mobs per room," "spawn preference (group size)," "spawn on player: never, random, preferably", "spawnrate without players present"
         -- target(s): particularly aggressive SpawnMaps (or riled up ones... think hornet's nest/goblin camp) can get peeved at particular player(s),
             spawning more frequently, more aggressively, angrier mobs, stronger mobs from its 'deck' if applicable, etc.
         
@@ -567,6 +581,9 @@ class Armor extends Item {
         super('armor', name, description, atk, mag, def, res, size, weight, special, construction, materials, value);
     }
 }
+
+// Hm. Not sure I like this setup. Maybe more objects, fewer loose floating numbers, can possibly de-specialize these classes
+//  and add typing to a "type" object at the beginning instead
 
 let venturesomeAxe = new Weapon(
     'a venturesome axe',
@@ -722,17 +739,27 @@ class Mob {
     constructor(glance, stats, location, description, race) {
         this.name = '';
         this.glance = glance;
-        this.stats = JSON.parse(JSON.stringify(stats));
+        this.stat = JSON.parse(JSON.stringify(stats)); // Deep copy. Just in case. :P Though may not end up doing it this way, can receive an obj and parse into separate fields in a fashion similar to Characer.
+        this.derivedStat = {};
         this.location = location;
         this.description = description || `This being is very nondescript.`;
         this.race = race;
+        this.entityID = generateRandomID();
+    }
+
+    init() {
+        // HERE: calc derivedStats, roll for random parts of their construction which may include level and gear, start their setTimeout loop
+    }
+
+    actOut() {
+
     }
 
     // If NAMED, can have a separate functionality in here that's called post-creation
 
     /*
         MOBLORE
-        - Hm, thinking for these (and maybe NPCs), have a selfCheck timeout fxn that assesses itself and decides what to be "up to"
+        - Hm, thinking for these (and maybe NPCs), have a selfCheck fxn that assesses itself and decides what to be "up to"
         - Add who/what being targeted
         - For bosses, HP break points
         - Add special 'onReceiveDamage' listeners?
@@ -1613,6 +1640,8 @@ function removeCharacterFromGame(character) {
     How will it accomplish all this? Greaaaat question. :P Internal Interval-driven methods is what I'm thinking at this point.
 */
 const GameMaster = {};
+
+let orchardGoblinSpawn = new SpawnMap(); // '400,550,0' is the 'south' room, so center room is 400,575,0
 
 server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
 
