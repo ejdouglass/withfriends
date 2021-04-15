@@ -517,21 +517,18 @@ class Zone {
 
 class SpawnMap {
     constructor(mobArray, tickRate, spawnRooms, spawnRules) {
-        this.mobArray = mobArray; // array of objects: mob to use, level range, etc.
+        this.mobArray = mobArray; // array of objects: class of mob to use, level range, etc.
         this.tickRate = tickRate; // how often to check itself to see if it needs to spawn
         this.spawnRooms = spawnRooms; // array of rooms to potentially spawn in
         this.spawnRules = spawnRules;
 
         this.mobs = []; // keep track of mobs spawned, see how they're doing, make more if necessary
-        this.active = false; // variable that controls whether this SpawnMap is currently active
+        this.active = false; // variable that controls whether this SpawnMap is currently active ... may not be necessary upon further reflection
     }
 
-    activate() {
-        // HERE: set first Timeout for self-checking and monitoring
-    }
+    run() {
+        // HERE: all the logic runs and then sets a timeout to run again and again, whee!
 
-    spawn() {
-        // HERE: spawn moar mobs!
     }
 
     /*
@@ -764,6 +761,42 @@ class Mob {
         - For bosses, HP break points
         - Add special 'onReceiveDamage' listeners?
     */
+}
+
+// Maybe later we can implement 'ranges' in some fashion, or some variance in abilities or something within a spawn mob
+// Also, very likely ditching the 'master class' mob concept for now and just making individual classes per mob. Let's give this a whirl.
+class orchardGoblin {
+    constructor(location) {
+        this.location = location;
+        this.glance = `an orchard goblin`;
+        this.entityID = undefined;
+        this.stat = {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, charisma: 15};
+        this.derivedStat = {HP: undefined, MP: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, DFL: undefined};
+        this.mode = undefined;
+        this.equilibrium = 100;
+        this.equipped = {};
+        this.target = undefined;
+        this.actInterval = undefined;
+        this.monsterLevel = 1; // hrmmm
+        this.loot = undefined; // hm, how to loot table
+    }
+
+    init() {
+        // HERE: give an entityID, roll for gear, etc. and probably start up the actOut setTimeout loop and actInterval
+        // Roll up gear, 'equip' gear (not through equip function, just slap 'em into here real quick), calc all derivedStats
+        this.entityID = 'mob' + generateRandomID();
+
+        this.actInterval = 3000;
+        setTimeout(() => this.actOut(), this.actInterval);
+    }
+
+    actOut() {
+        io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `An orchard goblin wants to collect some apples!`);
+
+        this.actInterval = rando(3,12) * 1000;
+        setTimeout(() => this.actOut(), this.actInterval);
+        // HERE: assess self and situation, modify mode if necessary, and get going!
+    }
 }
 
 const connectionParams = {

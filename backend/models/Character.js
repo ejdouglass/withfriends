@@ -21,7 +21,7 @@ const CharacterSchema = new Schema({
     stat: {
         type: Object, 
         required: true,
-        default: {strength: 20, agility: 20, constitution: 20, willpower: 20, intelligence: 20, wisdom: 20, charisma: 20}
+        default: {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, charisma: 15}
     },
     derivedStat: {
         type: Object,
@@ -55,12 +55,13 @@ const CharacterSchema = new Schema({
             fighting: 0,
             gathering: 0,
             sneaking: 0,
-            traveling: 0,
+            traversing: 0,
             crafting: 0,
-            casting: 0,
-            knowing: 0,
-            sensing: 0, // hmmm
-            building: 0
+            spellcraft: 0,
+            scholarship: 0,
+            sensing: 0, // perception, etc... search out exits, hidden entities, 
+            building: 0,
+            medicine: 0
         }
     },
     spells: Array,
