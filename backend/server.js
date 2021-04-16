@@ -550,22 +550,40 @@ let Rivercrossing = new Zone('Town of Rivercrossing');
 let WestOfRivercrossing = new Zone('West of Rivercrossing');
 
 class Item {
-    constructor(type, name, description, atk, mag, def, res, size, weight, special, construction, materials, value) {
-        this.type = type;
-        this.name = name;
+    constructor(type, glance, description, stat, build, special, value) {
+        this.type = type; // objectified - item type and subtypes, if applicable
+        this.glance = glance;
         this.description = description;
-        this.atk = atk;
-        this.mag = mag;
-        this.def = def;
-        this.res = res;
-        this.size = size;
-        this.weight = weight;
-        this.special = special;
-        this.construction = construction; // durability, broadly
-        this.materials = materials; // materials made of, and in what quantities, measured in "ingot" levels
-        this.value = value;
+        this.stat = stat; // objectified - atk, mag, def, res
+        this.build = build; // objectified - size, weight, durability, materials
+        this.special = special; // ???
+        this.value = value; // ideally derived from materials as well as skill/difficulty in its creation modified by overall concept of rarity, buuuut whatever for now
     }
 }
+
+// Hm, going to have to figure out how we want to actually use these values...
+// The strength of classes is being able to make new items on the fly, while this is just setting it all randomly here?
+// Well, we can also do a new Item whenever we spawn a new mob or create an item or 'create' from a store buying, etc.
+// So this is mostly just to sketch out the concept for now, I suppose
+let goblinKnife = new Item(
+    {main: 'weapon', sub: 'dagger', range: 'melee'},
+    `a jagged stone knife`,
+    `A crude but effective tool crafted of stone chipped carefully into a jagged-edged long knife bound tightly to a well-worn wooden handle.`,
+    {atk: 10, mag: 10, def: 0, res: 0},
+    {size: 1, weight: 5, durability: 50, maxDurability: 50, materials: 'stone/1,wood/1'},
+    [],
+    15
+);
+
+let goblinRags = new Item(
+    {main: 'armor', sub: 'cloth'},
+    `some stitch-ragged leather clothes`,
+    `While it looks capable of providing some basic protection, this patchwork collection of rough-worn leather is enthusiastically but poorly held together with dreams and optimism almost as much as it is copious amounts of crude twine.`,
+    {atk: 0, mag: 0, def: 10, res: 10},
+    {size: 8, weight: 25, durability: 150, maxDurability: 150, materials: `leather/8`},
+    [],
+    15 
+)
 
 class Weapon extends Item {
     constructor(name, description, atk, mag, def, res, size, weight, special, construction, materials, value) {
@@ -582,18 +600,18 @@ class Armor extends Item {
 // Hm. Not sure I like this setup. Maybe more objects, fewer loose floating numbers, can possibly de-specialize these classes
 //  and add typing to a "type" object at the beginning instead
 
-let venturesomeAxe = new Weapon(
-    'a venturesome axe',
-    `It's a starter axe fit for a warrior!`,
+let woodcuttersAxe = new Weapon(
+    `a woodcutter's axe`,
+    `Good for getting some lumber!`,
     18,
-    0,
+    5,
     0,
     0,
     3,
     20,
     [],
     100,
-    ['iron/3', 'oak/1'],
+    ['iron/2', 'oak/2'],
     250    
 );
 
@@ -767,17 +785,20 @@ class Mob {
 // Also, very likely ditching the 'master class' mob concept for now and just making individual classes per mob. Let's give this a whirl.
 class orchardGoblin {
     constructor(location) {
-        this.location = location;
+        this.location = location; // The only outside variable needed to successfully spawn this fella currently...
+        // Might add 'monsterLevel' and such 
         this.glance = `an orchard goblin`;
         this.entityID = undefined;
         this.stat = {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, charisma: 15};
-        this.derivedStat = {HP: undefined, MP: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, DFL: undefined};
-        this.mode = undefined;
+        this.derivedStat = {HP: undefined, HPmax: 60, MP: 15, MPmax: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, DFL: undefined};
+        this.mode = undefined; // gotta define modes and such, too, like wandering, self-care (later), etc.... may want to set 'default' names for ease and later mobs
+        this.injuries = []; // haven't decided how to define these quite yet
         this.equilibrium = 100;
+        this.stance = 300;
         this.equipped = {};
         this.target = undefined;
         this.actInterval = undefined;
-        this.monsterLevel = 1; // hrmmm
+        this.level = 1; // hrmmm, might set this up to be a constructor variable, and then pop stats and values up from there
         this.loot = undefined; // hm, how to loot table
     }
 
@@ -785,6 +806,27 @@ class orchardGoblin {
         // HERE: give an entityID, roll for gear, etc. and probably start up the actOut setTimeout loop and actInterval
         // Roll up gear, 'equip' gear (not through equip function, just slap 'em into here real quick), calc all derivedStats
         this.entityID = 'mob' + generateRandomID();
+        // OH! Yeah, maybe we can roll up 'custom' glances for them, too. Separate them a little bit.
+        let appearanceRoll = rando(1,10);
+        switch (appearanceRoll) {
+            case 1:
+            case 2:
+            case 3:
+                this.glance = `a rough-skinned orange orchard goblin`;
+                break;
+            case 4:
+            case 5:
+            case 6:
+                this.glance = `a stout ruddy orchard goblin`;
+            case 7:
+            case 8:
+            case 9:
+                this.glance = `a fuzzy green orchard goblin`;
+            case 10:
+            default: 
+                this.glance = `an oblong yellow orchard goblin`;
+                break;
+        }
 
         this.actInterval = 3000;
         setTimeout(() => this.actOut(), this.actInterval);
@@ -867,8 +909,9 @@ function populateRoom(entity) {
     let roomArrayObject = {
         id: entity.entityID,
         name: entity.name || '',
+        glance: entity.glance || '',
         level: entity.level || 0,
-        health: 100,
+        HP: 100,
         condition: [] // asleep, stunned, not-so-alive, etc.
     }
     zaWarudo[entity.location.RPS][entity.location.GPS][`${entity.entityType + 's'}`].push(roomArrayObject);

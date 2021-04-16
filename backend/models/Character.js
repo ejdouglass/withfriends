@@ -7,9 +7,11 @@ const CharacterSchema = new Schema({
     identity: {type: String}, // May change this to "background," though won't do that until I'm able to go through all related files/code to change properly
     entityType: {type: String, default: 'player'},
     entityID: {type: String, required: true},
-    class: {type: String},
+    class: {type: String, default: 'Commoner'},
     salt: {type: String, required: true},
     hash: {type: String, required: true},
+    equilibrium: {type: Number, default: 100},
+    stance: {type: Number, default: 300},
     location: {
         type: Object,
         default: {RPS: 0, GPS: '500,500,0'}
@@ -25,16 +27,17 @@ const CharacterSchema = new Schema({
     },
     derivedStat: {
         type: Object,
-        default: {HP: undefined, MP: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, DFL: undefined}
+        default: {HP: undefined, HPmax: undefined, MP: undefined, MPmax: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, DFL: undefined}
     },
     injuries: Array,
-    combatTarget: String, // Just leaving this here for now... thinking through its implementation, may remove or reconfigure
+    target: String, // Just leaving this here for now... thinking through its implementation, may remove or reconfigure
     buffs: Object, // Or array. Haven't decided yet :P
     debuffs: Object,
     backpack: {
         type: Object,
         default: {open: false, contents: [], size: 10, stackModifiers: {}}
     },
+    purse: Object, // can expound on this later
     equipped: {
         type: Object,
         default: {
