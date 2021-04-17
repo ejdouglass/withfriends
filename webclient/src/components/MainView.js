@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
+import { LeftMenu, ActionButton, RightMenuLabel, PlayerList, MobList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -41,8 +41,22 @@ const LeftMenuBox = ({ state, dispatch }) => {
 
 const RightMenuBox = ({ state, dispatch }) => {
     // Entities! -- NPCs, mobs, players
+    // Probably in the order PLAYERS, MOBS, NPCS... but only two sections is fine, NPCs and MOBs are pretty interchangeable
     return (
         <RightMenu>
+            <RightMenuLabel>Players</RightMenuLabel>
+            <PlayerList>
+                {state.location?.room?.players?.map((player, index) => (
+                    <p key={index}>{player.name}</p>
+                ))}
+            </PlayerList>
+            <RightMenuLabel>Mobs</RightMenuLabel>
+                {state.location?.room?.players?.map((mob, index) => (
+                    <p key={index}>{mob.glance}</p>
+                ))}
+            <MobList>
+
+            </MobList>
         </RightMenu>
     );
 }

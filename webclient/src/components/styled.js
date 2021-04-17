@@ -657,3 +657,18 @@ export const RightMenu = styled.div`
     background-color: white;
     right: calc(10% - 40px - 10vw);
 `;
+
+export const RightMenuLabel = styled.h1`
+    font-size: calc(0.6rem + 0.5vw);
+    font-weight: 600;
+`;
+
+export const PlayerList = styled.div`
+    font-size: calc(0.5rem + 0.5vw);
+    font-weight: 400;
+`;
+
+export const MobList = styled.div`
+    font-size: calc(0.5rem + 0.5vw);
+    font-weight: 400;
+`;
