@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, RightMenuLabel, PlayerList, MobList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
+import { LeftMenu, ActionButton, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -44,28 +44,25 @@ const RightMenuBox = ({ state, dispatch }) => {
     // Probably in the order PLAYERS, MOBS, NPCS... but only two sections is fine, NPCs and MOBs are pretty interchangeable
     return (
         <RightMenu>
-            <RightMenuLabel>Players Seen Here</RightMenuLabel>
-            <PlayerList>
-                {state.location?.room?.players?.length === 1 && (
-                    <p>Nobody but yourself.</p>
-                )}
-                {state.location?.room?.players?.map((player, index) => (
-                    <p key={index}>{player.name === state.name ? null : player.name}</p>
-                ))}
-            </PlayerList>
-            <RightMenuLabel>Mobs Seen Here</RightMenuLabel>
-                {(state.location?.room?.npcs?.length === 0 && state.location?.room?.mobs?.length === 0) && (
-                    <p>None, apparently.</p>
-                )}
-                {state.location?.room?.mobs?.map((mob, index) => (
-                    <p key={index}>{mob.glance}</p>
-                ))}
-                {state.location?.room?.npcs?.map((npc, index) => (
-                    <p key={index}>{npc.glance}</p>
-                ))}
-            <MobList>
-
-            </MobList>
+            <RightMenuLabel>Also Here:</RightMenuLabel>
+            <EntityList>
+                {state.location?.room?.players?.length + state.location?.room?.npcs?.length + state.location?.room?.mobs?.length > 1 ? (
+                        <>
+                        {state.location?.room?.mobs?.map((mob, index) => (
+                            <p key={index}>{mob.glance}</p>
+                        ))}
+                        {state.location?.room?.npcs?.map((npc, index) => (
+                            <p key={index}>{npc.glance}</p>
+                        ))}                    
+                        {state.location?.room?.players?.map((player, index) => (
+                            <p key={index}>{player.name === state.name ? null : player.name}</p>
+                        ))}
+                        </>
+                    ) : (
+                        <p>Nobody but you.</p>
+                    )
+                }
+            </EntityList>
         </RightMenu>
     );
 }

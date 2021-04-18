@@ -667,12 +667,8 @@ export const RightMenuLabel = styled.h1`
     text-align: center;
 `;
 
-export const PlayerList = styled.div`
+export const EntityList = styled.div`
     font-size: calc(0.5rem + 0.5vw);
     font-weight: 400;
-`;
-
-export const MobList = styled.div`
-    font-size: calc(0.5rem + 0.5vw);
-    font-weight: 400;
+    padding-left: 0.5rem;
 `;

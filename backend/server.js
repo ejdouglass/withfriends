@@ -517,18 +517,41 @@ class Zone {
 
 class SpawnMap {
     constructor(mobArray, tickRate, spawnRooms, spawnRules) {
-        this.mobArray = mobArray; // array of objects: class of mob to use, level range, etc.
-        this.tickRate = tickRate; // how often to check itself to see if it needs to spawn
+        this.mobArray = mobArray; // array of objects: class of mob to use, level range, frequency (for weighting)
+        this.tickRate = tickRate; // how often to check itself to see if it needs to spawn ... we'll have it in seconds, and just x1000 this bad boy
         this.spawnRooms = spawnRooms; // array of rooms to potentially spawn in
         this.spawnRules = spawnRules;
+        /*
+            SPAWNRULES: object
+            max mobs per room per spawn
+            groups spawned/group preference
+            spawn on player: never, random, preferably
+            base spawnrate (no players), additional spawn per player, max spawn
+            ... so e.g.
+            {spawnPerRoom: 1, groupSize: 1, playerSpawn: 1, baseSpawn: 1, extraPlayerSpawn: 1, maxSpawn: 6}
+        */
 
         this.mobs = []; // keep track of mobs spawned, see how they're doing, make more if necessary
         this.active = false; // variable that controls whether this SpawnMap is currently active ... may not be necessary upon further reflection
     }
 
+    init() {
+        // set first variables that you don't want to re-set each time, like maybe distilling a frequency grid for mob spawn?
+        // HERE: initial spawn, if applicable -- we're doing a "single mob array spawn" here, can extrapolate later for more robustness and flexibility
+        this.spawn(this.mobArray[0].mobClass);
+        // HERE: set first timeout
+    }
+
     run() {
         // HERE: all the logic runs and then sets a timeout to run again and again, whee!
+        this.spawn()
+    }
 
+    spawn(classMob) {
+        // obey all spawn rules while dropping this new classMob(spawnLocation)
+        let spawnLocation = this.spawnRooms[rando(0,this.spawnRooms.length - 1)];
+
+        this.mobs.push(); // just entityID, can be used for lookup against the global mobs?
     }
 
     /*
@@ -569,7 +592,7 @@ let goblinKnife = new Item(
     {main: 'weapon', sub: 'dagger', range: 'melee'},
     `a jagged stone knife`,
     `A crude but effective tool crafted of stone chipped carefully into a jagged-edged long knife bound tightly to a well-worn wooden handle.`,
-    {atk: 10, mag: 10, def: 0, res: 0},
+    {atk: 10, mag: 5, def: 0, res: 0},
     {size: 1, weight: 5, durability: 50, maxDurability: 50, materials: 'stone/1,wood/1'},
     [],
     15
@@ -578,8 +601,8 @@ let goblinKnife = new Item(
 let goblinRags = new Item(
     {main: 'armor', sub: 'cloth'},
     `some stitch-ragged leather clothes`,
-    `While it looks capable of providing some basic protection, this patchwork collection of rough-worn leather is enthusiastically but poorly held together with dreams and optimism almost as much as it is copious amounts of crude twine.`,
-    {atk: 0, mag: 0, def: 10, res: 10},
+    `While it looks capable of providing some basic protection, this patchwork collection of rough-worn leather is enthusiastically albeit poorly held together with sheer optimism almost as much as it is copious amounts of crude twine.`,
+    {atk: 0, mag: 0, def: 10, res: 5},
     {size: 8, weight: 25, durability: 150, maxDurability: 150, materials: `leather/8`},
     [],
     15 
@@ -827,6 +850,8 @@ class orchardGoblin {
                 this.glance = `an oblong yellow orchard goblin`;
                 break;
         }
+
+        // HERE: push to global mobs upon existing
 
         this.actInterval = 3000;
         setTimeout(() => this.actOut(), this.actInterval);
@@ -1719,7 +1744,13 @@ function removeCharacterFromGame(character) {
 */
 const GameMaster = {};
 
-let orchardGoblinSpawn = new SpawnMap(); // '400,550,0' is the 'south' room, so center room is 400,575,0
+let orchardGoblinSpawn = new SpawnMap(
+    [{mobClass: orchardGoblin, mobLevelRange: '1-1', frequency: 1}], 
+    10, 
+    ['400,575,0','400,550,0', '400,600,0', '375,550,0', '375,575,0', '375,600,0', '425,550,0', '425,575,0', '425,600,0'], 
+    {spawnPerRoom: 1, groupSize: 1, playerSpawn: 1, baseSpawn: 1, extraPlayerSpawn: 1, maxSpawn: 6}  
+);
+orchardGoblinSpawn.init();
 
 server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
 
