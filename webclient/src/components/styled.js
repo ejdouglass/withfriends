@@ -661,6 +661,10 @@ export const RightMenu = styled.div`
 export const RightMenuLabel = styled.h1`
     font-size: calc(0.6rem + 0.5vw);
     font-weight: 600;
+    width: calc(100% - 2rem);
+    background-color: #0AF;
+    padding: 1rem;
+    text-align: center;
 `;
 
 export const PlayerList = styled.div`

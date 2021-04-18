@@ -900,8 +900,10 @@ npcs.push(newGuy);
 
 function depopulateRoom(entity) {
     let roomArrayTarget = `${entity.entityType + 's'}`;
-    // console.log(`Removing entity ${entity.name} from GPS ${entity.location.GPS}`)
-    zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget] = zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget].filter((roomEntity) => roomEntity.entityID !== entity.entityID);
+    // console.log(`Removing entity ${entity.name} from GPS ${entity.location.GPS}`);
+    // console.log(`Ok! Current room PLAYERS include: ${JSON.stringify(zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget])}`);
+    zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget] = zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget].filter((roomEntity) => roomEntity.id !== entity.entityID);
+    // console.log(`Now post-filter fix: ${JSON.stringify(zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget])}`);
 }
 
 function populateRoom(entity) {
@@ -1153,7 +1155,7 @@ function moveEntity(entity, direction, whiskTarget) {
 
         
         // zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget] = zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget].filter((roomEntityID) => roomEntityID !== entity.entityID);
-        depopulateRoom(entity);
+        depopulateRoom(entity); // is THIS not working? hmmmm...
         let newRoomGPS = entity.location.room.exits[direction].to;
         entity.location.GPS = newRoomGPS;
         // zaWarudo[entity.location.RPS][entity.location.GPS][roomArrayTarget].push(entity.entityID);

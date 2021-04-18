@@ -44,15 +44,24 @@ const RightMenuBox = ({ state, dispatch }) => {
     // Probably in the order PLAYERS, MOBS, NPCS... but only two sections is fine, NPCs and MOBs are pretty interchangeable
     return (
         <RightMenu>
-            <RightMenuLabel>Players</RightMenuLabel>
+            <RightMenuLabel>Players Seen Here</RightMenuLabel>
             <PlayerList>
+                {state.location?.room?.players?.length === 1 && (
+                    <p>Nobody but yourself.</p>
+                )}
                 {state.location?.room?.players?.map((player, index) => (
-                    <p key={index}>{player.name}</p>
+                    <p key={index}>{player.name === state.name ? null : player.name}</p>
                 ))}
             </PlayerList>
-            <RightMenuLabel>Mobs</RightMenuLabel>
-                {state.location?.room?.players?.map((mob, index) => (
+            <RightMenuLabel>Mobs Seen Here</RightMenuLabel>
+                {(state.location?.room?.npcs?.length === 0 && state.location?.room?.mobs?.length === 0) && (
+                    <p>None, apparently.</p>
+                )}
+                {state.location?.room?.mobs?.map((mob, index) => (
                     <p key={index}>{mob.glance}</p>
+                ))}
+                {state.location?.room?.npcs?.map((npc, index) => (
+                    <p key={index}>{npc.glance}</p>
                 ))}
             <MobList>
 

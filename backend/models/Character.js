@@ -60,7 +60,7 @@ const CharacterSchema = new Schema({
             sneaking: 0,
             traversing: 0,
             crafting: 0,
-            spellcraft: 0,
+            spellcasting: 0,
             scholarship: 0,
             sensing: 0, // perception, etc... search out exits, hidden entities, 
             building: 0,
