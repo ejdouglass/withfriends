@@ -515,10 +515,19 @@ class Zone {
     // Methods go here
 }
 
+/*
+let orchardGoblinSpawn = new SpawnMap(
+    [{mobClass: orchardGoblin, mobLevelRange: '1-1', frequency: 1}], 
+    10, 
+    ['400,575,0','400,550,0', '400,600,0', '375,550,0', '375,575,0', '375,600,0', '425,550,0', '425,575,0', '425,600,0'], 
+    {spawnPerRoom: 1, groupSize: 1, playerSpawnPreference: 1, baseSpawn: 1, extraPlayerSpawn: 1, maxSpawn: 6}  
+);
+*/
+
 class SpawnMap {
     constructor(mobArray, tickRate, spawnRooms, spawnRules) {
         this.mobArray = mobArray; // array of objects: class of mob to use, level range, frequency (for weighting)
-        this.tickRate = tickRate; // how often to check itself to see if it needs to spawn ... we'll have it in seconds, and just x1000 this bad boy
+        this.tickRate = tickRate * 1000; // how often to check itself to see if it needs to spawn ... we'll have it in seconds, and just x1000 this bad boy
         this.spawnRooms = spawnRooms; // array of rooms to potentially spawn in
         this.spawnRules = spawnRules;
         /*
@@ -528,7 +537,7 @@ class SpawnMap {
             spawn on player: never, random, preferably
             base spawnrate (no players), additional spawn per player, max spawn
             ... so e.g.
-            {spawnPerRoom: 1, groupSize: 1, playerSpawn: 1, baseSpawn: 1, extraPlayerSpawn: 1, maxSpawn: 6}
+            {spawnPerRoom: 1, groupSize: 1, playerSpawnPreference: 1, baseSpawn: 1, extraPlayerSpawn: 1, maxSpawn: 6}
         */
 
         this.mobs = []; // keep track of mobs spawned, see how they're doing, make more if necessary
@@ -538,20 +547,52 @@ class SpawnMap {
     init() {
         // set first variables that you don't want to re-set each time, like maybe distilling a frequency grid for mob spawn?
         // HERE: initial spawn, if applicable -- we're doing a "single mob array spawn" here, can extrapolate later for more robustness and flexibility
+        // ADD: spawn up to the baseSpawn rate
         this.spawn(this.mobArray[0].mobClass);
         // HERE: set first timeout
+        setTimeout(() => this.run(), this.tickRate);
     }
 
     run() {
-        // HERE: all the logic runs and then sets a timeout to run again and again, whee!
-        this.spawn()
+        // ADD: checking on mobs; once they're killable, add a fxn that removes them from global mobs, converts them into their corpse-form (dark!)
+        //  RUN should check on the status of all stored IDs, count up the remaining live ones, and respond accordingly
+
+        // Check spawn rules, make sure we're not at the limit before running spawn
+        if (this.mobs.length < this.spawnRules.maxSpawn) {
+            // ADD: check all rooms for players to see if it's time to pop more mobs into existence
+            //  ... currently, just kinda keeps going until maxSpawn willy-nilly
+            this.spawn(this.mobArray[0].mobClass);
+        }
+        setTimeout(() => this.run(), this.tickRate);
     }
 
     spawn(classMob) {
-        // obey all spawn rules while dropping this new classMob(spawnLocation)
-        let spawnLocation = this.spawnRooms[rando(0,this.spawnRooms.length - 1)];
+        // obey all spawn rules while dropping this new classMob(spawnLocation)... might do a 'quick' loop instead?
+        let spawnLocation;
+        let obeyingSpawnRules = false;
+        do {
+            spawnLocation = this.spawnRooms[rando(0,this.spawnRooms.length - 1)];
+            // let theseMobsInRoom = 0; // whoops, I have no way to have 'core identity' checked with orchard goblin vs orchard goblin... add that in
+            if (zaWarudo['0'][spawnLocation].mobs.length < 1) { // CHANGE: set up to check against spawnPerRoom, requires change(s) above
+                obeyingSpawnRules = true;
+            }
+        } while (obeyingSpawnRules === false);
 
-        this.mobs.push(); // just entityID, can be used for lookup against the global mobs?
+        console.log(`The room at ${spawnLocation} looks good. Let's plop down a mob!`);
+        const newMob = new classMob(spawnLocation);
+        newMob.init();
+        
+        mobs[newMob.entityID] = newMob; // do I have to do a deep copy, or will this be sufficient?
+        // HERE: whoops, gotta populate their room, too...
+        populateRoom(newMob);
+        io.to(`${newMob.location.RPS}/${newMob.location.GPS}`).emit('room_event', newMob.spawnMessage);
+        
+
+        // hmmmm ok maybe locally define, make a deep brand-new copy in global mobs list, then throw the entityID into the local mobs list
+        
+
+        this.mobs.push(newMob.entityID); // just entityID, can be used for lookup against the global mobs? speaking of which:
+        
     }
 
     /*
@@ -808,13 +849,16 @@ class Mob {
 // Also, very likely ditching the 'master class' mob concept for now and just making individual classes per mob. Let's give this a whirl.
 class orchardGoblin {
     constructor(location) {
-        this.location = location; // The only outside variable needed to successfully spawn this fella currently...
+        this.location = {RPS: 0, GPS: location}; // The only outside variable needed to successfully spawn this fella currently...
         // Might add 'monsterLevel' and such 
-        this.glance = `an orchard goblin`;
+        this.glance = `an orchard muglin`;
         this.entityID = undefined;
+        this.entityType = 'mob';
+        this.mobType = {race: 'muglin'};
+        this.spawnMessage = `Leaves rustle and twigs snap as ${this.glance} scrambles into view, its eyes darting from tree to tree hungrily.`;
         this.stat = {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, charisma: 15};
         this.derivedStat = {HP: undefined, HPmax: 60, MP: 15, MPmax: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, DFL: undefined};
-        this.mode = undefined; // gotta define modes and such, too, like wandering, self-care (later), etc.... may want to set 'default' names for ease and later mobs
+        this.mode = 'idle'; // gotta define modes and such, too, like wandering, self-care (later), etc.... may want to set 'default' names for ease and later mobs
         this.injuries = []; // haven't decided how to define these quite yet
         this.equilibrium = 100;
         this.stance = 300;
@@ -835,35 +879,65 @@ class orchardGoblin {
             case 1:
             case 2:
             case 3:
-                this.glance = `a rough-skinned orange orchard goblin`;
+                this.glance = `a rough-skinned orange orchard muglin`;
                 break;
             case 4:
             case 5:
             case 6:
-                this.glance = `a stout ruddy orchard goblin`;
+                this.glance = `a stout ruddy orchard muglin`;
+                break;
             case 7:
             case 8:
             case 9:
-                this.glance = `a fuzzy green orchard goblin`;
+                this.glance = `a fuzzy green orchard muglin`;
+                break;
             case 10:
             default: 
-                this.glance = `an oblong yellow orchard goblin`;
+                this.glance = `an oblong yellow orchard muglin`;
                 break;
         }
 
         // HERE: push to global mobs upon existing
 
-        this.actInterval = 3000;
+        this.actInterval = 8000;
         setTimeout(() => this.actOut(), this.actInterval);
     }
 
     actOut() {
-        io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `An orchard goblin wants to collect some apples!`);
+        // basic orchard muglin behavior: they do colorful nothing, search the area, or ATTACK! ... they're aggressive, so will always attack if they see player(s)
+        // HERE: define 'seenPlayers' as array of attackables... once hiding is a thing
+        if (zaWarudo[this.location.RPS][this.location.GPS].players.length > 0) {
+            this.target = characters[`${zaWarudo[this.location.RPS][this.location.GPS].players[0].id}`]; // later: fix to include seenPlayers array length, and change to seenPlayers array instead
+            // console.log(`Rawr! Now targeting: ${JSON.stringify(this.target.name)}`);
+            this.mode = 'combat';
+        }
+
+        switch (this.mode) {
+            case 'idle': {
+                io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `An orchard muglin wants to collect some apples!`);
+                break;
+                // change this to actIdle or something later for more nuanced options
+            }
+            case 'combat': {
+                if (this.location.GPS === this.target.location.GPS) {
+                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `An orchard muglin lunges menacingly at ${this.target.name}!`);
+                } else {
+                    this.mode = 'idle';
+                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `An orchard muglin lost track of its target, glancing around warily.`);
+                }
+                break;
+            }
+        }
+        
 
         this.actInterval = rando(3,12) * 1000;
         setTimeout(() => this.actOut(), this.actInterval);
         // HERE: assess self and situation, modify mode if necessary, and get going!
     }
+}
+
+function calcStats(entity) {
+    // THIS: pass in an entity, calculate their derivedStats based on their equipment, buffs, debuffs, etc.
 }
 
 const connectionParams = {
@@ -941,7 +1015,8 @@ function populateRoom(entity) {
         HP: 100,
         condition: [] // asleep, stunned, not-so-alive, etc.
     }
-    zaWarudo[entity.location.RPS][entity.location.GPS][`${entity.entityType + 's'}`].push(roomArrayObject);
+    let entityRPS = entity.location.RPS || '0';
+    zaWarudo[entityRPS][entity.location.GPS][`${entity.entityType + 's'}`].push(roomArrayObject);
 }
 
 let areas = {
@@ -1748,9 +1823,18 @@ let orchardGoblinSpawn = new SpawnMap(
     [{mobClass: orchardGoblin, mobLevelRange: '1-1', frequency: 1}], 
     10, 
     ['400,575,0','400,550,0', '400,600,0', '375,550,0', '375,575,0', '375,600,0', '425,550,0', '425,575,0', '425,600,0'], 
-    {spawnPerRoom: 1, groupSize: 1, playerSpawn: 1, baseSpawn: 1, extraPlayerSpawn: 1, maxSpawn: 6}  
+    {spawnPerRoom: 1, groupSize: 1, playerSpawnPreference: 1, baseSpawn: 1, extraPlayerSpawn: 1, maxSpawn: 6}  
 );
 orchardGoblinSpawn.init();
+
+// THIS SECTION: basic abilities/actions
+function attack(attackingEntity, defendingEntity) {
+    // THIS: the most basic attack, just whack 'em with your weapon
+}
+
+function goblinPunch(attackingEntity, defendingEntity) {
+    // THIS: the almighty GOBLIN PUNCH, possibly the only special maneuver the orchard muglin knows!
+}
 
 server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
 

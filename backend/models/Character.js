@@ -49,6 +49,8 @@ const CharacterSchema = new Schema({
             accessory2: {}
         }
     },
+    buffs: Array,
+    debuffs: Array,
     position: {type: String, default: 'standing'},
     skill: {
         type: Object,
