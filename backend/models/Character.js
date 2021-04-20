@@ -4,6 +4,9 @@ const Schema = mongoose.Schema;
 // Interesting! Passing in 'unaccounted for' variables results in them being trimmed out? entityID was purged until I added it here.
 const CharacterSchema = new Schema({
     name: {type: String, required: true},
+    gender: String,
+    age: Number,
+    features: Object,
     identity: {type: String}, // May change this to "background," though won't do that until I'm able to go through all related files/code to change properly
     entityType: {type: String, default: 'player'},
     entityID: {type: String, required: true},
@@ -31,6 +34,7 @@ const CharacterSchema = new Schema({
     },
     injuries: Array,
     target: String, // Just leaving this here for now... thinking through its implementation, may remove or reconfigure
+    tagged: Object,
     buffs: Object, // Or array. Haven't decided yet :P
     debuffs: Object,
     backpack: {
@@ -50,7 +54,8 @@ const CharacterSchema = new Schema({
         }
     },
     buffs: Array,
-    debuffs: Array,
+    debuffs: Array, // hm, thinking of just having an 'effects' object instead... with keys such as atkUP, atkDOWN, poison, etc.
+    effects: Object,
     position: {type: String, default: 'standing'},
     skill: {
         type: Object,
@@ -64,7 +69,7 @@ const CharacterSchema = new Schema({
             crafting: 0,
             spellcasting: 0,
             scholarship: 0,
-            sensing: 0, // perception, etc... search out exits, hidden entities, 
+            sensing: 0, // perception, etc... search out exits, hidden entities, appraise the nature of objects, etc.
             building: 0,
             medicine: 0
         }

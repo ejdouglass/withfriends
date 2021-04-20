@@ -111,15 +111,70 @@ export const Button = styled.button``;
 
 export const Input = styled.input``;
 
-export const Title = styled.h1``;
+export const Title = styled.h1`
+    width: 100%;
+    text-align: center;
+    font-size: calc(0.8rem + 1vw);
+    font-weight: 500;
+`;
+
+export const ExpositionText = styled.p`
+    width: 80vw;
+    padding: 0 10vw 0 10vw;
+    font-size: calc(0.6rem + 0.6vw);
+    line-height: 2rem;
+    text-align: justify;
+`;
 
 export const Text = styled.p`
     overflow: hidden;
     text-overflow: ellipsis;
 `;
 
+export const BackgroundContainer = styled.div`
+    display: flex;
+    box-sizing: border-box;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    align-content: flex-start;
+    width: 60vw;
+    margin: 0 20vw 0 20vw;
+    border: 1px solid #225;
+    height: 200px;
+`;
 
+export const BackgroundSelection = styled.div`
+    display: flex;
+    box-sizing: border-box;
+    width: 10vw;
+    height: 85px;
+    margin-top: 10px;
+    border: 1px solid red;
+    font-size: calc(0.6rem + 0.3vw);
+    font-weight: 600;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    ${props => props.selected && css`
+        font-weight: 800;
+        font-size: calc(0.7rem + 0.3vw);
+        background-color: pink;
+    `}
+`;
 
+export const BackgroundExplanation = styled.div`
+    display: flex;
+    box-sizing: border-box;
+    margin: 0 10vw 0 10vw;
+    width: 80vw;
+    border: 1px solid #DCC;
+    height: 100px;
+    justify-content: center;
+    align-items: center;
+    font-size: calc(0.6rem + 0.1s);
+    font-weight: 600;
+`;
 
 export const PageContainer = styled(Container)`
     width: 100vw;
@@ -387,9 +442,9 @@ export const CreateCharacterPage = styled.div`
 `;
 
 export const CharacterNameInput = styled.input`
-    height: 2rem;
-    font-size: 1.2rem;
-    width: calc(200px + 5vw);
+    height: calc(0.8rem + 0.8vw);
+    font-size: calc(0.6rem + 0.5vw);
+    width: calc(100px + 6vw);
     padding: 0.5rem;
     font-weight: 600;
     margin: 0.5rem;

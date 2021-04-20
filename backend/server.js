@@ -864,6 +864,7 @@ class orchardGoblin {
         this.stance = 300;
         this.equipped = {};
         this.target = undefined;
+        this.tagged = {}; // thinking using this for 'spotted' entities, base key is their entityID, contains also the time of tagging and tag quality/duration metric
         this.actInterval = undefined;
         this.level = 1; // hrmmm, might set this up to be a constructor variable, and then pop stats and values up from there
         this.loot = undefined; // hm, how to loot table
@@ -938,6 +939,8 @@ class orchardGoblin {
 
 function calcStats(entity) {
     // THIS: pass in an entity, calculate their derivedStats based on their equipment, buffs, debuffs, etc.
+    //  so, this SHOULD spit out a viable derivedStats object, meaning we can just go ahead and choose either to
+    //  A) modify the entity directly, or B) RETURN the object and have any calling function do that for us
 }
 
 const connectionParams = {
@@ -1830,6 +1833,8 @@ orchardGoblinSpawn.init();
 // THIS SECTION: basic abilities/actions
 function attack(attackingEntity, defendingEntity) {
     // THIS: the most basic attack, just whack 'em with your weapon
+    // Considerations: relevant stats, equilibrium, stance, changes to both on both sides
+    // Call any relevant decrement methods for damage/expended energy here as well
 }
 
 function goblinPunch(attackingEntity, defendingEntity) {

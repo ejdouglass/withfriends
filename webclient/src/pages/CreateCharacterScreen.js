@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import { Context, actions } from '../context/context';
-import { CreateCharacterPage, CharacterClassSelector, CharacterClassChoiceContainer, CharacterIDSelector, CharacterIdentityDescription, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, CharacterNameInput, PWInput } from '../components/styled';
+import { CreateCharacterPage, CharacterClassSelector, CharacterClassChoiceContainer, CharacterIDSelector, CharacterIdentityDescription, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, ExpositionText, CharacterNameInput, PWInput, BackgroundContainer, BackgroundSelection, BackgroundExplanation } from '../components/styled';
 
 const charId = {
     ROAMER: 'roamer',
@@ -53,14 +53,18 @@ const identities = [
     }
 ];
 
+const backgrounds = ['Woodsman', 'Pickpocket', 'Mercenary', 'Messenger', 'Apprentice', 'Hedgewizard', 'Scribe', 'Lookout', 'Laborer', 'Healer'];
+
 const CreateCharacterScreen = () => {
     const [state, dispatch] = useContext(Context);
     const [newChar, setNewChar] = useState({
         name: '',
         password: '',
-        feature: {eyes: '', hair: '', height: ''},
-        quirks: []
+        age: 20,
+        feature: {eyes: '', hair: '', height: '', complexion: '', build: ''},
+        background: {first: '', second: '', third: ''}
     });
+    const [backgroundDescription, setBackgroundDescription] = useState('');
     const [userCredentials, setUserCredentials] = useState({charName: '', password: ''});
     const [selectedIdentityIndex, setSelectedIdentityIndex] = useState(undefined);
     const [selectedClass, setSelectedClass] = useState('');
@@ -90,6 +94,17 @@ const CreateCharacterScreen = () => {
         setNewChar({...newChar, name: nameString});
     }
 
+    function handleBackgroundSelection(newBackground) {
+        if (newChar.background.first === newBackground) return setNewChar({...newChar, background: {...newChar.background, first: ''}});
+        if (newChar.background.second === newBackground) return setNewChar({...newChar, background: {...newChar.background, second: ''}});
+        if (newChar.background.third === newBackground) return setNewChar({...newChar, background: {...newChar.background, third: ''}});
+
+        if (newChar.background.first === '') return setNewChar({...newChar, background: {...newChar.background, first: newBackground}});
+        if (newChar.background.second === '') return setNewChar({...newChar, background: {...newChar.background, second: newBackground}});
+        if (newChar.background.third === '') return setNewChar({...newChar, background: {...newChar.background, third: newBackground}});
+        
+    }
+
     function parsePasswordInput(pwString) {
         pwString = pwString.split(' ').join('');
         setNewChar({...newChar, password: pwString});
@@ -98,6 +113,58 @@ const CreateCharacterScreen = () => {
     function identitySelectionHandler(val) {
         setSelectedIdentityIndex(val);
         setSelectedClass('');
+    }
+
+    function tellMeMore(hoveredBackground) {
+        // const backgrounds = ['Woodsman', 'Pickpocket', 'Mercenary', 'Messenger', 'Apprentice', 'Hedgewizard', 'Scribe', 'Lookout', 'Laborer', 'Healer'];
+        switch (hoveredBackground) {
+            case 'Woodsman': {
+                setBackgroundDescription(`You've done some logging, and you've got the axe to prove it!`);
+                break;
+            }
+            case 'Pickpocket': {
+                setBackgroundDescription(`And my... sneaky gloves?`);
+                break;
+            }
+            case 'Mercenary': {
+                setBackgroundDescription(`And my... sneaky gloves?`);
+                break;
+            }
+            case 'Messenger': {
+                setBackgroundDescription(`And my... sneaky gloves?`);
+                break;
+            }
+            case 'Apprentice': {
+                setBackgroundDescription(`And my... sneaky gloves?`);
+                break;
+            }
+            case 'Hedgewizard': {
+                setBackgroundDescription(`And my... sneaky gloves?`);
+                break;
+            }
+            case 'Scribe': {
+                setBackgroundDescription(`And my... sneaky gloves?`);
+                break;
+            }
+            case 'Lookout': {
+                setBackgroundDescription(`And my... sneaky gloves?`);
+                break;
+            }
+            case 'Laborer': {
+                setBackgroundDescription(`And my... sneaky gloves?`);
+                break;
+            }
+            case 'Healer': {
+                setBackgroundDescription(`And my... sneaky gloves?`);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    function tellMeNothing() {
+        setBackgroundDescription('');
     }
 
     function saveNewCharacter(e) {
@@ -143,8 +210,35 @@ const CreateCharacterScreen = () => {
         {state.characterName ? (<></>) : (
             <CreateCharacterPage>
                 <CreateCharacterForm onSubmit={e => saveNewCharacter(e)}>
-                    <Title>Welcome to With Friends! New here? Make a character!</Title>
-                    <CharacterNameInput autoFocus={true} minLength={5} maxLength={12} type='text' placeholder={`character name`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
+                    <Title>Welcome to Fantastically With Friends!</Title>
+                    <ExpositionText>
+                        You are 
+                        <CharacterNameInput autoFocus={true} minLength={5} maxLength={12} type='text' placeholder={`(character name)`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
+                        , a traveler who has just arrived at the river-side port town known as Rivercrossing.
+                    </ExpositionText>
+                    <ExpositionText>
+                        {/* SUGGESTION: change to personal experience rather than lofty description */}
+                        It is known that this place serves as a local center for trade, both by caravan and ship, with several major roads passing through it, 
+                        as well as the Tradewind River, a wide and swiftly-flowing waterway that runs enthusiastically from its distant western mountain origin down east 
+                        toward the ocean. 
+                    </ExpositionText>
+                    <ExpositionText>
+                        In your travels, you have made your way with wit and work, living at times as a 
+                        <CharacterNameInput readOnly={true} type='text' placeholder={`(background 1)`} value={newChar.background.first}></CharacterNameInput>, 
+                        <CharacterNameInput readOnly={true} type='text' placeholder={`(background 2)`} value={newChar.background.second}></CharacterNameInput>, and 
+                        <CharacterNameInput readOnly={true} type='text' placeholder={`(background 3)`} value={newChar.background.third}></CharacterNameInput>.
+                    </ExpositionText>
+                    
+                    <BackgroundContainer>
+                        {backgrounds.map((background, index) => (
+                            <BackgroundSelection key={index} onMouseEnter={() => tellMeMore(background)} onMouseLeave={tellMeNothing} selected={(newChar.background.first === background || newChar.background.second === background || newChar.background.third === background)} onClick={() => handleBackgroundSelection(background)}>{background}</BackgroundSelection>
+                        ))}
+                    </BackgroundContainer>
+                    <BackgroundExplanation>
+                        {backgroundDescription}
+                    </BackgroundExplanation>
+
+                    {/*                   
                     <CharacterIdentityDescription>What is your Identity?</CharacterIdentityDescription>
                     <CharacterAspectContainer>
                         {identities.map((identity, index) => (
@@ -158,7 +252,7 @@ const CreateCharacterScreen = () => {
                             <CharacterClassSelector key={characterClass.name} dark={index === 1} selected={characterClass.name === selectedClass} onClick={() => setSelectedClass(characterClass.name)}>{characterClass.name}</CharacterClassSelector>
                         ))}
 
-                    </CharacterClassChoiceContainer>
+                    </CharacterClassChoiceContainer> */}
                     <PWInput type='text' placeholder={`password`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
                     <CreateCharacterButton>Create Character!</CreateCharacterButton>
                 </CreateCharacterForm>
