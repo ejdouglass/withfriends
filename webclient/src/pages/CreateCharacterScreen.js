@@ -119,43 +119,53 @@ const CreateCharacterScreen = () => {
         // const backgrounds = ['Woodsman', 'Pickpocket', 'Mercenary', 'Messenger', 'Apprentice', 'Hedgewizard', 'Scribe', 'Lookout', 'Laborer', 'Healer'];
         switch (hoveredBackground) {
             case 'Woodsman': {
-                setBackgroundDescription(`You've done some logging, and you've got the axe to prove it!`);
+                setBackgroundDescription(`You've become proficient at going into the local wilderness 
+                and bringing back lumber and various herbal supplies. You've got the axe to prove it! (begin with +10 gathering skill, begin with woodcutter's axe)`);
                 break;
             }
             case 'Pickpocket': {
-                setBackgroundDescription(`And my... sneaky gloves?`);
+                setBackgroundDescription(`You learned to get by with a little help from your friends... and complete strangers, who have graciously 
+                donated coins here and there to your livelihood. (begin with +10 sneaking skill)`);
                 break;
             }
             case 'Mercenary': {
-                setBackgroundDescription(`And my... sneaky gloves?`);
+                setBackgroundDescription(`In a world with monsters, jerks, and giant rats, there's always a need for some extra peacekeeping, and you've 
+                grown somewhat skilled in combat lending your arms to various local causes. (begin with +10 fighting skill, begin with improved armors)`);
                 break;
             }
             case 'Messenger': {
-                setBackgroundDescription(`And my... sneaky gloves?`);
+                setBackgroundDescription(`Running messages between interested parties between villages and towns is a good way to stay quick on your feet, 
+                and you've become practiced in swimming, climbing, and generally getting around effectively. (begin with +10 traversal skill)`);
                 break;
             }
             case 'Apprentice': {
-                setBackgroundDescription(`And my... sneaky gloves?`);
+                setBackgroundDescription(`Lending a pair of hands, eyes, and attentive mind to a variety of local craftsfolk in your travels has paid off, 
+                and you've picked up a trick or two in the basics of creating, repairing, and customizing items and gear. (begin with +10 crafting skill)`);
                 break;
             }
             case 'Hedgewizard': {
-                setBackgroundDescription(`And my... sneaky gloves?`);
+                setBackgroundDescription(`There's no problem that can't be solved by throwing more MP at it, and in that spirit, you've picked up 
+                some spells here and there, easing your travels with some practical spellcraft. (begin with +10 spellcasting skill, begin with staff)`);
                 break;
             }
             case 'Scribe': {
-                setBackgroundDescription(`And my... sneaky gloves?`);
+                setBackgroundDescription(`You've learnt your letters, poring over tomes and transcribing clever texts for various high-minded professionals 
+                in robe-collared trades. In the process, you've sharpened your mind and knowledge base. (begin with +10 scholarship skill)`);
                 break;
             }
             case 'Lookout': {
-                setBackgroundDescription(`And my... sneaky gloves?`);
+                setBackgroundDescription(`In a world with monsters, jerks, and giant rats, there's always a need for somebody paying really close attention, 
+                and you've lent your eyes and vigilance to various causes. Along the way, you've become quite perceptive. (begin with +10 sensing skill)`);
                 break;
             }
             case 'Laborer': {
-                setBackgroundDescription(`And my... sneaky gloves?`);
+                setBackgroundDescription(`You've build strong arms and precise hands helping various towns and villages put up buildings, dig ditches, work the 
+                fields, and generally see to the practical side of sheltering a community. (begin with +10 building skill)`);
                 break;
             }
             case 'Healer': {
-                setBackgroundDescription(`And my... sneaky gloves?`);
+                setBackgroundDescription(`In a world with monsters, jerks, and giant rats, it's common to have to put bodies back together and remedy various ills, 
+                and you've developed a practical knowledge of medicine and first aid techniques for that purpose. (begin with +10 medicine skill)`);
                 break;
             }
             default:
@@ -175,7 +185,7 @@ const CreateCharacterScreen = () => {
         let error = ``;
         if (newChar.name.length < 5 || newChar.name.length > 12) error += `Enter a valid character name between 5 and 12 characters long. `;
         if (newChar.password.length < 4) error += `Enter a proper password (4+ characters). `;
-        if (selectedIdentityIndex === undefined || !selectedClass) error+= `Please choose an Identity and a Class. `;
+        if (newChar.background.first === '' || newChar.background.second === '' || newChar.background.third === '') error+= `Please choose three backgrounds for your character. `;
         // ADD: identity, class, quirks
 
         if (error) {
@@ -183,7 +193,7 @@ const CreateCharacterScreen = () => {
             return;
         } else {
             console.log(`Connecting to API to create this new character...`);
-            let myChar = {...newChar, identity: identities[selectedIdentityIndex].name, class: selectedClass}
+            let myChar = {...newChar}
             axios.post('/character/create', { newChar: myChar })
                 .then(res => {
                     console.log(res.data);
@@ -238,21 +248,6 @@ const CreateCharacterScreen = () => {
                         {backgroundDescription}
                     </BackgroundExplanation>
 
-                    {/*                   
-                    <CharacterIdentityDescription>What is your Identity?</CharacterIdentityDescription>
-                    <CharacterAspectContainer>
-                        {identities.map((identity, index) => (
-                            <CharacterIDSelector selected={index === selectedIdentityIndex} key={identity.name} onClick={() => identitySelectionHandler(index)} >{identity.name}</CharacterIDSelector>
-                        ))}
-                    </CharacterAspectContainer>
-                    <CharacterIdentityDescription>{identities[selectedIdentityIndex]?.description}</CharacterIdentityDescription>
-
-                    <CharacterClassChoiceContainer obscured={selectedIdentityIndex === undefined}>
-                        {identities[selectedIdentityIndex]?.class.map((characterClass, index) => (
-                            <CharacterClassSelector key={characterClass.name} dark={index === 1} selected={characterClass.name === selectedClass} onClick={() => setSelectedClass(characterClass.name)}>{characterClass.name}</CharacterClassSelector>
-                        ))}
-
-                    </CharacterClassChoiceContainer> */}
                     <PWInput type='text' placeholder={`password`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
                     <CreateCharacterButton>Create Character!</CreateCharacterButton>
                 </CreateCharacterForm>

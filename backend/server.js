@@ -1458,7 +1458,16 @@ app.post('/character/login', (req, res, next) => {
 // Exception, maybe: if I set the JWT http-only, it might need the server to help toss it upon (intentional) logout?
 
 app.post('/character/create', (req, res, next) => {
-    const { newChar } = req.body;
+    let { newChar } = req.body;
+    newChar.backpack = {open: false, contents: [], size: 10, stackModifiers: {}};
+    newChar.equipped = {
+        rightHand: {},
+        leftHand: {},
+        head: {},
+        torso: {},
+        accessory1: {},
+        accessory2: {}
+    };
 
     // THIS: Take the request from the user to create a new character, validate it (inputs okay, character name not yet taken), create, and pass back
     // Don't forget to create a charToken to pass back as well! This will be saved with the character on the client to allow further logging in.
@@ -1472,33 +1481,74 @@ app.post('/character/create', (req, res, next) => {
     if (newChar.password.length < 4) error+= `The password should be at least four characters long. `;
     if (newChar.password !== newChar.password.split(' ').join('')) error += `No spaces allowed in the password. `;
 
+    parseBackground(newChar.background.first, newChar);
+    parseBackground(newChar.background.second, newChar);
+    parseBackground(newChar.background.third, newChar);
+
+    function parseBackground(background, entity) {
+        switch (background) {
+            case 'Woodsman': {
+                break;
+            }
+            case 'Pickpocket': {
+                break;
+            }
+            case 'Mercenary': {
+                break;
+            }
+            case 'Messenger': {
+                break;
+            }
+            case 'Apprentice': {
+                break;
+            }
+            case 'Hedgewizard': {
+                break;
+            }
+            case 'Scribe': {
+                break;
+            }
+            case 'Lookout': {
+                break;
+            }
+            case 'Laborer': {
+                break;
+            }
+            case 'Healer': {
+                break;
+            }
+        }
+    }
+
     // Hm, be mindful of this section when changing frontend to more 'basic' loadout
-    switch (newChar.identity) {
-        case 'Rogue':
-        case 'Warrior':
-        case 'Tradesman':
-        case 'Wizard':
-            break;
-        default:
-            error += `Somehow, we've received an invalid identity of ${newChar.identity}.`;
-            break;
-    }
-    // Setting default stats here... will change to actual stats/skills populating later, as well as gear
-    switch (newChar.class) {
-        case 'Wayfarer':
-        case 'Outlaw':
-        case 'Monk':
-        case 'Mercenary':
-        case 'Crafter':
-        case 'Master':
-        case 'Sympath':
-        case 'Catalyst':
-            newChar.stat = {strength: 25, agility: 15, constitution: 20, willpower: 20, intelligence: 20, wisdom: 20, charisma: 20};
-            break;
-        default:
-            error += `API is receiving a non-existent class of ${newChar.class}. Weird!`;
-            break;
-    }
+    // switch (newChar.identity) {
+    //     case 'Rogue':
+    //     case 'Warrior':
+    //     case 'Tradesman':
+    //     case 'Wizard':
+    //         break;
+    //     default:
+    //         error += `Somehow, we've received an invalid identity of ${newChar.identity}.`;
+    //         break;
+    // }
+    // // Setting default stats here... will change to actual stats/skills populating later, as well as gear
+    // switch (newChar.class) {
+    //     case 'Wayfarer':
+    //     case 'Outlaw':
+    //     case 'Monk':
+    //     case 'Mercenary':
+    //     case 'Crafter':
+    //     case 'Master':
+    //     case 'Sympath':
+    //     case 'Catalyst':
+    //         newChar.stat = {strength: 25, agility: 15, constitution: 20, willpower: 20, intelligence: 20, wisdom: 20, charisma: 20};
+    //         break;
+    //     default:
+    //         error += `API is receiving a non-existent class of ${newChar.class}. Weird!`;
+    //         break;
+    // }
+
+
     
     if (error) res.status(406).json({message: error});
 
@@ -1513,8 +1563,6 @@ app.post('/character/create', (req, res, next) => {
                 let newCharacter = new Character({
                     name: newChar.name,
                     entityID: generateRandomID(),
-                    identity: newChar.identity,
-                    class: newChar.class,
                     stat: {...newChar.stat},
                     salt: salt,
                     hash: hash
@@ -1834,7 +1882,9 @@ orchardGoblinSpawn.init();
 function attack(attackingEntity, defendingEntity) {
     // THIS: the most basic attack, just whack 'em with your weapon
     // Considerations: relevant stats, equilibrium, stance, changes to both on both sides
-    // Call any relevant decrement methods for damage/expended energy here as well
+    // Call any relevant decrement methods on entities for damage/expended energy here as well
+
+    // if attackingEntity.entityType === 'player' calcExp();
 }
 
 function goblinPunch(attackingEntity, defendingEntity) {

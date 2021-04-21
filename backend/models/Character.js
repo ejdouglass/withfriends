@@ -7,10 +7,10 @@ const CharacterSchema = new Schema({
     gender: String,
     age: Number,
     features: Object,
-    identity: {type: String}, // May change this to "background," though won't do that until I'm able to go through all related files/code to change properly
+    // identity: {type: String, default: 'Wayfarer'}, // May eliminate this altogether or repurpose much later
     entityType: {type: String, default: 'player'},
     entityID: {type: String, required: true},
-    class: {type: String, default: 'Commoner'},
+    class: {type: String, default: 'Wayfarer'},
     salt: {type: String, required: true},
     hash: {type: String, required: true},
     equilibrium: {type: Number, default: 100},
@@ -65,7 +65,7 @@ const CharacterSchema = new Schema({
             fighting: 0,
             gathering: 0,
             sneaking: 0,
-            traversing: 0,
+            traversal: 0,
             crafting: 0,
             spellcasting: 0,
             scholarship: 0,

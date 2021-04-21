@@ -121,6 +121,7 @@ export const Title = styled.h1`
 export const ExpositionText = styled.p`
     width: 80vw;
     padding: 0 10vw 0 10vw;
+    margin: 0.5rem 0 0.5rem 0;
     font-size: calc(0.6rem + 0.6vw);
     line-height: 2rem;
     text-align: justify;
@@ -140,7 +141,9 @@ export const BackgroundContainer = styled.div`
     align-content: flex-start;
     width: 60vw;
     margin: 0 20vw 0 20vw;
-    border: 1px solid #225;
+    border-top: 1px solid #225;
+    border-left: 1px solid #225;
+    border-right: 1px solid #225;
     height: 200px;
 `;
 
@@ -166,12 +169,19 @@ export const BackgroundSelection = styled.div`
 export const BackgroundExplanation = styled.div`
     display: flex;
     box-sizing: border-box;
-    margin: 0 10vw 0 10vw;
-    width: 80vw;
-    border: 1px solid #DCC;
+    margin: 0 20vw 0 20vw;
+    width: 60vw;
+    border-bottom: 1px solid #225;
+    border-left: 1px solid #225;
+    border-right: 1px solid #225;
     height: 100px;
     justify-content: center;
-    align-items: center;
+    font-size: calc(0.5rem + 0.4vw);
+    font-weight: 400;
+    color: #224;
+    line-height: 2;
+    text-align: center;
+    padding: 0 5% 0 5%;
     font-size: calc(0.6rem + 0.1s);
     font-weight: 600;
 `;
