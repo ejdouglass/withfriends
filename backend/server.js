@@ -614,13 +614,14 @@ let Rivercrossing = new Zone('Town of Rivercrossing');
 let WestOfRivercrossing = new Zone('West of Rivercrossing');
 
 class Item {
-    constructor(type, glance, description, stat, build, special, value) {
+    constructor(type, glance, description, stat, build, effects, techs, value) {
         this.type = type; // objectified - item type and subtypes, if applicable
         this.glance = glance;
         this.description = description;
-        this.stat = stat; // objectified - atk, mag, def, res
-        this.build = build; // objectified - size, weight, durability, materials
-        this.special = special; // ???
+        this.stat = stat; // objectified - derivedStats in the format of atk: 'agi/50'
+        this.build = build; // objectified - size, weight, durability, materials, maybe level/quality/etc.
+        this.effects = effects; // object with stuff like physicalDamageBonus, injuryBonus, etc.
+        this.techs = techs;
         this.value = value; // ideally derived from materials as well as skill/difficulty in its creation modified by overall concept of rarity, buuuut whatever for now
     }
 }
@@ -630,17 +631,19 @@ class Item {
 // Well, we can also do a new Item whenever we spawn a new mob or create an item or 'create' from a store buying, etc.
 // So this is mostly just to sketch out the concept for now, I suppose
 let goblinKnife = new Item(
-    {main: 'weapon', sub: 'dagger', range: 'melee'},
+    {mainType: 'tool', buildType: 'dagger', subType: 'carver', range: 'melee', skill: 'gathering'},
     `a jagged stone knife`,
-    `A crude but effective tool crafted of stone chipped carefully into a jagged-edged long knife bound tightly to a well-worn wooden handle.`,
+    `A crude but effective tool crafted of stone chipped carefully into a jagged-edged long knife bound tightly to a well-worn wooden handle. 
+    Flecks of dried fruit pulp are caked along one side of the blade.`,
     {atk: 10, mag: 5, def: 0, res: 0},
     {size: 1, weight: 5, durability: 50, maxDurability: 50, materials: 'stone/1,wood/1'},
-    [],
+    {physicalDamageBonus: 3},
+    [strike],
     15
 );
 
 let goblinRags = new Item(
-    {main: 'armor', sub: 'cloth'},
+    {mainType: 'armor', buildType: 'clothes', subType: 'leather', skill: 'gathering'},
     `some stitch-ragged leather clothes`,
     `While it looks capable of providing some basic protection, this patchwork collection of rough-worn leather is enthusiastically albeit poorly held together with sheer optimism almost as much as it is copious amounts of crude twine.`,
     {atk: 0, mag: 0, def: 10, res: 5},
@@ -854,25 +857,38 @@ class orchardGoblin {
         this.glance = `an orchard muglin`;
         this.entityID = undefined;
         this.entityType = 'mob';
-        this.mobType = {race: 'muglin'};
+        this.mobType = {meta: 'humanoid', race: 'muglin'};
         this.spawnMessage = `Leaves rustle and twigs snap as ${this.glance} scrambles into view, its eyes darting from tree to tree hungrily.`;
-        this.stat = {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, charisma: 15};
-        this.derivedStat = {HP: undefined, HPmax: 60, MP: 15, MPmax: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, DFL: undefined};
+        this.baseStat = {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, charisma: 15};
+        this.derivedStat = {};
+        this.skill = {
+            fighting: 5,
+            gathering: 5,
+            sneaking: 0,
+            traversal: 0,
+            crafting: 0,
+            spellcasting: 0,
+            scholarship: 0,
+            sensing: 5,
+            building: 0,
+            medicine: 0
+        };
+        this.secondaryStat = {HP: undefined, HPmax: 60, MP: 15, MPmax: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, DFL: undefined};
         this.mode = 'idle'; // gotta define modes and such, too, like wandering, self-care (later), etc.... may want to set 'default' names for ease and later mobs
-        this.injuries = []; // haven't decided how to define these quite yet
+        this.injuries = {}; // haven't decided how to define these quite yet
         this.equilibrium = 100;
         this.stance = 300;
-        this.equipped = {};
+        this.equipped = {rightHand: undefined, leftHand: undefined, head: undefined, torso: undefined, accessory1: undefined, accessory2: undefined};
         this.target = undefined;
         this.tagged = {}; // thinking using this for 'spotted' entities, base key is their entityID, contains also the time of tagging and tag quality/duration metric
         this.actInterval = undefined;
         this.level = 1; // hrmmm, might set this up to be a constructor variable, and then pop stats and values up from there
-        this.loot = undefined; // hm, how to loot table
+        this.loot = undefined; // hm, how to define loot... table-style, or individually?
     }
 
     init() {
         // HERE: give an entityID, roll for gear, etc. and probably start up the actOut setTimeout loop and actInterval
-        // Roll up gear, 'equip' gear (not through equip function, just slap 'em into here real quick), calc all derivedStats
+        // Roll up gear, 'equip' gear (not through equip function, just slap 'em into here real quick), calc all secondaryStats (fxn!)
         this.entityID = 'mob' + generateRandomID();
         // OH! Yeah, maybe we can roll up 'custom' glances for them, too. Separate them a little bit.
         let appearanceRoll = rando(1,10);
@@ -898,7 +914,13 @@ class orchardGoblin {
                 break;
         }
 
-        // HERE: push to global mobs upon existing
+        // NOTE: SpawnMapping handles pushing to global mobs list, so we don't do that here.
+
+        // HERE: generate equipment
+
+        // HERE: calc secondaryStats, set starting HP/MP up to max
+        this.secondaryStat.HP = this.secondaryStat.HPmax;
+        this.secondaryStat.MP = this.secondaryStat.MPmax;
 
         this.actInterval = 8000;
         setTimeout(() => this.actOut(), this.actInterval);
@@ -915,9 +937,13 @@ class orchardGoblin {
 
         switch (this.mode) {
             case 'idle': {
-                io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `An orchard muglin wants to collect some apples!`);
+                io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `An orchard muglin mumbles to itself as it skulks from tree to 
+                tree, scanning back and forth between branches and roots.`);
                 break;
                 // change this to actIdle or something later for more nuanced options
+                // 'idle' may not be the best descriptor
+                // regardless, it'd be fun if occasionally the muglin succeeds in adding FRUIT to its inventory
+                // and if hungry/injured, maybe eats it... for whimsical effects to be determined later
             }
             case 'combat': {
                 if (this.location.GPS === this.target.location.GPS) {
@@ -935,11 +961,21 @@ class orchardGoblin {
         setTimeout(() => this.actOut(), this.actInterval);
         // HERE: assess self and situation, modify mode if necessary, and get going!
     }
+
+    ouch(damageTaken, damageType) {
+        // use this method to apply damage taken, apply injuries, and possibly amend behavior
+    }
+
+    ded() {
+       // probably will rename :P
+       // THIS: handle conversion into no-longer-alive status, including messaging the room, adding the body to the room, removing the mob from the room 
+    }
+
 }
 
 function calcStats(entity) {
-    // THIS: pass in an entity, calculate their derivedStats based on their equipment, buffs, debuffs, etc.
-    //  so, this SHOULD spit out a viable derivedStats object, meaning we can just go ahead and choose either to
+    // THIS: pass in an entity, calculate their derived and secondary stats based on their skills, stats, equipment, buffs, debuffs, injuries, etc.
+    //  so, this SHOULD spit out a viable secondaryStats object, meaning we can just go ahead and choose either to
     //  A) modify the entity directly, or B) RETURN the object and have any calling function do that for us
 }
 
@@ -1567,6 +1603,7 @@ app.post('/character/create', (req, res, next) => {
                     salt: salt,
                     hash: hash
                 });
+                // ABOVE: throw up max HP and MP values, maybe equip them and get all their stats calc'd and initialized before saving and passing down
 
                 // HERE: new Character() save
                 // + Craft token
@@ -1879,12 +1916,17 @@ let orchardGoblinSpawn = new SpawnMap(
 orchardGoblinSpawn.init();
 
 // THIS SECTION: basic abilities/actions
-function attack(attackingEntity, defendingEntity) {
+function strike(attackingEntity, defendingEntity) {
     // THIS: the most basic attack, just whack 'em with your weapon
     // Considerations: relevant stats, equilibrium, stance, changes to both on both sides
     // Call any relevant decrement methods on entities for damage/expended energy here as well
 
     // if attackingEntity.entityType === 'player' calcExp();
+}
+
+function smite(attackingEntity, defendingEntity) {
+    // THIS: the most basic MAGIC attack, just slap 'em with raw magic energy
+    // model its basics off of strike
 }
 
 function goblinPunch(attackingEntity, defendingEntity) {

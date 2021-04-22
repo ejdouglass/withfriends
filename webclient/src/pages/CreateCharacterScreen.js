@@ -64,7 +64,7 @@ const CreateCharacterScreen = () => {
         feature: {eyes: '', hair: '', height: '', complexion: '', build: ''},
         background: {first: '', second: '', third: ''}
     });
-    const [backgroundDescription, setBackgroundDescription] = useState('');
+    const [backgroundDescription, setBackgroundDescription] = useState('(mouse over to view more details about each background)');
     const [userCredentials, setUserCredentials] = useState({charName: '', password: ''});
     const [selectedIdentityIndex, setSelectedIdentityIndex] = useState(undefined);
     const [selectedClass, setSelectedClass] = useState('');
@@ -174,7 +174,7 @@ const CreateCharacterScreen = () => {
     }
 
     function tellMeNothing() {
-        setBackgroundDescription('');
+        setBackgroundDescription('(mouse over to view more details about each background)');
     }
 
     function saveNewCharacter(e) {
@@ -223,7 +223,7 @@ const CreateCharacterScreen = () => {
                     <Title>Welcome to Fantastically With Friends!</Title>
                     <ExpositionText>
                         You are 
-                        <CharacterNameInput autoFocus={true} minLength={5} maxLength={12} type='text' placeholder={`(character name)`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
+                        <CharacterNameInput autoFocus={true} minLength={5} maxLength={10} type='text' placeholder={`(enter name)`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
                         , a traveler who has just arrived at the river-side port town known as Rivercrossing.
                     </ExpositionText>
                     <ExpositionText>
@@ -234,9 +234,9 @@ const CreateCharacterScreen = () => {
                     </ExpositionText>
                     <ExpositionText>
                         In your travels, you have made your way with wit and work, living at times as a 
-                        <CharacterNameInput readOnly={true} type='text' placeholder={`(background 1)`} value={newChar.background.first}></CharacterNameInput>, 
-                        <CharacterNameInput readOnly={true} type='text' placeholder={`(background 2)`} value={newChar.background.second}></CharacterNameInput>, and 
-                        <CharacterNameInput readOnly={true} type='text' placeholder={`(background 3)`} value={newChar.background.third}></CharacterNameInput>.
+                        <CharacterNameInput background readOnly={true} type='text' placeholder={`(background)`} value={newChar.background.first}></CharacterNameInput>, 
+                        <CharacterNameInput background readOnly={true} type='text' placeholder={`(background)`} value={newChar.background.second}></CharacterNameInput>, and 
+                        <CharacterNameInput background readOnly={true} type='text' placeholder={`(background)`} value={newChar.background.third}></CharacterNameInput>.
                     </ExpositionText>
                     
                     <BackgroundContainer>
@@ -248,7 +248,11 @@ const CreateCharacterScreen = () => {
                         {backgroundDescription}
                     </BackgroundExplanation>
 
-                    <PWInput type='text' placeholder={`password`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
+                    <ExpositionText>
+
+                    </ExpositionText>
+
+                    <PWInput type='text' placeholder={`(password)`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
                     <CreateCharacterButton>Create Character!</CreateCharacterButton>
                 </CreateCharacterForm>
             </CreateCharacterPage>

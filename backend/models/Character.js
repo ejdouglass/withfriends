@@ -23,20 +23,19 @@ const CharacterSchema = new Schema({
     experience: {type: Object, default: {
         exp: 0
     }},
-    stat: {
+    baseStat: {
         type: Object, 
         required: true,
-        default: {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, charisma: 15}
+        default: {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, spirit: 15}
     },
-    derivedStat: {
+    derivedStat: Object,
+    secondaryStat: {
         type: Object,
-        default: {HP: undefined, HPmax: undefined, MP: undefined, MPmax: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, DFL: undefined}
+        default: {HP: undefined, HPmax: undefined, MP: undefined, MPmax: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, LUK: undefined}
     },
-    injuries: Array,
+    injuries: Object, // thinking adding key=type, and other stats... 
     target: String, // Just leaving this here for now... thinking through its implementation, may remove or reconfigure
     tagged: Object,
-    buffs: Object, // Or array. Haven't decided yet :P
-    debuffs: Object,
     backpack: {
         type: Object,
         default: {open: false, contents: [], size: 10, stackModifiers: {}}
@@ -55,7 +54,7 @@ const CharacterSchema = new Schema({
     },
     buffs: Array,
     debuffs: Array, // hm, thinking of just having an 'effects' object instead... with keys such as atkUP, atkDOWN, poison, etc.
-    effects: Object,
+    effects: Object, // probably will just go with this
     position: {type: String, default: 'standing'},
     skill: {
         type: Object,
@@ -75,6 +74,7 @@ const CharacterSchema = new Schema({
         }
     },
     spells: Array,
+    techs: Array,
     abilities: Array,
     quirk: {
         type: Object, // Proooobably gonna rename this fella

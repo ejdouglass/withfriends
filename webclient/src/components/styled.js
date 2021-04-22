@@ -452,12 +452,18 @@ export const CreateCharacterPage = styled.div`
 `;
 
 export const CharacterNameInput = styled.input`
+    box-sizing: border-box;
     height: calc(0.8rem + 0.8vw);
     font-size: calc(0.6rem + 0.5vw);
-    width: calc(100px + 6vw);
-    padding: 0.5rem;
+    width: calc(50px + 6vw);
+    padding: 0.3rem 0.5rem 0.3rem 0.5rem;
     font-weight: 600;
-    margin: 0.5rem;
+    margin: 0 0.5rem 0 0.5rem;
+    ${props => props.background && css`
+        border: none;
+        border-bottom: 1px solid black;
+        width: calc(50px + 5vw);
+    `}
 `;
 
 export const PWInput = styled(CharacterNameInput)``;
