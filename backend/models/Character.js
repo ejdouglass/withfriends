@@ -40,7 +40,7 @@ const CharacterSchema = new Schema({
         type: Object,
         default: {open: false, contents: [], size: 10, stackModifiers: {}}
     },
-    purse: Object, // can expound on this later
+    purse: {type: Object, default: {}}, // can expound on this later
     equipped: {
         type: Object,
         default: {
@@ -58,8 +58,6 @@ const CharacterSchema = new Schema({
     position: {type: String, default: 'standing'},
     skill: {
         type: Object,
-        // Scale: 0 - 100, 'Perk' can be purchased/trained every 5 points of expertise
-        // May reconfigure to do something like fighting: {level: 0, perks: []} ... think about how that'll scale in practice
         default: {
             fighting: 0,
             gathering: 0,
@@ -68,14 +66,17 @@ const CharacterSchema = new Schema({
             crafting: 0,
             spellcasting: 0,
             scholarship: 0,
-            sensing: 0, // perception, etc... search out exits, hidden entities, appraise the nature of objects, etc.
+            sensing: 0,
             building: 0,
             medicine: 0
         }
     },
-    spells: Array,
-    techs: Array,
-    abilities: Array,
+    flags: {type: Object, default: {}},
+    spells: {type: Array, default: []},
+    techs: {type: Array, default: []},
+    abilities: {type: Array, default: []},
+    perks: {type: Array, default: []},
+    bonuses: {type: Object, default: {}}, // current thinking is where ALL perk-related bonuses come to live; maybe also equipment-related stuff?
     quirk: {
         type: Object, // Proooobably gonna rename this fella
         default: {}

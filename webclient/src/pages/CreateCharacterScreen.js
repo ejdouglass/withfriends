@@ -53,10 +53,15 @@ const identities = [
     }
 ];
 
-const backgrounds = ['Woodsman', 'Pickpocket', 'Mercenary', 'Messenger', 'Apprentice', 'Hedgewizard', 'Scribe', 'Lookout', 'Laborer', 'Healer'];
+const backgrounds = ['Gatherer', 'Thief', 'Mercenary', 'Runner', 'Apprentice', 'Hedgewizard', 'Scribe', 'Trader', 'Laborer', 'Healer'];
+
+const backgrounds1 = ['Gatherer', 'Laborer', 'Healer'];
+const backgrounds2 = ['Mercenary', 'Hedgewizard', 'Thief'];
+const backgrounds3 = ['Trader', 'Scribe', 'Runner', 'Apprentice'];
 
 const CreateCharacterScreen = () => {
     const [state, dispatch] = useContext(Context);
+    const [step, setStep] = useState(0);
     const [newChar, setNewChar] = useState({
         name: '',
         password: '',
@@ -116,14 +121,14 @@ const CreateCharacterScreen = () => {
     }
 
     function tellMeMore(hoveredBackground) {
-        // const backgrounds = ['Woodsman', 'Pickpocket', 'Mercenary', 'Messenger', 'Apprentice', 'Hedgewizard', 'Scribe', 'Lookout', 'Laborer', 'Healer'];
+        // const backgrounds = ['Gatherer', 'Thief', 'Mercenary', 'Runner', 'Apprentice', 'Hedgewizard', 'Scribe', 'Trader', 'Laborer', 'Healer'];
         switch (hoveredBackground) {
-            case 'Woodsman': {
+            case 'Gatherer': {
                 setBackgroundDescription(`You've become proficient at going into the local wilderness 
                 and bringing back lumber and various herbal supplies. You've got the axe to prove it! (begin with +10 gathering skill, begin with woodcutter's axe)`);
                 break;
             }
-            case 'Pickpocket': {
+            case 'Thief': {
                 setBackgroundDescription(`You learned to get by with a little help from your friends... and complete strangers, who have graciously 
                 donated coins here and there to your livelihood. (begin with +10 sneaking skill)`);
                 break;
@@ -133,7 +138,7 @@ const CreateCharacterScreen = () => {
                 grown somewhat skilled in combat lending your arms to various local causes. (begin with +10 fighting skill, begin with improved armors)`);
                 break;
             }
-            case 'Messenger': {
+            case 'Runner': {
                 setBackgroundDescription(`Running messages between interested parties between villages and towns is a good way to stay quick on your feet, 
                 and you've become practiced in swimming, climbing, and generally getting around effectively. (begin with +10 traversal skill)`);
                 break;
@@ -153,7 +158,7 @@ const CreateCharacterScreen = () => {
                 in robe-collared trades. In the process, you've sharpened your mind and knowledge base. (begin with +10 scholarship skill)`);
                 break;
             }
-            case 'Lookout': {
+            case 'Trader': {
                 setBackgroundDescription(`In a world with monsters, jerks, and giant rats, there's always a need for somebody paying really close attention, 
                 and you've lent your eyes and vigilance to various causes. Along the way, you've become quite perceptive. (begin with +10 sensing skill)`);
                 break;

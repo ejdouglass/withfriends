@@ -30,6 +30,26 @@ function generateRandomID() {
     return dateSeed.getMonth() + '' + dateSeed.getDate() + '' + dateSeed.getHours() + '' + dateSeed.getMinutes() + '' + dateSeed.getSeconds() + '' + randomSeed;
 }
 
+// Define all possible perks here
+// Arrays of objects, with requirements inside its own list that can be filter-parsed when trying to learn
+// Object also consists of stat-ups (1 stat per 2 points of cost), plus any bonuses, techs, etc. gained from learning
+// ... these bonuses are gonna have to live somewhere in our Character, hold on a sec...
+// Oh, can also list the 'perk type' inside the perk for backwards calculating if necessary later
+// KISS for now; can get fancy further down the line with advanced/wacky perks
+// ...however, it'd be fine to have literally ANY stat/metric boostable by flat and/or %, so try to store them in a way that's conducive to that
+const perks = {
+    fighting: [],
+    gathering: [],
+    sneaking: [],
+    traversal: [],
+    crafting: [],
+    spellcasting: [],
+    scholarship: [],
+    sensing: [], 
+    building: [],
+    medicine: []
+};
+
 
 /*
     For this 'hardcoded' final alpha world:
@@ -623,6 +643,7 @@ class Item {
         this.effects = effects; // object with stuff like physicalDamageBonus, injuryBonus, etc.
         this.techs = techs;
         this.value = value; // ideally derived from materials as well as skill/difficulty in its creation modified by overall concept of rarity, buuuut whatever for now
+        this.itemID = generateRandomID();
     }
 }
 
@@ -880,6 +901,7 @@ class orchardGoblin {
         this.stance = 300;
         this.equipped = {rightHand: undefined, leftHand: undefined, head: undefined, torso: undefined, accessory1: undefined, accessory2: undefined};
         this.target = undefined;
+        this.flags = {}; // for later-- mark when they've been stolen from, or other sundry attributes we need to slap on
         this.tagged = {}; // thinking using this for 'spotted' entities, base key is their entityID, contains also the time of tagging and tag quality/duration metric
         this.actInterval = undefined;
         this.level = 1; // hrmmm, might set this up to be a constructor variable, and then pop stats and values up from there
@@ -1504,6 +1526,7 @@ app.post('/character/create', (req, res, next) => {
         accessory1: {},
         accessory2: {}
     };
+    newChar.backpack = {open: false, contents: [], size: 10, stackModifiers: {}};
 
     // THIS: Take the request from the user to create a new character, validate it (inputs okay, character name not yet taken), create, and pass back
     // Don't forget to create a charToken to pass back as well! This will be saved with the character on the client to allow further logging in.
@@ -1521,40 +1544,72 @@ app.post('/character/create', (req, res, next) => {
     parseBackground(newChar.background.second, newChar);
     parseBackground(newChar.background.third, newChar);
 
-    function parseBackground(background, entity) {
-        switch (background) {
-            case 'Woodsman': {
-                break;
-            }
-            case 'Pickpocket': {
-                break;
-            }
-            case 'Mercenary': {
-                break;
-            }
-            case 'Messenger': {
-                break;
-            }
-            case 'Apprentice': {
-                break;
-            }
-            case 'Hedgewizard': {
-                break;
-            }
-            case 'Scribe': {
-                break;
-            }
-            case 'Lookout': {
-                break;
-            }
-            case 'Laborer': {
-                break;
-            }
-            case 'Healer': {
-                break;
-            }
-        }
+    // let goblinKnife = new Item(
+    //     {mainType: 'tool', buildType: 'dagger', subType: 'carver', range: 'melee', skill: 'gathering'},
+    //     `a jagged stone knife`,
+    //     `A crude but effective tool crafted of stone chipped carefully into a jagged-edged long knife bound tightly to a well-worn wooden handle. 
+    //     Flecks of dried fruit pulp are caked along one side of the blade.`,
+    //     {atk: 10, mag: 5, def: 0, res: 0},
+    //     {size: 1, weight: 5, durability: 50, maxDurability: 50, materials: 'stone/1,wood/1'},
+    //     {physicalDamageBonus: 3},
+    //     [strike],
+    //     15
+    // );
+
+    // AKSHULLY... maybe just a bunch of IFS would be easier here.
+    if (newChar.background.first === 'Gatherer') {
+        // newChar.backpack.contents.push(new Item(
+        //     {mainType: 'tool', buildType: 'axe', subType: 'chopping', range: 'melee', skill: 'gathering', hands: 2},
+        //     `a woodcutter's axe`,
+        //     `It's the axe a woodcutter would use, naturally.`,
+        //     {atk: 'str/100'},
+        //     {size: 5, weight: 25, durability: 500, maxDurability: 500, materials: 'iron/2,wood/3'},
+        //     {physicalDamageBonus: 6},
+        //     [logSplitter],
+        //     500
+        // ))
+        newChar.equipped.leftHand = new Item(
+            {mainType: 'tool', buildType: 'dagger', subType: 'carving', range: 'melee', skill: 'gathering', hands: 1},
+            `an outdoors knife`,
+            `A short, single-edged iron knife with a sharp edge and tip and a comfortable grip. It seems well-suited to all manner of practical activities, from 
+            skinning to woodcarving.`,
+            {atk: 'agi/20'},
+            {size: 2, weight: 3, durability: 500, maxDurability: 500, materials: 'iron/1,wood/1'},
+            {physicalDamageBonus: 3},
+            [],
+            500            
+        );
+
     }
+    if (newChar.background.first === 'Thief' || newChar.background.second === 'Thief' || newChar.background.third === 'Thief') {
+        
+    }
+    if (newChar.background.first === 'Mercenary' || newChar.background.second === 'Mercenary' || newChar.background.third === 'Mercenary') {
+        
+    }
+    if (newChar.background.first === 'Runner' || newChar.background.second === 'Runner' || newChar.background.third === 'Runner') {
+        
+    }
+    if (newChar.background.first === 'Apprentice' || newChar.background.second === 'Apprentice' || newChar.background.third === 'Apprentice') {
+        
+    }
+    if (newChar.background.first === 'Hedgewizard' || newChar.background.second === 'Hedgewizard' || newChar.background.third === 'Hedgewizard') {
+        
+    }
+    if (newChar.background.first === 'Scribe' || newChar.background.second === 'Scribe' || newChar.background.third === 'Scribe') {
+        
+    }
+    if (newChar.background.first === 'Trader' || newChar.background.second === 'Trader' || newChar.background.third === 'Trader') {
+        
+    }
+    if (newChar.background.first === 'Laborer' || newChar.background.second === 'Laborer' || newChar.background.third === 'Laborer') {
+        
+    }
+    if (newChar.background.first === 'Healer' || newChar.background.second === 'Healer' || newChar.background.third === 'Healer') {
+        
+    }
+
+    // HERE: look through backpack, decide what to 'equip' from there
 
     // Hm, be mindful of this section when changing frontend to more 'basic' loadout
     // switch (newChar.identity) {
@@ -1603,6 +1658,8 @@ app.post('/character/create', (req, res, next) => {
                     salt: salt,
                     hash: hash
                 });
+                // maybe do a newCharacter = new Character({...newChar, entityID: etc.}) ... see how that flies
+
                 // ABOVE: throw up max HP and MP values, maybe equip them and get all their stats calc'd and initialized before saving and passing down
 
                 // HERE: new Character() save
@@ -1927,6 +1984,10 @@ function strike(attackingEntity, defendingEntity) {
 function smite(attackingEntity, defendingEntity) {
     // THIS: the most basic MAGIC attack, just slap 'em with raw magic energy
     // model its basics off of strike
+}
+
+function logSplitter(attackingEntity, defendingEntity) {
+    // DEF break finisher axe attack
 }
 
 function goblinPunch(attackingEntity, defendingEntity) {
