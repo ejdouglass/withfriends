@@ -15,6 +15,7 @@ const CharacterSchema = new Schema({
     hash: {type: String, required: true},
     equilibrium: {type: Number, default: 100},
     stance: {type: Number, default: 300},
+    mainHand: {type: String, default: 'right'},
     location: {
         type: Object,
         default: {RPS: 0, GPS: '500,500,0'}
@@ -44,12 +45,12 @@ const CharacterSchema = new Schema({
     equipped: {
         type: Object,
         default: {
-            rightHand: {},
-            leftHand: {},
-            head: {},
-            torso: {},
-            accessory1: {},
-            accessory2: {}
+            rightHand: undefined,
+            leftHand: undefined,
+            head: undefined,
+            torso: undefined,
+            accessory1: undefined,
+            accessory2: undefined
         }
     },
     buffs: Array,

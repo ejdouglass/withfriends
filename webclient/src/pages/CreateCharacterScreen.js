@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import { Context, actions } from '../context/context';
-import { CreateCharacterPage, CharacterClassSelector, CharacterClassChoiceContainer, CharacterIDSelector, CharacterIdentityDescription, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, ExpositionText, CharacterNameInput, PWInput, BackgroundContainer, BackgroundSelection, BackgroundExplanation } from '../components/styled';
+import { CreateCharacterPage, CharacterClassSelector, CharacterClassChoiceContainer, CharacterIDSelector, CharacterIdentityDescription, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, ExpositionText, CharacterNameInput, PWInput, BackgroundContainer, BackgroundSelection, BackgroundExplanation, ContinueExpositionButton } from '../components/styled';
 
 const charId = {
     ROAMER: 'roamer',
@@ -182,9 +182,21 @@ const CreateCharacterScreen = () => {
         setBackgroundDescription('(mouse over to view more details about each background)');
     }
 
-    function saveNewCharacter(e) {
+    function progressCreationProcess(e) {
         e.preventDefault();
-        // THIS: Passes to API via axios to create a new character.
+        // THIS: Steps user through the character creation story until ultimately passing to API via axios to create a new character
+
+        switch (step) {
+            case 0: {
+                if (newChar.name.length >= 5 && newChar.name.length <= 12) {
+                    setStep(step => step + 1);
+                    break;
+                } else {
+                    console.log(`Name is too short. Or too long! Yeah.`);
+                    break;
+                }
+            }
+        }
 
         // HERE: Validation checks (also will separately be performed on backend)
         let error = ``;
@@ -224,34 +236,31 @@ const CreateCharacterScreen = () => {
         <>
         {state.characterName ? (<></>) : (
             <CreateCharacterPage>
-                <CreateCharacterForm onSubmit={e => saveNewCharacter(e)}>
+                <CreateCharacterForm onSubmit={e => progressCreationProcess(e)}>
                     <Title>Welcome to Fantastically With Friends!</Title>
-                    <ExpositionText>
+                    <ExpositionText goTime={step >= 0}>
                         You are 
+                        {/* Consider: disable this input when step > 0 */}
                         <CharacterNameInput autoFocus={true} minLength={5} maxLength={10} type='text' placeholder={`(enter name)`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
-                        , a traveler who has just arrived at the river-side port town known as Rivercrossing.
+                        , a traveler who is doing some traveling, as one might expect.
+                        <ContinueExpositionButton buttonVisible={step === 0} onClick={e => progressCreationProcess(e)}>...</ContinueExpositionButton>
                     </ExpositionText>
-                    <ExpositionText>
+                    <ExpositionText goTime={step >= 1}>
                         {/* SUGGESTION: change to personal experience rather than lofty description */}
-                        It is known that this place serves as a local center for trade, both by caravan and ship, with several major roads passing through it, 
-                        as well as the Tradewind River, a wide and swiftly-flowing waterway that runs enthusiastically from its distant western mountain origin down east 
-                        toward the ocean. 
-                    </ExpositionText>
-                    <ExpositionText>
-                        In your travels, you have made your way with wit and work, living at times as a 
-                        <CharacterNameInput background readOnly={true} type='text' placeholder={`(background)`} value={newChar.background.first}></CharacterNameInput>, 
-                        <CharacterNameInput background readOnly={true} type='text' placeholder={`(background)`} value={newChar.background.second}></CharacterNameInput>, and 
-                        <CharacterNameInput background readOnly={true} type='text' placeholder={`(background)`} value={newChar.background.third}></CharacterNameInput>.
+                        You recall your first contribution to your community was as a 
+                        <CharacterNameInput background readOnly={true} type='text' placeholder={`(background)`} value={newChar.background.first}></CharacterNameInput>.
+                        <BackgroundContainer>
+                            {backgrounds.map((background, index) => (
+                                <BackgroundSelection key={index} onMouseEnter={() => tellMeMore(background)} onMouseLeave={tellMeNothing} selected={(newChar.background.first === background || newChar.background.second === background || newChar.background.third === background)} onClick={() => handleBackgroundSelection(background)}>{background}</BackgroundSelection>
+                            ))}
+                        </BackgroundContainer>
+                        <BackgroundExplanation>
+                            {backgroundDescription}
+                        </BackgroundExplanation>
                     </ExpositionText>
                     
-                    <BackgroundContainer>
-                        {backgrounds.map((background, index) => (
-                            <BackgroundSelection key={index} onMouseEnter={() => tellMeMore(background)} onMouseLeave={tellMeNothing} selected={(newChar.background.first === background || newChar.background.second === background || newChar.background.third === background)} onClick={() => handleBackgroundSelection(background)}>{background}</BackgroundSelection>
-                        ))}
-                    </BackgroundContainer>
-                    <BackgroundExplanation>
-                        {backgroundDescription}
-                    </BackgroundExplanation>
+
+
 
                     <ExpositionText>
 

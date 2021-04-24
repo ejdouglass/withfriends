@@ -66,6 +66,15 @@ const flicker = keyframes`
     }
 `;
 
+const fadeIn = keyframes`
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+`;
+
 export const Container = styled.div`
     display: flex;
     padding: 1rem;
@@ -125,6 +134,22 @@ export const ExpositionText = styled.p`
     font-size: calc(0.6rem + 0.6vw);
     line-height: 2rem;
     text-align: justify;
+    display: none;
+    ${props => props.goTime && css`
+        animation: ${fadeIn} 1.2s linear;
+        display: inline-block;
+    `}
+`;
+
+export const ContinueExpositionButton = styled.button`
+    // width: calc(30px + 1vw);
+    padding: calc(0.3rem + 0.3vw);
+    font-size: calc(0.4rem + 0.4vw);
+    margin-left: calc(0.5rem + 0.5vw);
+    display: none;
+    ${props => props.buttonVisible && css`
+        display: inline-block;
+    `}
 `;
 
 export const Text = styled.p`

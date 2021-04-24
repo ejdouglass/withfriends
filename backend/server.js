@@ -1540,106 +1540,156 @@ app.post('/character/create', (req, res, next) => {
     if (newChar.password.length < 4) error+= `The password should be at least four characters long. `;
     if (newChar.password !== newChar.password.split(' ').join('')) error += `No spaces allowed in the password. `;
 
-    parseBackground(newChar.background.first, newChar);
-    parseBackground(newChar.background.second, newChar);
-    parseBackground(newChar.background.third, newChar);
+    // parseBackground(newChar.background.first, newChar);
+    // parseBackground(newChar.background.second, newChar);
+    // parseBackground(newChar.background.third, newChar);
 
-    // let goblinKnife = new Item(
-    //     {mainType: 'tool', buildType: 'dagger', subType: 'carver', range: 'melee', skill: 'gathering'},
-    //     `a jagged stone knife`,
-    //     `A crude but effective tool crafted of stone chipped carefully into a jagged-edged long knife bound tightly to a well-worn wooden handle. 
-    //     Flecks of dried fruit pulp are caked along one side of the blade.`,
-    //     {atk: 10, mag: 5, def: 0, res: 0},
-    //     {size: 1, weight: 5, durability: 50, maxDurability: 50, materials: 'stone/1,wood/1'},
-    //     {physicalDamageBonus: 3},
-    //     [strike],
-    //     15
-    // );
-
-    // AKSHULLY... maybe just a bunch of IFS would be easier here.
-    if (newChar.background.first === 'Gatherer') {
-        // newChar.backpack.contents.push(new Item(
-        //     {mainType: 'tool', buildType: 'axe', subType: 'chopping', range: 'melee', skill: 'gathering', hands: 2},
-        //     `a woodcutter's axe`,
-        //     `It's the axe a woodcutter would use, naturally.`,
-        //     {atk: 'str/100'},
-        //     {size: 5, weight: 25, durability: 500, maxDurability: 500, materials: 'iron/2,wood/3'},
-        //     {physicalDamageBonus: 6},
-        //     [logSplitter],
-        //     500
-        // ))
-        newChar.equipped.leftHand = new Item(
-            {mainType: 'tool', buildType: 'dagger', subType: 'carving', range: 'melee', skill: 'gathering', hands: 1},
-            `an outdoors knife`,
-            `A short, single-edged iron knife with a sharp edge and tip and a comfortable grip. It seems well-suited to all manner of practical activities, from 
-            skinning to woodcarving.`,
-            {atk: 'agi/20'},
-            {size: 2, weight: 3, durability: 500, maxDurability: 500, materials: 'iron/1,wood/1'},
-            {physicalDamageBonus: 3},
-            [],
-            500            
-        );
-
-    }
-    if (newChar.background.first === 'Thief' || newChar.background.second === 'Thief' || newChar.background.third === 'Thief') {
-        
-    }
-    if (newChar.background.first === 'Mercenary' || newChar.background.second === 'Mercenary' || newChar.background.third === 'Mercenary') {
-        
-    }
-    if (newChar.background.first === 'Runner' || newChar.background.second === 'Runner' || newChar.background.third === 'Runner') {
-        
-    }
-    if (newChar.background.first === 'Apprentice' || newChar.background.second === 'Apprentice' || newChar.background.third === 'Apprentice') {
-        
-    }
-    if (newChar.background.first === 'Hedgewizard' || newChar.background.second === 'Hedgewizard' || newChar.background.third === 'Hedgewizard') {
-        
-    }
-    if (newChar.background.first === 'Scribe' || newChar.background.second === 'Scribe' || newChar.background.third === 'Scribe') {
-        
-    }
-    if (newChar.background.first === 'Trader' || newChar.background.second === 'Trader' || newChar.background.third === 'Trader') {
-        
-    }
-    if (newChar.background.first === 'Laborer' || newChar.background.second === 'Laborer' || newChar.background.third === 'Laborer') {
-        
-    }
-    if (newChar.background.first === 'Healer' || newChar.background.second === 'Healer' || newChar.background.third === 'Healer') {
-        
+    switch (newChar.background.first) {
+        case 'Gatherer': {
+            newChar.equipped.leftHand = new Item(
+                {mainType: 'tool', buildType: 'dagger', subType: 'carving', range: 'melee', skill: 'gathering', slot: 'hands', hands: 1},
+                `an outdoors knife`,
+                `A short, single-edged iron knife with a sharp edge and tip and a comfortable grip. It seems well-suited to all manner of practical activities, from 
+                skinning to woodcarving.`,
+                {atk: 'agi/20'},
+                {size: 2, weight: 3, durability: 500, maxDurability: 500, materials: 'iron/1,wood/1'},
+                {physicalDamageBonus: 3},
+                [],
+                500            
+            );
+            break;
+        }
+        case 'Laborer': {
+            newChar.equipped.leftHand = new Item(
+                {mainType: 'tool', buildType: 'hammer', subType: 'hammer', range: 'melee', skill: 'building', slot: 'hands', hands: 1},
+                `a sturdy hammer`,
+                `A simple but durable hammer.`,
+                {atk: 'str/20'},
+                {size: 3, weight: 3, durability: 500, maxDurability: 500, materials: 'iron/1,wood/2'},
+                {physicalDamageBonus: 3},
+                [],
+                500            
+            );            
+            break;
+        }
+        case 'Healer': {
+            newChar.equipped.leftHand = new Item(
+                {mainType: 'tool', buildType: 'rod', subType: 'channeling', range: 'melee', skill: 'medicine', slot: 'hands', hands: 1},
+                `a copper healer's rod`,
+                `About as long as your arm, no thicker than two fingers, this wood-handled rod ends in a simple copper end fashioned into a symbol of 
+                peace and healing.`,
+                {res: 'spi/20'},
+                {size: 3, weight: 3, durability: 500, maxDurability: 500, materials: 'copper/2,wood/2'},
+                {magicalDamageBonus: 3},
+                [],
+                500            
+            );            
+            break;
+        }
     }
 
-    // HERE: look through backpack, decide what to 'equip' from there
+    switch (newChar.background.second) {
+        case 'Mercenary': {
+            newChar.equipped.rightHand = new Item(
+                {mainType: 'weapon', buildType: 'sword', subType: 'straightblade', range: 'melee', skill: 'fighting', slot: 'hands', hands: 1},
+                `a broad-bladed iron sword`,
+                `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
+                {atk: 'str/50', def: 'agi/20'},
+                {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2'},
+                {physicalDamageBonus: 6},
+                [],
+                500            
+            );              
+            break;
+        }
+        case 'Hedgewizard': {
+            newChar.equipped.rightHand = new Item(
+                {mainType: 'weapon', buildType: 'staff', subType: 'wizard', range: 'melee', skill: 'casting', slot: 'hands', hands: 3},
+                `a topaz-tipped hedgewizard's staff`,
+                `Longer than the average person is tall, this staff has been meticulously carved to be almost entirely smooth and uniform in its wood finish. It 
+                is topped with a simple copper fitting that houses a small sphere of topaz, presumably for amplifying magical intent and spellcasting focus.`,
+                {mag: 'wil/50', res: 'wis/20'},
+                {size: 5, weight: 3, durability: 500, maxDurability: 500, materials: 'copper/1,wood/4,topaz/1'},
+                {magicalDamageBonus: 6},
+                [],
+                500            
+            );  
+            break;
+        }
+        case 'Thief': {
+            newChar.equipped.rightHand = new Item(
+                {mainType: 'weapon', buildType: 'dagger', subType: 'stabbing', range: 'melee', skill: 'sneaking', slot: 'hands', hands: 1},
+                `a long narrow-bladed dagger`,
+                `It has a simple, just-long-enough grip below an elegantly long blade with two slender but razor-sharp edges. Its overall profile is very 
+                minimalistic, making it very easy to conceal.`,
+                {atk: 'agi/50', acc: 'agi/20'},
+                {size: 2, weight: 4, durability: 500, maxDurability: 500, materials: 'iron/2,wood/1'},
+                {physicalDamageBonus: 5},
+                [],
+                500            
+            );  
+            break;
+        }
+    }
 
-    // Hm, be mindful of this section when changing frontend to more 'basic' loadout
-    // switch (newChar.identity) {
-    //     case 'Rogue':
-    //     case 'Warrior':
-    //     case 'Tradesman':
-    //     case 'Wizard':
-    //         break;
-    //     default:
-    //         error += `Somehow, we've received an invalid identity of ${newChar.identity}.`;
-    //         break;
-    // }
-    // // Setting default stats here... will change to actual stats/skills populating later, as well as gear
-    // switch (newChar.class) {
-    //     case 'Wayfarer':
-    //     case 'Outlaw':
-    //     case 'Monk':
-    //     case 'Mercenary':
-    //     case 'Crafter':
-    //     case 'Master':
-    //     case 'Sympath':
-    //     case 'Catalyst':
-    //         newChar.stat = {strength: 25, agility: 15, constitution: 20, willpower: 20, intelligence: 20, wisdom: 20, charisma: 20};
-    //         break;
-    //     default:
-    //         error += `API is receiving a non-existent class of ${newChar.class}. Weird!`;
-    //         break;
-    // }
+    switch (newChar.background.third) {
+        case 'Trader': {
+            newChar.equipped.body = new Item(
+                {mainType: 'armor', buildType: 'clothes', subType: 'cloth', skill: 'sensing', slot: 'body'},
+                `fancy garb`,
+                `The fancy clothes of an apsiring trader.`,
+                {def: 'spi/50', eva: 'wis/20'},
+                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/4'},
+                {physicalDamageMitigation: 20},
+                [],
+                500            
+            );  
+            break;
+        }
+        case 'Scribe': {
+            newChar.equipped.body = new Item(
+                {mainType: 'armor', buildType: 'robes', subType: 'cloth', skill: 'scholarship', slot: 'body'},
+                `scholar's robes`,
+                `Simple, clean, and comfortable robes with a simply adorned collar and hem with patterns indicating the wearer is a scholastic professional.`,
+                {def: 'int/50', eva: 'wis/20'},
+                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/6'},
+                {physicalDamageMitigation: 20},
+                [],
+                500            
+            );  
+            break;
+        }
+        case 'Runner': {
+            newChar.equipped.body = new Item(
+                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'traversal', slot: 'body'},
+                `light runner's gear`,
+                `Minimalistic garb stitched together from snug but breathable cloth padded tactically here and there with pads of supple leather 
+                to ensure ease of movement while still providing some critical protection where it counts.`,
+                {def: 'agi/50', eva: 'agi/20'},
+                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/3,leather/3'},
+                {physicalDamageMitigation: 20},
+                [],
+                500            
+            );  
+            break;
+        }
+        case 'Apprentice': {
+            newChar.equipped.body = new Item(
+                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'crafting', slot: 'body'},
+                `sturdy artisan's gear`,
+                `Simple but sturdy clothing of thick cloth reinforced with layers of leather at the joints and extremities.`,
+                {def: 'str/50', eva: 'agi/20'},
+                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/4,leather/4'},
+                {physicalDamageMitigation: 20, fireResist: 5},
+                [],
+                500            
+            );  
+            break;
+        }
+    }
 
 
+    // HERE: calcStats, set HP/MP, prepare the character for 'real life' IG
     
     if (error) res.status(406).json({message: error});
 
@@ -1652,9 +1702,8 @@ app.post('/character/create', (req, res, next) => {
                 const salt = createSalt();
                 const hash = createHash(newChar.password, salt);
                 let newCharacter = new Character({
-                    name: newChar.name,
+                    ...newChar,
                     entityID: generateRandomID(),
-                    stat: {...newChar.stat},
                     salt: salt,
                     hash: hash
                 });
