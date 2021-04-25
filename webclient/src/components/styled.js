@@ -141,6 +141,12 @@ export const ExpositionText = styled.p`
     `}
 `;
 
+export const ExpositionSnippet = styled.span`
+    font-size: calc(0.6rem + 0.6vw);
+    line-height: 2rem;
+    animation: ${fadeIn} 1.2s linear;
+`
+
 export const ContinueExpositionButton = styled.button`
     // width: calc(30px + 1vw);
     padding: calc(0.3rem + 0.3vw);
@@ -158,49 +164,52 @@ export const Text = styled.p`
 `;
 
 export const BackgroundContainer = styled.div`
-    display: flex;
     box-sizing: border-box;
     justify-content: space-around;
     flex-wrap: wrap;
     align-items: flex-start;
     align-content: flex-start;
-    width: 60vw;
-    margin: 0 20vw 0 20vw;
+    width: 80%;
+    margin: 1.5rem 10% 0 10%;
     border-top: 1px solid #225;
     border-left: 1px solid #225;
     border-right: 1px solid #225;
-    height: 200px;
+    padding-top: 1rem;
+    display: none;
+    ${props => props.goTime && css`
+        display: flex;
+    `}
 `;
 
 export const BackgroundSelection = styled.div`
     display: flex;
     box-sizing: border-box;
     width: 10vw;
-    height: 85px;
+    height: 5vw;
     margin-top: 10px;
     border: 1px solid red;
-    font-size: calc(0.6rem + 0.3vw);
+    font-size: calc(0.5rem + 0.5vw);
     font-weight: 600;
     justify-content: center;
     align-items: center;
     border-radius: 10px;
     ${props => props.selected && css`
         font-weight: 800;
-        font-size: calc(0.7rem + 0.3vw);
+        font-size: calc(0.6rem + 0.5vw);
         background-color: pink;
     `}
 `;
 
 export const BackgroundExplanation = styled.div`
-    display: flex;
     box-sizing: border-box;
-    margin: 0 20vw 0 20vw;
-    width: 60vw;
+    margin: 0 10% 0 10%;
+    width: 80%;
     border-bottom: 1px solid #225;
     border-left: 1px solid #225;
     border-right: 1px solid #225;
     height: 100px;
     justify-content: center;
+    align-items: center;
     font-size: calc(0.5rem + 0.4vw);
     font-weight: 400;
     color: #224;
@@ -209,6 +218,10 @@ export const BackgroundExplanation = styled.div`
     padding: 0 5% 0 5%;
     font-size: calc(0.6rem + 0.1s);
     font-weight: 600;
+    display: none;
+    ${props => props.goTime && css`
+        display: flex;
+    `}
 `;
 
 export const PageContainer = styled(Container)`
@@ -488,6 +501,9 @@ export const CharacterNameInput = styled.input`
         border: none;
         border-bottom: 1px solid black;
         width: calc(50px + 5vw);
+        padding-bottom: 0;
+        width: 6vw;
+        text-align: center;
     `}
 `;
 

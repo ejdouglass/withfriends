@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import { Context, actions } from '../context/context';
-import { CreateCharacterPage, CharacterClassSelector, CharacterClassChoiceContainer, CharacterIDSelector, CharacterIdentityDescription, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, ExpositionText, CharacterNameInput, PWInput, BackgroundContainer, BackgroundSelection, BackgroundExplanation, ContinueExpositionButton } from '../components/styled';
+import { CreateCharacterPage, CharacterClassSelector, CharacterClassChoiceContainer, CharacterIDSelector, CharacterIdentityDescription, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, ExpositionText, CharacterNameInput, PWInput, BackgroundContainer, BackgroundSelection, BackgroundExplanation, ContinueExpositionButton, ExpositionSnippet } from '../components/styled';
 
 const charId = {
     ROAMER: 'roamer',
@@ -58,6 +58,14 @@ const backgrounds = ['Gatherer', 'Thief', 'Mercenary', 'Runner', 'Apprentice', '
 const backgrounds1 = ['Gatherer', 'Laborer', 'Healer'];
 const backgrounds2 = ['Mercenary', 'Hedgewizard', 'Thief'];
 const backgrounds3 = ['Trader', 'Scribe', 'Runner', 'Apprentice'];
+const backgroundsText = {
+    'Gatherer': `Your hands were very dirty!`,
+    'Laborer': `So sweaty.`,
+    'Healer': `Very wise and empathetic.`,
+    'Mercenary': `Rawr`,
+    'Hedgewizard': `Sizzle!`,
+    'Thief': `Sneaksneaksneak...`
+};
 
 const CreateCharacterScreen = () => {
     const [state, dispatch] = useContext(Context);
@@ -189,12 +197,30 @@ const CreateCharacterScreen = () => {
         switch (step) {
             case 0: {
                 if (newChar.name.length >= 5 && newChar.name.length <= 12) {
-                    setStep(step => step + 1);
+                    setStep(1);
                     break;
                 } else {
                     console.log(`Name is too short. Or too long! Yeah.`);
                     break;
                 }
+            }
+            case 1: {
+                if (newChar.background.first.length > 0) {
+                    setStep(2);
+                    setTimeout(() => {
+                        setStep(3);
+                    }, 2500);
+                }
+                break;
+            }
+            case 3: {
+                if (newChar.background.second.length > 0) {
+                    setStep(4);
+                    setTimeout(() => {
+                        setStep(5);
+                    }, 2500);
+                }
+                break;
             }
         }
 
@@ -248,26 +274,47 @@ const CreateCharacterScreen = () => {
                     <ExpositionText goTime={step >= 1}>
                         {/* SUGGESTION: change to personal experience rather than lofty description */}
                         You recall your first contribution to your community was as a 
-                        <CharacterNameInput background readOnly={true} type='text' placeholder={`(background)`} value={newChar.background.first}></CharacterNameInput>.
-                        <BackgroundContainer>
-                            {backgrounds.map((background, index) => (
-                                <BackgroundSelection key={index} onMouseEnter={() => tellMeMore(background)} onMouseLeave={tellMeNothing} selected={(newChar.background.first === background || newChar.background.second === background || newChar.background.third === background)} onClick={() => handleBackgroundSelection(background)}>{background}</BackgroundSelection>
+                        {newChar.background.first.length > 0 ? ` ${newChar.background.first}` : '...'}.
+                        <ContinueExpositionButton buttonVisible={step === 1} onClick={e => progressCreationProcess(e)}>...</ContinueExpositionButton>
+                        {step >= 2 && 
+                            <ExpositionSnippet>{` ${backgroundsText[newChar.background.first]}`}</ExpositionSnippet>
+                        }
+                        <BackgroundContainer goTime={step === 1}>
+                            {backgrounds1.map((thisBackground, index) => (
+                                <BackgroundSelection key={index} onMouseEnter={() => tellMeMore(thisBackground)} onMouseLeave={tellMeNothing} selected={(newChar.background.first === thisBackground)} onClick={() => setNewChar({...newChar, background: {...newChar.background, first: thisBackground}})}>{thisBackground}</BackgroundSelection>
                             ))}
                         </BackgroundContainer>
-                        <BackgroundExplanation>
+                        <BackgroundExplanation goTime={step === 1}>
                             {backgroundDescription}
                         </BackgroundExplanation>
                     </ExpositionText>
+
+                    <ExpositionText goTime={step >= 3}>
+                        As you grew older, you faced conflict, oh no! But you got by as a 
+                        {newChar.background.second.length > 0 ? ` ${newChar.background.second}` : '...'}.
+                        <ContinueExpositionButton buttonVisible={step === 3} onClick={e => progressCreationProcess(e)}>...</ContinueExpositionButton>
+                        {step >= 4 && 
+                            <ExpositionSnippet>{` ${backgroundsText[newChar.background.second]}`}</ExpositionSnippet>
+                        }
+                        <BackgroundContainer goTime={step === 3}>
+                            {backgrounds2.map((thisBackground, index) => (
+                                <BackgroundSelection key={index} onMouseEnter={() => tellMeMore(thisBackground)} onMouseLeave={tellMeNothing} selected={(newChar.background.second === thisBackground)} onClick={() => setNewChar({...newChar, background: {...newChar.background, second: thisBackground}})}>{thisBackground}</BackgroundSelection>
+                            ))}
+                        </BackgroundContainer>
+                        <BackgroundExplanation goTime={step === 3}>
+                            {backgroundDescription}
+                        </BackgroundExplanation>
+                    </ExpositionText>                    
                     
 
 
 
-                    <ExpositionText>
-
+                    <ExpositionText goTime={step === 5}>
+                        <PWInput type='text' placeholder={`(password)`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
+                        <CreateCharacterButton>Create Character!</CreateCharacterButton>
                     </ExpositionText>
 
-                    <PWInput type='text' placeholder={`(password)`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
-                    <CreateCharacterButton>Create Character!</CreateCharacterButton>
+
                 </CreateCharacterForm>
             </CreateCharacterPage>
         )}
