@@ -59,12 +59,16 @@ const backgrounds1 = ['Gatherer', 'Laborer', 'Healer'];
 const backgrounds2 = ['Mercenary', 'Hedgewizard', 'Thief'];
 const backgrounds3 = ['Trader', 'Scribe', 'Runner', 'Apprentice'];
 const backgroundsText = {
-    'Gatherer': `Your hands were very dirty!`,
-    'Laborer': `So sweaty.`,
-    'Healer': `Very wise and empathetic.`,
-    'Mercenary': `Rawr`,
-    'Hedgewizard': `Sizzle!`,
-    'Thief': `Sneaksneaksneak...`
+    'Gatherer': `You went out into the wilderness to hunt and forage for food and supplies, and to this day you still keep your trusty outdoors knife at hand.`,
+    'Laborer': `You helped build, repair, dig, and tend to the difficult manual labor that kept everything intact.`,
+    'Healer': `You studied herbs and medicines, healing the wounded and sick.`,
+    'Mercenary': `You got good at staying alive in a scrap, and offering your strong arms and stronger attitude to the right interests.`,
+    'Hedgewizard': `You learned that there was no problem that ultimately couldn't be solved by throwing more MP at it.`,
+    'Thief': `You learned that you almost nobody remained a threat with an empty purse, a broken reputation, and maybe occasionally a knife to their throat.`,
+    'Scribe': `Nerdy!`,
+    'Trader': `Wealthy?`,
+    'Runner': `Sweaty...`,
+    'Apprentice': `Busy!`
 };
 
 const CreateCharacterScreen = () => {
@@ -222,6 +226,15 @@ const CreateCharacterScreen = () => {
                 }
                 break;
             }
+            case 5: {
+                if (newChar.background.third.length > 0) {
+                    setStep(6);
+                    setTimeout(() => {
+                        setStep(7);
+                    }, 2500);
+                }
+                break;
+            }        
         }
 
         // HERE: Validation checks (also will separately be performed on backend)
@@ -304,12 +317,29 @@ const CreateCharacterScreen = () => {
                         <BackgroundExplanation goTime={step === 3}>
                             {backgroundDescription}
                         </BackgroundExplanation>
-                    </ExpositionText>                    
+                    </ExpositionText>    
+
+                    <ExpositionText goTime={step >= 5}>
+                        Then you made it to the Big Town. Time to get a respectable profession! Naturally, you earned your keep as a 
+                        {newChar.background.third.length > 0 ? ` ${newChar.background.third}` : '...'}.
+                        <ContinueExpositionButton buttonVisible={step === 5} onClick={e => progressCreationProcess(e)}>...</ContinueExpositionButton>
+                        {step >= 6 && 
+                            <ExpositionSnippet>{` ${backgroundsText[newChar.background.third]}`}</ExpositionSnippet>
+                        }
+                        <BackgroundContainer goTime={step === 5}>
+                            {backgrounds3.map((thisBackground, index) => (
+                                <BackgroundSelection key={index} onMouseEnter={() => tellMeMore(thisBackground)} onMouseLeave={tellMeNothing} selected={(newChar.background.third === thisBackground)} onClick={() => setNewChar({...newChar, background: {...newChar.background, third: thisBackground}})}>{thisBackground}</BackgroundSelection>
+                            ))}
+                        </BackgroundContainer>
+                        <BackgroundExplanation goTime={step === 5}>
+                            {backgroundDescription}
+                        </BackgroundExplanation>
+                    </ExpositionText>                                       
                     
 
 
 
-                    <ExpositionText goTime={step === 5}>
+                    <ExpositionText goTime={step >= 7}>
                         <PWInput type='text' placeholder={`(password)`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
                         <CreateCharacterButton>Create Character!</CreateCharacterButton>
                     </ExpositionText>
