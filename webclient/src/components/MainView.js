@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine } from './styled';
+import { LeftMenu, ActionButton, ChatPrompt, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -42,6 +42,8 @@ const LeftMenuBox = ({ state, dispatch }) => {
 const RightMenuBox = ({ state, dispatch }) => {
     // Entities! -- NPCs, mobs, players
     // Probably in the order PLAYERS, MOBS, NPCS... but only two sections is fine, NPCs and MOBs are pretty interchangeable
+    
+
     return (
         <RightMenu>
             <RightMenuLabel>Also Here:</RightMenuLabel>
@@ -49,13 +51,13 @@ const RightMenuBox = ({ state, dispatch }) => {
                 {state.location?.room?.players?.length + state.location?.room?.npcs?.length + state.location?.room?.mobs?.length > 1 ? (
                         <>
                         {state.location?.room?.mobs?.map((mob, index) => (
-                            <p key={index}>{mob.glance}</p>
+                            <p key={index} entity={mob} type={'mob'}>{mob.glance}</p>
                         ))}
-                        {state.location?.room?.npcs?.map((npc, index) => (
-                            <p key={index}>{npc.glance}</p>
+                        {state.location?.room?.npcs?.map(npc => (
+                            <EntityBox key={npc.id} type={'npc'} entity={npc} /> 
                         ))}                    
                         {state.location?.room?.players?.map((player, index) => (
-                            <p key={index}>{player.name === state.name ? null : player.name}</p>
+                            <p key={index} entity={player} type={'player'}>{player.name === state.name ? null : player.name}</p>
                         ))}
                         </>
                     ) : (
@@ -65,6 +67,36 @@ const RightMenuBox = ({ state, dispatch }) => {
             </EntityList>
         </RightMenu>
     );
+}
+
+const EntityBox = ({ type, entity }) => {
+    const [state, dispatch] = useContext(Context);
+
+    function targetEntity(tgEntity) {
+        dispatch({type: actions.TARGET_ENTITY, payload: {...tgEntity}});
+        console.log(`Now attempting to target ${JSON.stringify(tgEntity)}.`);
+    } 
+
+    switch (type) {
+        case 'mob': {
+            return (
+                <EntityGlancer mob>{entity.glance}</EntityGlancer>
+            )
+        }
+        case 'npc': {
+            return (
+                <EntityGlancer npc viewed={state.target?.id === entity.id} onClick={() => targetEntity(entity)}>{entity.glance}</EntityGlancer>
+            )
+        }
+        case 'player': {
+            return (
+                <EntityGlancer>{entity.name === state.name ? null : entity.name}</EntityGlancer>
+            )
+        }
+        default: {
+            return <EntityGlancer>a spooky entity</EntityGlancer>
+        }
+    }
 }
 
 const TopMenuBox = ({ state, dispatch }) => {
@@ -110,7 +142,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
 
     function doneFocusing() {
         console.log(`Done focusing, probably`);
-        dispatch({type: actions.UPDATE_WHATDO, payload: 'travel'});
+        dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
     }
 
     useEffect(() => {
@@ -144,13 +176,29 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         
     
     */
-
-    return (
-        <CurrentFocus style={{display: mode.focused ? 'block' : 'none'}}>
-            <button onClick={doneFocusing}>Done Focusing</button>
-            {/* In here: several different FOCUS styles depending on said focus */}
-        </CurrentFocus>
-    )
+   switch (state.whatDo) {
+        case 'explore': {
+           return null;
+        }
+        case 'npcinteract': {
+            return (
+                <NPCInteractionContainer>
+                    BEEP BOOP
+                </NPCInteractionContainer>
+            )
+        }
+        case 'magic': {
+            // NOTE: currently this is the same 'small menu' as combat and such; will change later to be full-screen wackiness
+            return (
+                <NPCInteractionContainer>
+                    BEEP BOOP
+                </NPCInteractionContainer>
+            )
+        }
+        default: {
+            return null;
+        }
+   }
 }
 
 
@@ -220,7 +268,8 @@ const ViewBox = ({ state, dispatch }) => {
                     }
                 </EyeView>
             </MainViewContainer>
-            <ChatWrapper onSubmit={handleSubmittedChatText}>
+            <ChatPrompt chatting={state.whatDo === 'talk'}>(TAB to talk)</ChatPrompt>
+            <ChatWrapper chatting={state.whatDo === 'talk'} onSubmit={handleSubmittedChatText}>
                 <ChatInput type='text' ref={chatRef} readOnly={state.whatDo === 'talk' ? false : true} value={talkText} onChange={e => setTalkText(e.target.value)} autoComplete={'off'} autoCorrect={'off'}></ChatInput>
                 <ChatSubmit>!</ChatSubmit>
             </ChatWrapper>

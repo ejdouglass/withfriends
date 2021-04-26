@@ -19,6 +19,13 @@ const Keyboard = () => {
 
     // Down here we're going to be paying attention to the state, which should tell us what we're currently up to for proper reactions to keyevent(s)
     function handleKeyDown(e) {
+        if (e.key === 'Tab' && state.whatDo !== 'character_creation') {
+            e.preventDefault();
+            if (state.whatDo === 'talk') {
+                return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+            }
+            return dispatch({type: actions.UPDATE_WHATDO, payload: 'talk'});
+        }
         // console.log(`Pressed ${e.key}`);
         // ArrowUp, ArrowDown, ArrowLeft, ArrowRight, 1, 2, 3, 4, etc.
         // NOTE: Currently NOT preventing default, but we may wish to in some cases.
@@ -26,6 +33,7 @@ const Keyboard = () => {
             keysDown.current[e.key] = true;
         }
         if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            // UPDATE: context-sensitive blooping
             let newIndex;
             let changeAmount = (e.key === 'ArrowUp') ? -1 : 1;
             newIndex = state.actionIndex + changeAmount;
@@ -33,12 +41,18 @@ const Keyboard = () => {
             if (newIndex >= state.currentActionBar.length) newIndex = 0;
             dispatch({type: actions.UPDATE_ACTION_INDEX, payload: newIndex});
         }
-        if (state.whatDo === 'talk' || state.whatDo === 'character_creation') return; // Change: 'chat' to 'talk' or maybe 'talk/rest'
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            if (state.whatDo === 'explore') {
+                if (state.currentActionBar === 'action') dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'entity'})
+                else dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});                
+            }
+            
+        }
+        if (state.whatDo === 'talk' || state.whatDo === 'character_creation') return; 
         switch (e.key) {
             // Did a HAX below for now, but going forward, let's sort out ways to parse state.whatDo/game mode/gamestate
             case '1': {
-                dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'interact_with_structure', index: 0}});
-                break;
+                return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'interact_with_structure', index: 0}});
             }
             // case 'ArrowUp': {
             //     let newIndex;
@@ -62,7 +76,7 @@ const Keyboard = () => {
             case 'e':
             case 'd':
             case 'c':
-            case 's':
+            case 'x':
             case 'z':
             case 'a':
             case 'q':                
@@ -73,6 +87,7 @@ const Keyboard = () => {
                         const mover = {who: state.entityID, where: e.key};
                         socketToMe.emit('movedir', mover);
                     }
+                    break;
                     // Right now ANY connected entity is using this code to manipulate the single 'character' dummy in API...
                     // I can think of a few ways to implement separate characters, but offhand:
                     // Use normal axios/auth stuff to log in/select character, which can then prepare global variables to ship with these requests
@@ -81,6 +96,15 @@ const Keyboard = () => {
                     // const mover = {who: state.name, where: e.key};
                     
                 }
+            case 'h': {
+                return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'hide'}});
+            }
+            case 's': {
+                return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'search'}});                
+            }
+            case 'm': {
+                return (state.whatDo === 'explore' ? dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'}) : dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'}))
+            }
         }
     }
 

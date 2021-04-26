@@ -670,14 +670,34 @@ export const RoomDesc = styled.div`
 `;
 
 export const ChatWrapper = styled.form`
+    display: none;
     position: absolute;
     box-sizing: border-box;
-    display: flex;
     flex-direction: row;
     height: 2rem;
     top: calc(50px + 80%);
     left: 10%;
     width: 80%;
+    ${props => props.chatting && css`
+        display: flex;
+    `}
+`;
+
+export const ChatPrompt = styled.div`
+    position: absolute;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 2rem;
+    top: calc(50px + 80%);
+    border: 1px solid black;
+    left: calc(10% - 20px - 2vw);
+    width: calc(20px + 2vw);
+    ${props => props.chatting && css`
+        display: none;
+    `}
 `;
 
 export const ChatInput = styled.input`
@@ -717,10 +737,50 @@ export const CurrentFocus = styled.div`
     border: 1px solid blue;
 `;
 
+export const NPCInteractionContainer = styled.div`
+    position: absolute;
+    display: flex;
+    box-sizing: border-box;
+    border: 3px solid red;
+    z-index: 700;
+    width: 80%;
+    height: 40%;
+    top: 75px;
+    left: 10%;
+`;
+
+export const CombatContainer = styled(NPCInteractionContainer)`
+    // moar here
+`;
+
+export const MagicContainer = styled(NPCInteractionContainer)`
+    // moar here
+`;
+
 export const EyeSpyLine = styled.p`
     font-size: calc(0.5rem + 0.5vw);
     padding-left: 1rem;
 `;
+
+export const EntityGlancer = styled.div`
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+    align-items: center;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    ${props => props.mob && css`
+        background-color: hsl(300,70%,30%);
+    `}
+    ${props => props.npc && css`
+        background-color: hsl(140,70%,30%);
+    `}
+    ${props => props.viewed && css`
+        // HERE: set up looking at/selecting with cursor
+        border: 3px solid black;
+    `}
+`
 
 export const LeftMenu = styled.div`
     position: absolute;
@@ -762,7 +822,6 @@ export const ActionButton = styled.div`
 export const RightMenu = styled.div`
     position: absolute;
     box-sizing: border-box;
-    border: 1px solid green;
     width: calc(40px + 10vw);
     top: 50px;
     height: 80%;
@@ -782,5 +841,4 @@ export const RightMenuLabel = styled.h1`
 export const EntityList = styled.div`
     font-size: calc(0.5rem + 0.5vw);
     font-weight: 400;
-    padding-left: 0.5rem;
 `;

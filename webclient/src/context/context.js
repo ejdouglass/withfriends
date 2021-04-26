@@ -10,7 +10,9 @@ export const actions = {
     UPDATE_WHATDO: 'update_whatdo',
     UPDATE_ACTION_INDEX: 'update_action_index',
     PACKAGE_FOR_SERVER: 'package_for_server',
-    PACKAGE_FROM_SERVER: 'package_from_server'
+    PACKAGE_FROM_SERVER: 'package_from_server',
+    TARGET_ENTITY: 'target_entity',
+    UPDATE_SELECTED_BAR: 'update_selected_bar'
 }
 
 export const Reducer = (state, action) => {
@@ -64,6 +66,13 @@ export const Reducer = (state, action) => {
         case actions.PACKAGE_FROM_SERVER: {
             return {...state, received: action.payload};
         }
+        case actions.TARGET_ENTITY: {
+            // receive an object with entityID, type, glance, name
+            return {...state, target: action.payload};
+        }
+        case actions.UPDATE_SELECTED_BAR: {
+            return {...state, currentBarSelected: action.payload};
+        }
         default: {
             return state;
         }
@@ -71,10 +80,8 @@ export const Reducer = (state, action) => {
 }
 
 /*
-    Future possible modes:
-    -- SKYGAZE
-    -- INTROSPECT
-
+    Mode ponder...
+    npcinteract mode! (works for shops or just chatting, because why not)
 */
 const mode = {
     TRAVEL: 'travel',
@@ -82,7 +89,7 @@ const mode = {
     CHARACTER_CREATION: 'character_creation',
     CHAT: 'chat',
     RUMMAGE: 'rummage',
-    FIGHT: 'fight'
+    COMBAT: 'combat'
 }
 
 const initialState = {
@@ -133,7 +140,8 @@ const initialState = {
     },
     whatDo: mode.CHARACTER_CREATION,
     actionIndex: 0,
-    currentActionBar: ['Explore', 'Talk', 'Magic', 'Survey Area', 'Inventory'],
+    currentBarSelected: 'action',
+    currentActionBar: ['Explore', 'Magic', 'Survey Area', 'Inventory'],
     alert: undefined,
     package: undefined,
     received: undefined

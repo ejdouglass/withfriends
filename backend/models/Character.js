@@ -36,6 +36,7 @@ const CharacterSchema = new Schema({
     },
     injuries: Object, // thinking adding key=type, and other stats... 
     target: String, // Just leaving this here for now... thinking through its implementation, may remove or reconfigure
+    targetOf: Object, // Likewise, here for now -- see if we can hook it up to enable 'Combat Mode'
     tagged: Object,
     backpack: {
         type: Object,
@@ -84,7 +85,8 @@ const CharacterSchema = new Schema({
     },
     admin: {type: Boolean, default: false},
     actionIndex: {type: Number, default: 0},
-    currentActionBar: {type: Array, default: ['Explore', 'Talk', 'Magic', 'Survey Area', 'Inventory']}
+    currentActionBar: {type: Array, default: ['Explore', 'Magic', 'Survey Area', 'Inventory']},
+    currentBarSelected: {type: String, default: 'action'} // action, entity, ___?
 }, { minimize: false });
 
 module.exports = mongoose.model('Character', CharacterSchema);

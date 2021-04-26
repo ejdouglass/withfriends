@@ -762,6 +762,13 @@ class NPC {
         this.wanderlust = 0;
         this.actInterval = 15000;
         this.number = rando(1,10);
+        this.talkTopics = [
+            `Sure is lovely weather, isn't it? I don't even remember the last time it was even dark out.`,
+            `They call me Taran Wanderer, which is funny, because I've never once moved from this spot.`,
+            `I feel very well-read.`,
+            `Did you know there are orchard muglins out the west gate? They seem like some good low-level hunting!`
+        ];
+        this.quests = {};
     }
 
     action() {
@@ -1361,7 +1368,7 @@ function keyToDirection(key) {
         case 'c': {
             return {short: 'se', long: 'southeast'};
         }
-        case 's': {
+        case 'x': {
             return {short: 's', long: 'south'};
         }
         case 'z': {
@@ -1832,6 +1839,16 @@ io.on('connection', (socket) => {
                 // HERE, eventually: see if char CAN talk before just babbling away :P
                 socket.to(roomString).emit('room_event', `${myCharacter.name} says, "${actionData.message}"`);
                 socket.emit('own_action_result', `You say, "${actionData.message}"`);
+                break;
+            }
+            case 'hide': {
+                socket.emit('own_action_result', `You attempt to hide, but can't quite seem to figure out how yet. How embarrassing.`);
+                socket.to(roomString).emit('room_event', `${myCharacter.name} attempts to hide, but can't seem to figure out how.`);
+                break;
+            }
+            case 'search': {
+                socket.emit('own_action_result', `You search the area, but nobody can hide yet, sooooo.`);
+                socket.to(roomString).emit('room_event', `${myCharacter.name} scans the area with a dull expression.`);
                 break;
             }
             case 'interact_with_structure': {
