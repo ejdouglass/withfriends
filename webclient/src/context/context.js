@@ -10,6 +10,8 @@ export const actions = {
     UPDATE_WHATDO: 'update_whatdo',
     UPDATE_ACTION_INDEX: 'update_action_index',
     UPDATE_VIEW_INDEX: 'update_view_index',
+    UPDATE_VIEW_TARGET: 'update_view_target',
+    UPDATE_TARGET: 'update_target',
     PACKAGE_FOR_SERVER: 'package_for_server',
     PACKAGE_FROM_SERVER: 'package_from_server',
     TARGET_ENTITY: 'target_entity',
@@ -63,6 +65,18 @@ export const Reducer = (state, action) => {
         }
         case actions.UPDATE_VIEW_INDEX: {
             return {...state, viewIndex: action.payload || 0};
+        }
+        case actions.UPDATE_VIEW_TARGET: {
+            // Hm, ok, so view target can be an ACTION, an ENTITY, an OBJECT... how to structure?
+            // Maybe type/(id), so ENTER changes mode based on that
+            // mob/id, npc/id, player/id open separate command screens
+            // action/actionName would just do that action
+            // object/id would enable further interaction with said object, depending on mode (equip/use in inventory, pick up off ground, etc.)
+            console.log(`Setting viewTarget to ${action.payload}`);
+            return {...state, viewTarget: action.payload};
+        }
+        case actions.UPDATE_TARGET: {
+            return {...state, target: action.payload};
         }
         case actions.PACKAGE_FOR_SERVER: {
             return {...state, package: action.payload};

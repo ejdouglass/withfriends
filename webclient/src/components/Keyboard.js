@@ -46,26 +46,31 @@ const Keyboard = () => {
                 if (newIndex < 0) newIndex = state.currentActionBar.length - 1;
                 if (newIndex >= state.currentActionBar.length) newIndex = 0;
                 dispatch({type: actions.UPDATE_VIEW_INDEX, payload: newIndex});
+                return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: `action/${state.currentActionBar[newIndex].toLowerCase()}`});
             }
             if (state.whatDo === 'explore' && state.currentBarSelected === 'entity') {
                 // HERE: boop along on the right side
                 let changeAmount = (e.key === 'ArrowUp') ? -1 : 1;
-                dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + changeAmount});
+                return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + changeAmount});
+                // normally we'd have returned the viewTarget from here, but that's handled in MainView.js, so popping over there instead
             }
         }
 
         if (e.key === 'ArrowRight') {
-            dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
             if (state.whatDo === 'explore') {
                 if (state.currentBarSelected === 'action' && (state.location?.room?.npcs?.length + state.location?.room?.mobs?.length + state.location?.room?.players?.length) > 1) {
-                    return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'entity'});
+                    dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+                    dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'entity'});
                 }
                 // else dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});                
             }   
         }
         if (e.key === 'ArrowLeft') {
-            dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
-            if (state.whatDo === 'explore' && state.currentBarSelected === 'entity') return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});
+            if (state.whatDo === 'explore' && state.currentBarSelected === 'entity') {
+                dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+                dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});
+                dispatch({type: actions.UPDATE_VIEW_TARGET, payload: `action/${state.currentActionBar[0].toLowerCase()}`})
+            }
         }
 
         switch (e.key) {

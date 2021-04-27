@@ -62,10 +62,15 @@ const RightMenuBox = ({ state, dispatch }) => {
     
     useEffect(() => {
         if (state.currentBarSelected === 'entity') {
-            if (state.viewIndex >= entityList.length) dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
-            if (state.viewIndex < 0) dispatch({type: actions.UPDATE_VIEW_INDEX, payload: entityList.length - 1});
+            if (state.viewIndex >= entityList.length) {
+                return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+            }
+            if (state.viewIndex < 0) {
+                return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: entityList.length - 1});
+            }
+            return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: `${entityList[state.viewIndex]?.type}/${entityList[state.viewIndex]?.id}`});
         }
-    }, [state.viewIndex]);
+    }, [state.viewIndex, state.currentBarSelected]);
 
     return (
         <RightMenu>
