@@ -9,6 +9,7 @@ export const actions = {
     UPDATE_ROOM: 'update_room',
     UPDATE_WHATDO: 'update_whatdo',
     UPDATE_ACTION_INDEX: 'update_action_index',
+    UPDATE_VIEW_INDEX: 'update_view_index',
     PACKAGE_FOR_SERVER: 'package_for_server',
     PACKAGE_FROM_SERVER: 'package_from_server',
     TARGET_ENTITY: 'target_entity',
@@ -60,6 +61,9 @@ export const Reducer = (state, action) => {
         case actions.UPDATE_ACTION_INDEX: {
             return {...state, actionIndex: action.payload, whatDo: state.currentActionBar[action.payload].toLowerCase()};
         }
+        case actions.UPDATE_VIEW_INDEX: {
+            return {...state, viewIndex: action.payload || 0};
+        }
         case actions.PACKAGE_FOR_SERVER: {
             return {...state, package: action.payload};
         }
@@ -68,7 +72,12 @@ export const Reducer = (state, action) => {
         }
         case actions.TARGET_ENTITY: {
             // receive an object with entityID, type, glance, name
-            return {...state, target: action.payload};
+            if (action.payload.targetType === 'view') {
+                return {...state, viewTarget: action.payload.target || {}};
+            }
+            if (action.payload.targetType === 'combat') {
+                return {...state, combatTarget: action.payload.target || {}};
+            }
         }
         case actions.UPDATE_SELECTED_BAR: {
             return {...state, currentBarSelected: action.payload};
@@ -140,11 +149,15 @@ const initialState = {
     },
     whatDo: mode.CHARACTER_CREATION,
     actionIndex: 0,
+    viewIndex: 0,
     currentBarSelected: 'action',
-    currentActionBar: ['Explore', 'Magic', 'Survey Area', 'Inventory'],
+    currentActionBar: ['Magic', 'Survey Area', 'Inventory'],
     alert: undefined,
     package: undefined,
-    received: undefined
+    received: undefined,
+    target: undefined,
+    viewTarget: undefined,
+    combatTarget: undefined
 }
 
 export const Context = createContext(initialState);

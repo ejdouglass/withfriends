@@ -750,6 +750,7 @@ class NPC {
 
     constructor(name, glance, location, description) {
         this.entityID = 'npc' + generateRandomID(); // Highly unlikely to be duplicated, but can add populate checks later to ensure it more reliably
+        this.entityType = 'npc';
         this.name = name;
         this.level = 1; // Placeholder for now
         this.glance = glance; // Room/sidebar text
@@ -883,6 +884,7 @@ class orchardGoblin {
         this.location = {RPS: 0, GPS: location}; // The only outside variable needed to successfully spawn this fella currently...
         // Might add 'monsterLevel' and such 
         this.glance = `an orchard muglin`;
+        this.description = `Basically a field golbin, but acutally a muglin, which is quite a bit more likely to want to mug you for fruit, in this case.`;
         this.entityID = undefined;
         this.entityType = 'mob';
         this.mobType = {meta: 'humanoid', race: 'muglin'};
@@ -1077,8 +1079,10 @@ function populateRoom(entity) {
     // console.log(`Attempting to populate room with ${entity.entityID} who is ${entity.name} at new GPS ${entity.location.GPS}`);
     let roomArrayObject = {
         id: entity.entityID,
+        type: entity.entityType,
         name: entity.name || '',
         glance: entity.glance || '',
+        description: entity.description || `This being is rather indescribable.`,
         level: entity.level || 0,
         HP: 100,
         condition: [] // asleep, stunned, not-so-alive, etc.
@@ -1839,6 +1843,11 @@ io.on('connection', (socket) => {
                 // HERE, eventually: see if char CAN talk before just babbling away :P
                 socket.to(roomString).emit('room_event', `${myCharacter.name} says, "${actionData.message}"`);
                 socket.emit('own_action_result', `You say, "${actionData.message}"`);
+                break;
+            }
+            case 'forage': {
+                socket.to(roomString).emit('room_event', `${myCharacter.name} roots around the area for a moment, but doesn't appear to find anything interesting.`);
+                socket.emit('own_action_result', `You forage around the area for a moment, but realize you have no idea what you're doing.`);
                 break;
             }
             case 'hide': {

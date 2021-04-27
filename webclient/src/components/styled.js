@@ -771,14 +771,18 @@ export const EntityGlancer = styled.div`
     padding-top: 0.3rem;
     padding-bottom: 0.3rem;
     ${props => props.mob && css`
-        background-color: hsl(300,70%,30%);
+        background-color: hsl(300, 70%, 70%);
     `}
     ${props => props.npc && css`
-        background-color: hsl(140,70%,30%);
+        background-color: hsl(140, 70%, 70%);
+    `}
+    ${props => props.player && css`
+        background-color: hsl(220, 70%, 70%);
     `}
     ${props => props.viewed && css`
         // HERE: set up looking at/selecting with cursor
         border: 3px solid black;
+        font-weight: 600;
     `}
 `
 
@@ -804,6 +808,7 @@ export const ActionButton = styled.div`
     align-items: center;
     justify-content: center;
     background-color: #DDD;
+    box-sizing: border-box;
     font-weight: 600;
     width: 80%;
     height: 50px;
@@ -811,11 +816,17 @@ export const ActionButton = styled.div`
     border: 1px solid hsl(240, 70%, 5%);
     border-radius: 10px;
     &:hover {
+        border: 2px solid hsl(240, 80%, 10%);
         background-color: #EEF;
     }
     ${props => props.selected && css`
         width: 90%;
+        border: 3px solid hsl(240, 80%, 10%);
+        background-color: white;
+    `}
+    ${props => props.viewed && css`
         border: 2px solid hsl(240, 80%, 10%);
+        background-color: #EEF;
     `}
 `;
 

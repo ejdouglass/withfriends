@@ -19,6 +19,9 @@ const Keyboard = () => {
 
     // Down here we're going to be paying attention to the state, which should tell us what we're currently up to for proper reactions to keyevent(s)
     function handleKeyDown(e) {
+        if (e.key === 'Enter') {
+            // HERE: basically, "do the thing that's currently selected"
+        }
         if (e.key === 'Tab' && state.whatDo !== 'character_creation') {
             e.preventDefault();
             if (state.whatDo === 'talk') {
@@ -26,29 +29,45 @@ const Keyboard = () => {
             }
             return dispatch({type: actions.UPDATE_WHATDO, payload: 'talk'});
         }
+        if (state.whatDo === 'talk' || state.whatDo === 'character_creation') return;
         // console.log(`Pressed ${e.key}`);
         // ArrowUp, ArrowDown, ArrowLeft, ArrowRight, 1, 2, 3, 4, etc.
         // NOTE: Currently NOT preventing default, but we may wish to in some cases.
         if (!keysDown.current[e.key]) {
             keysDown.current[e.key] = true;
         }
+
         if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
             // UPDATE: context-sensitive blooping
-            let newIndex;
-            let changeAmount = (e.key === 'ArrowUp') ? -1 : 1;
-            newIndex = state.actionIndex + changeAmount;
-            if (newIndex < 0) newIndex = state.currentActionBar.length - 1;
-            if (newIndex >= state.currentActionBar.length) newIndex = 0;
-            dispatch({type: actions.UPDATE_ACTION_INDEX, payload: newIndex});
-        }
-        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-            if (state.whatDo === 'explore') {
-                if (state.currentActionBar === 'action') dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'entity'})
-                else dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});                
+            if (state.whatDo === 'explore' && state.currentBarSelected === 'action') {
+                let newIndex;
+                let changeAmount = (e.key === 'ArrowUp') ? -1 : 1;
+                newIndex = state.viewIndex + changeAmount;
+                if (newIndex < 0) newIndex = state.currentActionBar.length - 1;
+                if (newIndex >= state.currentActionBar.length) newIndex = 0;
+                dispatch({type: actions.UPDATE_VIEW_INDEX, payload: newIndex});
             }
-            
+            if (state.whatDo === 'explore' && state.currentBarSelected === 'entity') {
+                // HERE: boop along on the right side
+                let changeAmount = (e.key === 'ArrowUp') ? -1 : 1;
+                dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + changeAmount});
+            }
         }
-        if (state.whatDo === 'talk' || state.whatDo === 'character_creation') return; 
+
+        if (e.key === 'ArrowRight') {
+            dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+            if (state.whatDo === 'explore') {
+                if (state.currentBarSelected === 'action' && (state.location?.room?.npcs?.length + state.location?.room?.mobs?.length + state.location?.room?.players?.length) > 1) {
+                    return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'entity'});
+                }
+                // else dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});                
+            }   
+        }
+        if (e.key === 'ArrowLeft') {
+            dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+            if (state.whatDo === 'explore' && state.currentBarSelected === 'entity') return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});
+        }
+
         switch (e.key) {
             // Did a HAX below for now, but going forward, let's sort out ways to parse state.whatDo/game mode/gamestate
             case '1': {
@@ -98,6 +117,9 @@ const Keyboard = () => {
                 }
             case 'h': {
                 return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'hide'}});
+            }
+            case 'f': {
+                return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'forage'}});
             }
             case 's': {
                 return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'search'}});                

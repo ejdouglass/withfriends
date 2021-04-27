@@ -33,7 +33,7 @@ const LeftMenuBox = ({ state, dispatch }) => {
     return (
         <LeftMenu>
             {state.currentActionBar.map((actButton, index) => (
-                <ActionButton key={index} selected={index === state.actionIndex ? true : false} onClick={() => handleActionSelection(actButton)}>{actButton}</ActionButton>
+                <ActionButton key={index} viewed={(state.currentBarSelected === 'action' && index === state.viewIndex) ? true : false} selected={state.whatDo === actButton.toLowerCase() ? true : false} onClick={() => handleActionSelection(actButton)}>{actButton}</ActionButton>
             ))}
         </LeftMenu>
     );
@@ -42,13 +42,46 @@ const LeftMenuBox = ({ state, dispatch }) => {
 const RightMenuBox = ({ state, dispatch }) => {
     // Entities! -- NPCs, mobs, players
     // Probably in the order PLAYERS, MOBS, NPCS... but only two sections is fine, NPCs and MOBs are pretty interchangeable
+    const [entityList, setEntityList] = useState([]);
+
+    // HM. Might have to do a dispatch in here if we exceed the current list of things on the right side;
+    //  that is to say, listen for updates to state.viewIndex, adjust here and modify if it falls out of bounds.
+    // That sounds a little sloppy, but for now, if it works, brava!
+
+    useEffect(() => {
+        // ...state.location?.room?.mobs, ...state.location?.room?.npcs, ...state.location?.room?.players
+        let fullList = [];
+        if (state.location?.room?.mobs?.length > 0) fullList = [...state.location.room.mobs];
+        if (state.location?.room?.npcs?.length > 0) fullList = [...fullList, ...state.location.room.npcs];
+        if (state.location?.room?.players?.length > 0) {
+            let playerList = state.location.room.players.filter(playa => playa.name !== state.name);
+            fullList = [...fullList, ...playerList];
+        }
+        setEntityList(fullList);
+    }, [state]);
     
+    useEffect(() => {
+        if (state.currentBarSelected === 'entity') {
+            if (state.viewIndex >= entityList.length) dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+            if (state.viewIndex < 0) dispatch({type: actions.UPDATE_VIEW_INDEX, payload: entityList.length - 1});
+        }
+    }, [state.viewIndex]);
 
     return (
         <RightMenu>
             <RightMenuLabel>Also Here:</RightMenuLabel>
             <EntityList>
-                {state.location?.room?.players?.length + state.location?.room?.npcs?.length + state.location?.room?.mobs?.length > 1 ? (
+                {/* SOMETHING about this is deeply borked. Does a gazillion updates. Hold on a sec. */}
+                {entityList.length > 0 ? (
+                    <>
+                        {entityList.map((entity, index) => (
+                            <EntityBox key={index} index={index} type={entity.type} entity={entity} />
+                        ))}
+                    </>
+                ) : (
+                    <p>Nobody but yourself.</p>
+                )}
+                {/* {state.location?.room?.players?.length + state.location?.room?.npcs?.length + state.location?.room?.mobs?.length > 1 ? (
                         <>
                         {state.location?.room?.mobs?.map((mob, index) => (
                             <p key={index} entity={mob} type={'mob'}>{mob.glance}</p>
@@ -63,34 +96,40 @@ const RightMenuBox = ({ state, dispatch }) => {
                     ) : (
                         <p>Nobody but you.</p>
                     )
-                }
+                } */}
             </EntityList>
         </RightMenu>
     );
 }
 
-const EntityBox = ({ type, entity }) => {
+const EntityBox = ({ type, entity, index }) => {
     const [state, dispatch] = useContext(Context);
 
     function targetEntity(tgEntity) {
-        dispatch({type: actions.TARGET_ENTITY, payload: {...tgEntity}});
-        console.log(`Now attempting to target ${JSON.stringify(tgEntity)}.`);
-    } 
+        if (state.target?.id !== tgEntity.id) return dispatch({type: actions.TARGET_ENTITY, payload: {targetType: 'view', target: {...tgEntity}}});
+        return dispatch({type: actions.TARGET_ENTITY, payload: {}});
+    }
+
+    useEffect(() => {
+        if (index === state.viewIndex && state.viewTarget?.id !== entity.id) {
+            dispatch({type: actions.TARGET_ENTITY, payload: {targetType: 'view', target: {...entity}}})
+        }
+    }, [state]);
 
     switch (type) {
         case 'mob': {
             return (
-                <EntityGlancer mob>{entity.glance}</EntityGlancer>
+                <EntityGlancer mob viewed={state.target?.id === entity.id || (state.currentBarSelected === 'entity' && state.viewIndex === index)}>{entity.glance}</EntityGlancer>
             )
         }
         case 'npc': {
             return (
-                <EntityGlancer npc viewed={state.target?.id === entity.id} onClick={() => targetEntity(entity)}>{entity.glance}</EntityGlancer>
+                <EntityGlancer npc viewed={state.target?.id === entity.id || (state.currentBarSelected === 'entity' && state.viewIndex === index)} onClick={() => targetEntity(entity)}>{entity.glance}</EntityGlancer>
             )
         }
         case 'player': {
             return (
-                <EntityGlancer>{entity.name === state.name ? null : entity.name}</EntityGlancer>
+                <EntityGlancer player viewed={state.target?.id === entity.id || (state.currentBarSelected === 'entity' && state.viewIndex === index)}>{entity.name === state.name ? null : entity.name}</EntityGlancer>
             )
         }
         default: {
@@ -172,9 +211,6 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         -- left side: actions (cast, use, do, search, forage/fish, etc.)
 
         Idea: leftFocus and rightFocus, so if you're CASTING, that's maybe a right-side thing, and COMBAT lives on the left, so they 'mix' well?
-
-        
-    
     */
    switch (state.whatDo) {
         case 'explore': {
@@ -253,6 +289,20 @@ const ViewBox = ({ state, dispatch }) => {
             
             <MainViewContainer>
                 <RoomView>
+                    
+                    {state.currentBarSelected === 'entity' &&
+                    <>
+                    <RoomName>{state.viewTarget?.glance || state.viewTarget?.name}</RoomName>
+                    <RoomDetails>
+                        <RoomImg />
+                        <RoomDesc>
+                            {state.viewTarget?.description}
+                        </RoomDesc>
+                    </RoomDetails>
+                    </>
+                    }
+                    {state.currentBarSelected === 'action' &&
+                    <>
                     <RoomName>{state.location?.room?.zone} - {state.location?.room?.room}</RoomName>
                     <RoomDetails>
                         <RoomImg />
@@ -260,6 +310,9 @@ const ViewBox = ({ state, dispatch }) => {
                             {state.location?.room?.description}
                         </RoomDesc>
                     </RoomDetails>
+                    </>
+                    }
+
                 </RoomView>
                 <EyeView id='mainview'>
                     {iSpy.map((line, index) => (
