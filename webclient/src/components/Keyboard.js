@@ -19,6 +19,7 @@ const Keyboard = () => {
 
     // Down here we're going to be paying attention to the state, which should tell us what we're currently up to for proper reactions to keyevent(s)
     function handleKeyDown(e) {
+        if (state.whatDo === 'talk' || state.whatDo === 'character_creation') return;
         if (e.key === 'Enter') {
             // HERE: basically, "do the thing that's currently selected" ... which we now can know what it is, at least between ActionBar and EntityBar! Woo!
             // Ok, thinking it through: if it's a MOB or NPC or SHOP, bring up appropriate sub-menu to navigate around on/in
@@ -53,7 +54,6 @@ const Keyboard = () => {
             }
             return dispatch({type: actions.UPDATE_WHATDO, payload: 'talk'});
         }
-        if (state.whatDo === 'talk' || state.whatDo === 'character_creation') return;
         // console.log(`Pressed ${e.key}`);
         // ArrowUp, ArrowDown, ArrowLeft, ArrowRight, 1, 2, 3, 4, etc.
         // NOTE: Currently NOT preventing default, but we may wish to in some cases.
@@ -223,8 +223,9 @@ const Keyboard = () => {
                 socketToMe.emit('login', state);
             });
             socketToMe.on('moved_dir', data => {
-                console.log(data.feedback);
+                // console.log(data.feedback);
                 dispatch({type: actions.UPDATE_ROOM, payload: { updatedLocation: data.newLocation }});
+                dispatch({type: actions.RESET_VIEW});
                 // HERE: unpack data, adjust state via dispatch - room details, weather, time of day, etc.
             });
             socketToMe.on('room_event', roomEventObj => {
@@ -232,7 +233,7 @@ const Keyboard = () => {
                 // Alright, what do we need to receive?
                 // 1) what the room currently looks like (location data) -- use the moved_dir data above as a framework for that
                 // 2) updated character data
-                // 3) the raw stringly bits to let the client know what's happening -- we can parse it here into a message to pass below
+                // 3) the raw stringly bit(s) to let the client know what's happening -- we can parse it here into a message to pass below
                 dispatch({type: actions.PACKAGE_FROM_SERVER, payload: roomEventObj});
             });
             socketToMe.on('own_action_result', resultObj => {

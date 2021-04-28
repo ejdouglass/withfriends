@@ -184,6 +184,8 @@ const TopMenuBox = ({ state, dispatch }) => {
 
 const CurrentFocusBox = ({ state, dispatch }) => {
     const [mode, setMode] = useState({focused: false, type: undefined});
+    const [focusObj, setFocusObj] = useState({});
+    const [contextualArray, setContextualArray] = useState([]);
 
     function doneFocusing() {
         console.log(`Done focusing, probably`);
@@ -198,6 +200,16 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         }
         return setMode({focused: false, type: undefined});
     }, [state.whatDo]);
+
+    useEffect(() => {
+        if (state.received) {
+            setFocusObj(state.received.data);
+            if (state.received.type === 'npcdata') {
+                setContextualArray(Object.entries(state.received.data.interactions));
+            }
+            // dispatch({type: actions.PACKAGE_FROM_SERVER, payload: undefined}); // this is being handled in the iSpy section, no need to duplicate?
+        }
+    }, [state.received]);
 
     /*
         Some FOCUS modes, which would correspond to whatDo situations (for key responses):
@@ -225,7 +237,13 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         case 'npcinteract': {
             return (
                 <NPCInteractionContainer>
-                    Ohai! I'm not interactive yet, but I'm really trying my hardest!
+                    {/* 
+                        Ok! What do we need to know? Aw hell, just grab the WHOLE NPC. :P 
+                    */}
+                    <p>{focusObj?.name} says hi. You can do the following with them:</p>
+                    {contextualArray.map((interaction, index) => (
+                        <button key={index}>{interaction[0]}</button>
+                    ))}
                 </NPCInteractionContainer>
             )
         }
@@ -271,8 +289,9 @@ const ViewBox = ({ state, dispatch }) => {
     useEffect(() => {
         // THIS: when a new string is processed through PACKAGE_FROM_SERVER, it ends up here for display. Makes sense!
         if (state.received) {
+            // ADD: parse the received data, and if it's a "move to new room" situation, add an extra blank line or two to iSpy, buffer it out a bit
             let newSights = [...iSpy];
-            newSights.push(state.received);
+            newSights.push(state.received?.echo);
             setISpy(newSights);
             dispatch({type: actions.PACKAGE_FROM_SERVER, payload: undefined});
             // HERE, probably: clear out state.received to avoid redundancies/repeats

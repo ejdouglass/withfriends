@@ -605,7 +605,7 @@ class SpawnMap {
         mobs[newMob.entityID] = newMob; // do I have to do a deep copy, or will this be sufficient?
         // HERE: whoops, gotta populate their room, too...
         populateRoom(newMob);
-        io.to(`${newMob.location.RPS}/${newMob.location.GPS}`).emit('room_event', newMob.spawnMessage);
+        io.to(`${newMob.location.RPS}/${newMob.location.GPS}`).emit('room_event', {echo: newMob.spawnMessage});
         
 
         // hmmmm ok maybe locally define, make a deep brand-new copy in global mobs list, then throw the entityID into the local mobs list
@@ -763,6 +763,21 @@ class NPC {
         this.wanderlust = 0;
         this.actInterval = 15000;
         this.number = rando(1,10);
+        this.interactions = {
+            'Talk': 
+            [
+            `Sure is lovely weather, isn't it? I don't even remember the last time it was even dark out.`,
+            `They call me Taran Wanderer, which is funny, because I've never once moved from this spot.`,
+            `I feel very well-read.`,
+            `Did you know there are orchard muglins out the west gate? They seem like some good low-level hunting!`
+            ],
+            'Ask': {
+                'prompt': `I'm afraid I'm new around here, so I can't really answer any of your questions... I'm sorry.`,
+                'Your name?': `Ah! Well, I can tell you that. My name is Taran.`
+            },
+            // can add other interactions here as inspiration strikes
+
+        }
         this.talkTopics = [
             `Sure is lovely weather, isn't it? I don't even remember the last time it was even dark out.`,
             `They call me Taran Wanderer, which is funny, because I've never once moved from this spot.`,
@@ -784,7 +799,7 @@ class NPC {
             // Here's where the movement happens! ... how do I parse moveEntity for this fella...
             // RETURN here after setting wanderlust back to 0
             emittedAction = `${this.name} wishes to live up to his name and wander about, but can't seem to figure out how yet.`;
-            io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', emittedAction);
+            io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: emittedAction});
             this.wanderlust = 0;
             return this.actOut();
         }
@@ -819,7 +834,7 @@ class NPC {
                 emittedAction = `${this.name} stares around blankly.`;
                 break;
         }
-        io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', emittedAction);
+        io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: emittedAction});
         // Cool! It works! That's fantastic. Ok, so now NPC/mob interaction with players is possible. Further, we should be able to send down meaningful player data.
         // Now, *ideally*, we switch it over to an _id system instead (lest we randomly generate unique names for every mob evermore). For now name is ok to test.
         // let leerTarget;
@@ -968,8 +983,8 @@ class orchardGoblin {
 
         switch (this.mode) {
             case 'idle': {
-                io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `An orchard muglin mumbles to itself as it skulks from tree to 
-                tree, scanning back and forth between branches and roots.`);
+                io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin mumbles to itself as it skulks from tree to 
+                tree, scanning back and forth between branches and roots.`});
                 break;
                 // change this to actIdle or something later for more nuanced options
                 // 'idle' may not be the best descriptor
@@ -978,10 +993,10 @@ class orchardGoblin {
             }
             case 'combat': {
                 if (this.location.GPS === this.target.location.GPS) {
-                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `An orchard muglin lunges menacingly at ${this.target.name}!`);
+                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin lunges menacingly at ${this.target.name}!`});
                 } else {
                     this.mode = 'idle';
-                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', `An orchard muglin lost track of its target, glancing around warily.`);
+                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin lost track of its target, glancing around warily.`});
                 }
                 break;
             }
@@ -1815,7 +1830,7 @@ io.on('connection', (socket) => {
         roomString = character.location.RPS.toString() + '/' + character.location.GPS;
         socket.join(roomString);
         socket.join(character.name);
-        socket.to(roomString).emit('room_event', `${character.name} just appeared as if from nowhere! Wowee!`);
+        socket.to(roomString).emit('room_event', {echo: `${character.name} just appeared as if from nowhere! Wowee!`});
         socket.join(zaWarudo[character.location.RPS][character.location.GPS].zone);
         populateRoom(character);
         myCharacter = characters[character.entityID]; // Quick 'fix' here to change the myCharacter reference... should hopefully repair all the busted nonsense?
@@ -1845,28 +1860,54 @@ io.on('connection', (socket) => {
             // And then we can just add whatever other actions and data we want/need.
             case 'talk': {
                 // HERE, eventually: see if char CAN talk before just babbling away :P
-                socket.to(roomString).emit('room_event', `${myCharacter.name} says, "${actionData.message}"`);
-                socket.emit('own_action_result', `You say, "${actionData.message}"`);
+                socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} says, "${actionData.message}"`});
+                socket.emit('own_action_result', {echo: `You say, "${actionData.message}"`});
                 break;
             }
             case 'npcinteract': {
-                // receiving actionData.id of entity's ID, pass back useful information here for the npcinteract client to work with
-                socket.emit('own_action_result', `You lightly tap ${npcs[actionData.target].name} on the shoulder.`);
+                /*
+                Modeling off this:
+                        this.interactions = {
+                            'Talk': 
+                            [
+                            `Sure is lovely weather, isn't it? I don't even remember the last time it was even dark out.`,
+                            `They call me Taran Wanderer, which is funny, because I've never once moved from this spot.`,
+                            `I feel very well-read.`,
+                            `Did you know there are orchard muglins out the west gate? They seem like some good low-level hunting!`
+                            ],
+                            'Ask': {
+                                'prompt': `I'm afraid I'm new around here, so I can't really answer any of your questions... I'm sorry.`,
+                                'Your name?': `Ah! Well, I can tell you that. My name is Taran.`
+                            },
+                            // can add other interactions here as inspiration strikes
+
+                        }
+                */
+                // receiving actionData.target of entity's ID, pass back useful information here for the npcinteract client to work with
+
+                // what should these responseObj-s look like? Hm...
+                let responseObj = {
+                    type: 'npcdata',
+                    echo: `You approach ${npcs[actionData.target].glance} and begin a conversation.`,
+                    data: {...npcs[actionData.target]}
+                }
+                socket.emit('own_action_result', responseObj);
+                socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} approaches ${npcs[actionData.target].glance} and begins a quiet conversation.`});
                 break;
             }
             case 'forage': {
-                socket.to(roomString).emit('room_event', `${myCharacter.name} roots around the area for a moment, but doesn't appear to find anything interesting.`);
-                socket.emit('own_action_result', `You forage around the area for a moment, but realize you have no idea what you're doing.`);
+                socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} roots around the area for a moment, but doesn't appear to find anything interesting.`});
+                socket.emit('own_action_result', {echo: `You forage around the area for a moment, but realize you have no idea what you're doing.`});
                 break;
             }
             case 'hide': {
-                socket.emit('own_action_result', `You attempt to hide, but can't quite seem to figure out how yet. How embarrassing.`);
-                socket.to(roomString).emit('room_event', `${myCharacter.name} attempts to hide, but can't seem to figure out how.`);
+                socket.emit('own_action_result', {echo: `You attempt to hide, but can't quite seem to figure out how yet. How embarrassing.`});
+                socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} attempts to hide, but can't seem to figure out how.`});
                 break;
             }
             case 'search': {
-                socket.emit('own_action_result', `You search the area, but nobody can hide yet, sooooo.`);
-                socket.to(roomString).emit('room_event', `${myCharacter.name} scans the area with a dull expression.`);
+                socket.emit('own_action_result', {echo: `You search the area, but nobody can hide yet, sooooo.`});
+                socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} scans the area with a dull expression.`});
                 break;
             }
             case 'interact_with_structure': {
@@ -1886,18 +1927,18 @@ io.on('connection', (socket) => {
                         // console.log(`Specifically, we're at ${myCharacter.location.GPS} and heading through to ${myCharacter.location.room.structures[actionData.index].goes.to}`)
                         let portalName = myCharacter.location.room.structures[actionData.index].name;
                         let roomString = `${myCharacter.location.RPS}/${myCharacter.location.GPS}`;
-                        socket.to(roomString).emit('room_event', `${myCharacter.name} went through ${portalName}`);
+                        socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} went through ${portalName}`});
                         socket.leave(roomString);                        
                         moveEntity(myCharacter, null, myCharacter.location.room.structures[actionData.index].goes.to);
                         roomString = `${myCharacter.location.RPS}/${myCharacter.location.GPS}`;
                         socket.join(roomString);
-                        socket.to(roomString).emit('room_event', `${myCharacter.name} just arrived through ${portalName}.`); // Might have to change. Or not!
-                        socket.emit('own_action_result', `You move through the ${portalName} to ${myCharacter.location.room.room}.`);
+                        socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} just arrived through ${portalName}.`}); // Might have to change. Or not!
+                        socket.emit('own_action_result', {echo: `You move through the ${portalName} to ${myCharacter.location.room.room}.`});
                         socket.emit('moved_dir', {newLocation: myCharacter.location});
                         break;
                     }
                     case 'shop': {
-                        socket.emit('own_action_result', `You wish to go shopping! But can't figure out how. Awkward.`);
+                        socket.emit('own_action_result', {echo: `You wish to go shopping! But can't figure out how. Awkward.`});
                         break;
                     }
                     default: {
@@ -1920,13 +1961,13 @@ io.on('connection', (socket) => {
                     // HERE, eventually: do any skill/status checks that would apply ... or let the moveEntity handle it down the road, but will have to feed it more data
                     console.log(`I am going to new coords! They are ${existingPortal.goes.to}`)
                     moveEntity(myCharacter, null, existingPortal.goes.to);
-                    socket.emit('own_action_result', `You move through the ${existingPortal.name} to ${myCharacter.location.room.room}.`);
+                    socket.emit('own_action_result', {echo: `You move through the ${existingPortal.name} to ${myCharacter.location.room.room}.`});
                     socket.emit('moved_dir', {newLocation: myCharacter.location});
-                } else socket.emit('own_action_result', `BONK! You can't figure out that portal at all!`);
+                } else socket.emit('own_action_result', {echo: `BONK! You can't figure out that portal at all!`});
                 break;
             }
             default: 
-                socket.emit('own_action_result', `You try to do a thing, but for some reason can't figure out what you're doing or how to do it.`);
+                socket.emit('own_action_result', {echo: `You try to do a thing, but for some reason can't figure out what you're doing or how to do it.`});
                 break;
         }
     });
@@ -1951,12 +1992,12 @@ io.on('connection', (socket) => {
 
         if (oldGPS !== newGPS) {
             // Movement actually occurred! Change room subscriptions while emitting properly.
-            socket.to(roomString).emit('room_event', `${moveChar.name} just went wherever the ${mover.where} key takes them.`);
+            socket.to(roomString).emit('room_event', {echo: `${moveChar.name} just went wherever the ${mover.where} key takes them.`});
             socket.leave(roomString);
             roomString = moveChar.location.RPS.toString() + '/' + moveChar.location.GPS;
             socket.join(roomString);
-            socket.to(roomString).emit('room_event', `${moveChar.name} just arrived. Hi!`);
-            socket.emit('own_action_result', `You move ${direction.long} to ${moveChar.location.room.room}.`);
+            socket.to(roomString).emit('room_event', {echo: `${moveChar.name} just arrived. Hi!`});
+            socket.emit('own_action_result', {echo: `You move ${direction.long} to ${moveChar.location.room.room}.`});
         }
 
 
@@ -1969,7 +2010,7 @@ io.on('connection', (socket) => {
     // }, 1000);
 
     socket.on('disconnect', () => {
-        socket.to(roomString).emit('room_event', `${myCharacter.name} just disappeared in a puff of smoke! Wow!`);
+        socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} just disappeared in a puff of smoke! Wow!`});
         console.log(`Client has disconnected from our IO shenanigans. Goodbye, ${myCharacter.name}!`);
         if (myCharacter.name !== 'The Great Serverman') removeCharacterFromGame(myCharacter);
     });

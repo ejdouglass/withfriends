@@ -15,7 +15,8 @@ export const actions = {
     PACKAGE_FOR_SERVER: 'package_for_server',
     PACKAGE_FROM_SERVER: 'package_from_server',
     TARGET_ENTITY: 'target_entity',
-    UPDATE_SELECTED_BAR: 'update_selected_bar'
+    UPDATE_SELECTED_BAR: 'update_selected_bar',
+    RESET_VIEW: 'reset_view'
 }
 
 export const Reducer = (state, action) => {
@@ -49,6 +50,7 @@ export const Reducer = (state, action) => {
             return {...state, alert: alert};
         }
         case actions.UPDATE_ROOM: {
+            // This CURRENTLY is only called when we move locations.
             const { updatedLocation } = action.payload;
             console.log(`Receiving an updated location: ${JSON.stringify(updatedLocation)}`);
             // Anytime the 'view' dictating room/area details changes, we amend it here! Just pass in a whole new 'location' bit.
@@ -56,6 +58,9 @@ export const Reducer = (state, action) => {
         }
         case actions.LOGOUT_CHAR: {
             return initialState;
+        }
+        case actions.RESET_VIEW: {
+            return {...state, viewIndex: 0, currentBarSelected: 'action', viewTarget: state.currentActionBar[0]}
         }
         case actions.UPDATE_WHATDO: {
             return {...state, whatDo: action.payload};

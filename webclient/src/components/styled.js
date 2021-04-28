@@ -739,6 +739,7 @@ export const CurrentFocus = styled.div`
 
 export const NPCInteractionContainer = styled.div`
     position: absolute;
+    background-color: white;
     display: flex;
     box-sizing: border-box;
     border: 3px solid red;
