@@ -72,7 +72,13 @@ export const Reducer = (state, action) => {
             // mob/id, npc/id, player/id open separate command screens
             // action/actionName would just do that action
             // object/id would enable further interaction with said object, depending on mode (equip/use in inventory, pick up off ground, etc.)
-            console.log(`Setting viewTarget to ${action.payload}`);
+
+            // NEW WAY: let's include id, type, glance, description object instead rdrr
+            // ALL should have a type and id, so action/magic would have type action and id magic
+            // mobs/npcs will have a much more robust display including their glance and description for now
+            // ... might have to add additional variables
+            
+            // console.log(`Setting viewTarget to ${action.payload}`);
             return {...state, viewTarget: action.payload};
         }
         case actions.UPDATE_TARGET: {
@@ -86,6 +92,7 @@ export const Reducer = (state, action) => {
         }
         case actions.TARGET_ENTITY: {
             // receive an object with entityID, type, glance, name
+            console.log(`WARNING: OLD TARGET ENTITY ENGAGED`)
             if (action.payload.targetType === 'view') {
                 return {...state, viewTarget: action.payload.target || {}};
             }

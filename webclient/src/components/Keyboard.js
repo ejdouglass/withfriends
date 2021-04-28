@@ -20,7 +20,31 @@ const Keyboard = () => {
     // Down here we're going to be paying attention to the state, which should tell us what we're currently up to for proper reactions to keyevent(s)
     function handleKeyDown(e) {
         if (e.key === 'Enter') {
-            // HERE: basically, "do the thing that's currently selected"
+            // HERE: basically, "do the thing that's currently selected" ... which we now can know what it is, at least between ActionBar and EntityBar! Woo!
+            // Ok, thinking it through: if it's a MOB or NPC or SHOP, bring up appropriate sub-menu to navigate around on/in
+            // Let's start with ol' Taran Wanderer. Open up a menu for him!
+
+            // console.log(`I wish to split this string: ${JSON.stringify(state.viewTarget)}`);
+
+           // we're ideally having a viewTarget object of type, id at minimum; also currently for mobs and such is description, glance, ??? 
+
+            switch (state.viewTarget?.type) {
+                case 'action': {
+                    if (state.viewTarget?.id === 'magic') dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
+                    return console.log(`I wish to take action! :-D`);
+                }
+                case 'npc': {
+                    dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'npcinteract', target: state.viewTarget.id}});
+                    dispatch({type: actions.UPDATE_WHATDO, payload: 'npcinteract'});
+                    return console.log(`Time to interact with an NPC!`);
+                }
+                case 'mob': {
+                    return console.log(`Time to engage a mob! Possibly in MORTAL COMBAT!!`);
+                }
+                case 'player': {
+                    return console.log(`Who dis? Let's play with another player!`);
+                }
+            }
         }
         if (e.key === 'Tab' && state.whatDo !== 'character_creation') {
             e.preventDefault();
@@ -46,7 +70,7 @@ const Keyboard = () => {
                 if (newIndex < 0) newIndex = state.currentActionBar.length - 1;
                 if (newIndex >= state.currentActionBar.length) newIndex = 0;
                 dispatch({type: actions.UPDATE_VIEW_INDEX, payload: newIndex});
-                return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: `action/${state.currentActionBar[newIndex].toLowerCase()}`});
+                return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'action', id: state.currentActionBar[newIndex].toLowerCase()}});
             }
             if (state.whatDo === 'explore' && state.currentBarSelected === 'entity') {
                 // HERE: boop along on the right side
@@ -69,7 +93,7 @@ const Keyboard = () => {
             if (state.whatDo === 'explore' && state.currentBarSelected === 'entity') {
                 dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
                 dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});
-                dispatch({type: actions.UPDATE_VIEW_TARGET, payload: `action/${state.currentActionBar[0].toLowerCase()}`})
+                dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'action', id: state.currentActionBar[0].toLowerCase()}})
             }
         }
 
@@ -109,7 +133,7 @@ const Keyboard = () => {
                     // Might just be failure to add event listener at some step? 
                     if (state.whatDo === 'explore') {
                         const mover = {who: state.entityID, where: e.key};
-                        socketToMe.emit('movedir', mover);
+                        socketToMe.emit('movedir', mover); 
                     }
                     break;
                     // Right now ANY connected entity is using this code to manipulate the single 'character' dummy in API...
@@ -203,13 +227,23 @@ const Keyboard = () => {
                 dispatch({type: actions.UPDATE_ROOM, payload: { updatedLocation: data.newLocation }});
                 // HERE: unpack data, adjust state via dispatch - room details, weather, time of day, etc.
             });
-            socketToMe.on('room_event', stringy => {
+            socketToMe.on('room_event', roomEventObj => {
                 // console.log(stringy);
-                dispatch({type: actions.PACKAGE_FROM_SERVER, payload: stringy});
+                // Alright, what do we need to receive?
+                // 1) what the room currently looks like (location data) -- use the moved_dir data above as a framework for that
+                // 2) updated character data
+                // 3) the raw stringly bits to let the client know what's happening -- we can parse it here into a message to pass below
+                dispatch({type: actions.PACKAGE_FROM_SERVER, payload: roomEventObj});
             });
-            socketToMe.on('own_action_result', resultString => {
-                // console.log(resultString);
-                dispatch({type: actions.PACKAGE_FROM_SERVER, payload: resultString});
+            socketToMe.on('own_action_result', resultObj => {
+                // HERE: set up to parse the resultObj into a coherent result string and any changes to state that need to be known to the user
+                // The main difference between room_event and own_action_result is the former *might* not have access to every effected player on the backend, currently.
+                
+                // Right now, we want to sort out what to do when we interact with an NPC (or SHOP!) or MOB!
+                // 
+                let processedObj;
+                dispatch({type: actions.PACKAGE_FROM_SERVER, payload: resultObj});
+                
             });
             
             return () => {

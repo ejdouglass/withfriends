@@ -68,7 +68,8 @@ const RightMenuBox = ({ state, dispatch }) => {
             if (state.viewIndex < 0) {
                 return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: entityList.length - 1});
             }
-            return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: `${entityList[state.viewIndex]?.type}/${entityList[state.viewIndex]?.id}`});
+            return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: entityList[state.viewIndex]?.type, id: entityList[state.viewIndex]?.id, glance: entityList[state.viewIndex]?.glance, description: entityList[state.viewIndex]?.description}});
+            
         }
     }, [state.viewIndex, state.currentBarSelected]);
 
@@ -115,26 +116,26 @@ const EntityBox = ({ type, entity, index }) => {
         return dispatch({type: actions.TARGET_ENTITY, payload: {}});
     }
 
-    useEffect(() => {
-        if (index === state.viewIndex && state.viewTarget?.id !== entity.id) {
-            dispatch({type: actions.TARGET_ENTITY, payload: {targetType: 'view', target: {...entity}}})
-        }
-    }, [state]);
+    // useEffect(() => {
+    //     if (index === state.viewIndex && state.viewTarget?.id !== entity.id) {
+    //         dispatch({type: actions.TARGET_ENTITY, payload: {targetType: 'view', target: {...entity}}})
+    //     }
+    // }, [state]);
 
     switch (type) {
         case 'mob': {
             return (
-                <EntityGlancer mob viewed={state.target?.id === entity.id || (state.currentBarSelected === 'entity' && state.viewIndex === index)}>{entity.glance}</EntityGlancer>
+                <EntityGlancer mob viewed={state.viewTarget?.id === entity.id || (state.currentBarSelected === 'entity' && state.viewIndex === index)}>{entity.glance}</EntityGlancer>
             )
         }
         case 'npc': {
             return (
-                <EntityGlancer npc viewed={state.target?.id === entity.id || (state.currentBarSelected === 'entity' && state.viewIndex === index)} onClick={() => targetEntity(entity)}>{entity.glance}</EntityGlancer>
+                <EntityGlancer npc viewed={state.viewTarget?.id === entity.id || (state.currentBarSelected === 'entity' && state.viewIndex === index)} onClick={() => targetEntity(entity)}>{entity.glance}</EntityGlancer>
             )
         }
         case 'player': {
             return (
-                <EntityGlancer player viewed={state.target?.id === entity.id || (state.currentBarSelected === 'entity' && state.viewIndex === index)}>{entity.name === state.name ? null : entity.name}</EntityGlancer>
+                <EntityGlancer player viewed={state.viewTarget?.id === entity.id || (state.currentBarSelected === 'entity' && state.viewIndex === index)}>{entity.name === state.name ? null : entity.name}</EntityGlancer>
             )
         }
         default: {
@@ -224,7 +225,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         case 'npcinteract': {
             return (
                 <NPCInteractionContainer>
-                    BEEP BOOP
+                    Ohai! I'm not interactive yet, but I'm really trying my hardest!
                 </NPCInteractionContainer>
             )
         }
@@ -268,7 +269,7 @@ const ViewBox = ({ state, dispatch }) => {
     }, [state.whatDo]);
 
     useEffect(() => {
-        // console.log(`State received has changed! It is THIS: ${state.received}.`);
+        // THIS: when a new string is processed through PACKAGE_FROM_SERVER, it ends up here for display. Makes sense!
         if (state.received) {
             let newSights = [...iSpy];
             newSights.push(state.received);
@@ -287,7 +288,6 @@ const ViewBox = ({ state, dispatch }) => {
         mainViewElement.scrollTop = mainViewElement.scrollHeight;
     }, [iSpy]);
 
-    // Rejiggering the view below. Hm. Ok, makes the most sense to wrap the EyeSpy stuff in a separate container, so the RoomView can live there too.
 
     return (
         <>

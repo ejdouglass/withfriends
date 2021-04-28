@@ -1059,13 +1059,13 @@ let mobs = {};
 // A global npcs array, eh? Interesting, interesting. But what IF. We had an object whose keys were IDs. Eh? EHH?
 // Maybe same for characters, though that's less fraught because names are kept 'pure' and non-colliding (hopefully).
 // That said, having the same basic engine moving players, npcs, and mobs around would be pretty fantastic. Let's consider the objectification process.
-const npcs = [];
+let npcs = {};
 
 // 'Birth of an NPC' process as it currently stands. We can functionalize this for the GameMaster!
 let newGuy = new NPC('Taran Wanderer', 'a wandering townsperson', {RPS: 0, GPS: '500,500,0'}, `A young fellow with shoulder-length dark hair and wearing rough-worn traveler's attire.`);
 populateRoom(newGuy);
 newGuy.actOut();
-npcs.push(newGuy);
+npcs[newGuy.entityID] = newGuy;
 
 function depopulateRoom(entity) {
     let roomArrayTarget = `${entity.entityType + 's'}`;
@@ -1836,6 +1836,10 @@ io.on('connection', (socket) => {
     */
 
     socket.on('action', actionData => {
+        // Woof. Ok, is it time to update the client/server to parse room_event, own_action_result with more meaningful data?
+        // Ok, so this is a good opportunity to let the CLIENT do some lifting now! Cool!
+        // Think of different scenarios... someone talking to an NPC, trying to do an action that may be hidden, fighting...
+        // Note that mobs and rooms can ONLY interact with 'room_event' ... so can't rely on own_action_result for pronoun/nth-person accuracy
         switch (actionData.action) {
             // Ok, so we're setting this up to be a passed object of the format {action: ACTION_TO_RESPOND_TO}...
             // And then we can just add whatever other actions and data we want/need.
@@ -1843,6 +1847,11 @@ io.on('connection', (socket) => {
                 // HERE, eventually: see if char CAN talk before just babbling away :P
                 socket.to(roomString).emit('room_event', `${myCharacter.name} says, "${actionData.message}"`);
                 socket.emit('own_action_result', `You say, "${actionData.message}"`);
+                break;
+            }
+            case 'npcinteract': {
+                // receiving actionData.id of entity's ID, pass back useful information here for the npcinteract client to work with
+                socket.emit('own_action_result', `You lightly tap ${npcs[actionData.target].name} on the shoulder.`);
                 break;
             }
             case 'forage': {
@@ -1926,6 +1935,7 @@ io.on('connection', (socket) => {
     socket.on('movedir', mover => {
         // HERE: use the request from the client to plug into the character and le GO
         const moveChar = characters[mover.who];
+        if (!moveChar.location) return;
 
         // SOMEWHERE AROUND HERE: see if the character has left the Zone to update zone socket :P
 
@@ -1961,7 +1971,7 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         socket.to(roomString).emit('room_event', `${myCharacter.name} just disappeared in a puff of smoke! Wow!`);
         console.log(`Client has disconnected from our IO shenanigans. Goodbye, ${myCharacter.name}!`);
-        removeCharacterFromGame(myCharacter);
+        if (myCharacter.name !== 'The Great Serverman') removeCharacterFromGame(myCharacter);
     });
 });
 
