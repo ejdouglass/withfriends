@@ -60,15 +60,18 @@ export const Reducer = (state, action) => {
             return initialState;
         }
         case actions.RESET_VIEW: {
-            return {...state, viewIndex: 0, currentBarSelected: 'action', viewTarget: state.currentActionBar[0]}
+            return {...state, whatDo: 'explore', viewIndex: 0, currentBarSelected: 'action', viewTarget: {type: 'action', id: state.currentActionBar[0].toLowerCase()}}
         }
         case actions.UPDATE_WHATDO: {
-            return {...state, whatDo: action.payload};
+            // Trying out a quick poke to viewIndex...
+            // *May* also reset viewTarget? Maybe not? Will think about the implications of that in a bit...
+            return {...state, whatDo: action.payload, viewIndex: 0};
         }
         case actions.UPDATE_ACTION_INDEX: {
             return {...state, actionIndex: action.payload, whatDo: state.currentActionBar[action.payload].toLowerCase()};
         }
         case actions.UPDATE_VIEW_INDEX: {
+            // console.log(`BEEP BOOP UPDATING VIEWINDEX TO ${action.payload}`)
             return {...state, viewIndex: action.payload || 0};
         }
         case actions.UPDATE_VIEW_TARGET: {

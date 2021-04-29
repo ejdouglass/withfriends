@@ -19,6 +19,106 @@ const Keyboard = () => {
 
     // Down here we're going to be paying attention to the state, which should tell us what we're currently up to for proper reactions to keyevent(s)
     function handleKeyDown(e) {
+        // console.log(`Pressed ${e.key}`);
+        // ArrowUp, ArrowDown, ArrowLeft, ArrowRight, 1, 2, 3, 4, etc.
+        if (!keysDown.current[e.key]) {
+            // This was based on an older model that expected stuff like Shift or Meta + additional key. Will leave this here for now, but may remove later.
+            keysDown.current[e.key] = true;
+        }        
+
+        // CHANGE: need to account for all current possible whatDo scenarios; can get into trouble trying to do things while npcinteract is up, for example
+        // Do I want a 'master switch' for whatDo? And then handle the keys from there? Possibly.
+        // Ok, time to do it. WHEEBALL!
+        switch (state.whatDo) {
+            case 'character_creation': {
+                // HERE: we'll add support for Arrow Keys and Enter during character creation
+                // May rejigger character creation screen for up/down selections... and then that's IT for alpha, I hope :P
+                break;
+            }
+
+            case 'explore': {
+                if (e.key === 'w' || e.key === 'e' || e.key === 'd' || e.key === 'c' || e.key === 'x' || e.key === 'z' || e.key === 'a' || e.key === 'q') {
+                    // probably change this into more now-standard PACKAGE_FOR_SERVER style call
+                    const mover = {who: state.entityID, where: e.key};
+                    return socketToMe.emit('movedir', mover); 
+                }
+                if (e.key === 'h') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'hide'}});
+                if (e.key === 'f') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'forage'}});
+                if (e.key === 's') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'search'}});
+                if (e.key === 'm') return dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
+                if (e.key === 'i') return dispatch({type: actions.UPDATE_WHATDO, payload: 'inventory'})
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    return dispatch({type: actions.UPDATE_WHATDO, payload: 'talk'});
+                }
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                    // UPDATE: context-sensitive blooping
+                    if (state.currentBarSelected === 'action') {
+                        let newIndex;
+                        let changeAmount = (e.key === 'ArrowUp') ? -1 : 1;
+                        newIndex = state.viewIndex + changeAmount;
+                        if (newIndex < 0) newIndex = state.currentActionBar.length - 1;
+                        if (newIndex >= state.currentActionBar.length) newIndex = 0;
+                        dispatch({type: actions.UPDATE_VIEW_INDEX, payload: newIndex});
+                        return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'action', id: state.currentActionBar[newIndex].toLowerCase()}});
+                    }
+                    if (state.currentBarSelected === 'entity') {
+                        // HERE: boop along on the right side
+                        let changeAmount = (e.key === 'ArrowUp') ? -1 : 1;
+                        return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + changeAmount});
+                        // normally we'd have returned the viewTarget from here, but that's handled in MainView.js, so popping over there instead
+                    }
+                }
+                if (e.key === 'ArrowRight') {
+                    if (state.currentBarSelected === 'action' && (state.location?.room?.npcs?.length + state.location?.room?.mobs?.length + state.location?.room?.players?.length) > 1) {
+                        dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+                        return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'entity'});
+                    }
+                    // else dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});                
+                }
+                if (e.key === 'ArrowLeft') {
+                    if (state.currentBarSelected === 'entity') {
+                        dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+                        dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});
+                        return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'action', id: state.currentActionBar[0].toLowerCase()}})
+                    }
+                }
+            }
+
+            case 'talk': {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+                }
+            }
+
+            case 'npcinteract': {
+                // Shenanigans to occur here! Mwaha!
+                // Hm. Lemme update UPDATE_WHATDO real quick...
+                // Great! Ok, now we need to update VIEW_TARGET so we can PACKAGE_FOR_SERVER the npc-interact goodies.
+                if (e.key === 'ArrowRight') return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + 1});
+                if (e.key === 'ArrowLeft') return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});                
+            }
+
+            case 'magic': {
+                if (e.key === 'm') return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+                break;
+            }
+
+            case 'inventory': {
+                if (e.key === 'i') return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+                break;
+            }
+
+        }
+        
+        // if (e.key === 'Tab' && state.whatDo !== 'character_creation') {
+        //     e.preventDefault();
+        //     if (state.whatDo === 'talk') {
+        //         return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+        //     }
+        //     return dispatch({type: actions.UPDATE_WHATDO, payload: 'talk'});
+        // }
         if (state.whatDo === 'talk' || state.whatDo === 'character_creation') return;
         if (e.key === 'Enter') {
             // HERE: basically, "do the thing that's currently selected" ... which we now can know what it is, at least between ActionBar and EntityBar! Woo!
@@ -46,20 +146,7 @@ const Keyboard = () => {
                     return console.log(`Who dis? Let's play with another player!`);
                 }
             }
-        }
-        if (e.key === 'Tab' && state.whatDo !== 'character_creation') {
-            e.preventDefault();
-            if (state.whatDo === 'talk') {
-                return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
-            }
-            return dispatch({type: actions.UPDATE_WHATDO, payload: 'talk'});
-        }
-        // console.log(`Pressed ${e.key}`);
-        // ArrowUp, ArrowDown, ArrowLeft, ArrowRight, 1, 2, 3, 4, etc.
-        // NOTE: Currently NOT preventing default, but we may wish to in some cases.
-        if (!keysDown.current[e.key]) {
-            keysDown.current[e.key] = true;
-        }
+        }        
 
         if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
             // UPDATE: context-sensitive blooping
@@ -80,22 +167,22 @@ const Keyboard = () => {
             }
         }
 
-        if (e.key === 'ArrowRight') {
-            if (state.whatDo === 'explore') {
-                if (state.currentBarSelected === 'action' && (state.location?.room?.npcs?.length + state.location?.room?.mobs?.length + state.location?.room?.players?.length) > 1) {
-                    dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
-                    dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'entity'});
-                }
-                // else dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});                
-            }   
-        }
-        if (e.key === 'ArrowLeft') {
-            if (state.whatDo === 'explore' && state.currentBarSelected === 'entity') {
-                dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
-                dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});
-                dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'action', id: state.currentActionBar[0].toLowerCase()}})
-            }
-        }
+        // if (e.key === 'ArrowRight') {
+        //     if (state.whatDo === 'explore') {
+        //         if (state.currentBarSelected === 'action' && (state.location?.room?.npcs?.length + state.location?.room?.mobs?.length + state.location?.room?.players?.length) > 1) {
+        //             dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+        //             dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'entity'});
+        //         }
+        //         // else dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});                
+        //     }   
+        // }
+        // if (e.key === 'ArrowLeft') {
+        //     if (state.whatDo === 'explore' && state.currentBarSelected === 'entity') {
+        //         dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+        //         dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});
+        //         dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'action', id: state.currentActionBar[0].toLowerCase()}})
+        //     }
+        // }
 
         switch (e.key) {
             // Did a HAX below for now, but going forward, let's sort out ways to parse state.whatDo/game mode/gamestate

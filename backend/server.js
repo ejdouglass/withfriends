@@ -761,12 +761,12 @@ class NPC {
         this.entityType = 'npc';
         this.mode = 'nonsense';
         this.wanderlust = 0;
-        this.actInterval = 15000;
+        this.actInterval = 30000;
         this.number = rando(1,10);
         this.interactions = {
             'Talk': 
             [
-            `Sure is lovely weather, isn't it? I don't even remember the last time it was even dark out.`,
+            `Sure is lovely weather, isn't it? I don't even remember the last time it was dark out.`,
             `They call me Taran Wanderer, which is funny, because I've never once moved from this spot.`,
             `I feel very well-read.`,
             `Did you know there are orchard muglins out the west gate? They seem like some good low-level hunting!`
@@ -852,7 +852,7 @@ class NPC {
         // Test result: YUP! Nice. Doing the anonymous function this way preserves the proper scope of the thing. The this thing. Good to know.
         setTimeout(() => this.action(), this.actInterval);
         // setTimeout(this.action.bind(this), this.actInterval);
-        this.actInterval = rando(5,12) * 1000;
+        this.actInterval = rando(25,45) * 1000;
     }
 
     // HERE: maybe add a "wake()" function (or live or whatever) that "boots up" the entity to live its best life
@@ -1860,8 +1860,11 @@ io.on('connection', (socket) => {
             // And then we can just add whatever other actions and data we want/need.
             case 'talk': {
                 // HERE, eventually: see if char CAN talk before just babbling away :P
-                socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} says, "${actionData.message}"`});
-                socket.emit('own_action_result', {echo: `You say, "${actionData.message}"`});
+                let amendedText = actionData.message[0].toUpperCase() + actionData.message.slice(1); // can add 'language cleanup' fxn on this later as well
+                let finalCharacter = amendedText[amendedText.length - 1];
+                if (finalCharacter !== '.' && finalCharacter !== '?' && finalCharacter !== '!') amendedText += '.';
+                socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} says, "${amendedText}"`});
+                socket.emit('own_action_result', {echo: `You say, "${amendedText}"`});
                 break;
             }
             case 'npcinteract': {
@@ -1976,7 +1979,7 @@ io.on('connection', (socket) => {
     socket.on('movedir', mover => {
         // HERE: use the request from the client to plug into the character and le GO
         const moveChar = characters[mover.who];
-        if (!moveChar.location) return;
+        if (moveChar === undefined || moveChar.location === undefined) return;
 
         // SOMEWHERE AROUND HERE: see if the character has left the Zone to update zone socket :P
 

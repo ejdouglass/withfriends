@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, ChatPrompt, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer } from './styled';
+import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -61,7 +61,7 @@ const RightMenuBox = ({ state, dispatch }) => {
     }, [state]);
     
     useEffect(() => {
-        if (state.currentBarSelected === 'entity') {
+        if (state.currentBarSelected === 'entity' && state.whatDo === 'explore') {
             if (state.viewIndex >= entityList.length) {
                 return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
             }
@@ -185,6 +185,7 @@ const TopMenuBox = ({ state, dispatch }) => {
 const CurrentFocusBox = ({ state, dispatch }) => {
     const [mode, setMode] = useState({focused: false, type: undefined});
     const [focusObj, setFocusObj] = useState({});
+    const [localViewIndex, setLocalViewIndex] = useState(0);
     const [contextualArray, setContextualArray] = useState([]);
 
     function doneFocusing() {
@@ -192,34 +193,71 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
     }
 
-    useEffect(() => {
-        let amIFocused = state.whatDo.split('/');
-        if (amIFocused[0] === 'focus') {
-            console.log(`Focusing on ${amIFocused[1]} now.`);
-            return setMode({focused: true, type: amIFocused[1]});
+    function handleInteractionSelection(interaction) {
+        console.log(`You wish to ${interaction}? With ${focusObj?.name}?`);
+        // Technically, we already have all the stuff from the server for answering any questions. :P
+        switch (interaction.toLowerCase()) {
+            case 'talk': {
+                let newTalkIndex = focusObj.lastTalkIndex;
+                if (newTalkIndex < 0 || (newTalkIndex > focusObj.interactions['Talk'].length - 1)) newTalkIndex = 0;
+                return setFocusObj({...focusObj, lastTalkIndex: newTalkIndex + 1, echo: `${focusObj?.name}: "${focusObj.interactions['Talk'][newTalkIndex]}"`})
+            }
+            case 'ask': {
+                return setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj?.interactions['Ask'].prompt}"`});
+            }
+            case 'buy': {
+                return;
+            }
+            case 'sell': {
+                return;
+            }
+            case 'leave': {
+                setFocusObj({});
+                return dispatch({type: actions.RESET_VIEW});
+            }
         }
-        return setMode({focused: false, type: undefined});
-    }, [state.whatDo]);
+    }
+
+    // useEffect(() => {
+    //     let amIFocused = state.whatDo.split('/');
+    //     if (amIFocused[0] === 'focus') {
+    //         console.log(`Focusing on ${amIFocused[1]} now.`);
+    //         return setMode({focused: true, type: amIFocused[1]});
+    //     }
+    //     return setMode({focused: false, type: undefined});
+    // }, [state.whatDo]);
 
     useEffect(() => {
         if (state.received) {
-            setFocusObj(state.received.data);
             if (state.received.type === 'npcdata') {
-                setContextualArray(Object.entries(state.received.data.interactions));
+                setFocusObj({...state.received.data, lastTalkIndex: -1, echo: `${state.received.data.name} regards you with curiosity.`});
+                let interactionArray = Object.entries(state.received.data.interactions);
+                interactionArray.push(['Leave', 'winherback']);
+                setContextualArray(interactionArray);
             }
             // dispatch({type: actions.PACKAGE_FROM_SERVER, payload: undefined}); // this is being handled in the iSpy section, no need to duplicate?
         }
     }, [state.received]);
 
+    useEffect(() => {
+        if (contextualArray.length > 0)
+        {
+            let correctedIndex = state.viewIndex;
+            if (state.viewIndex < 0) correctedIndex = 0;
+            if (state.viewIndex > contextualArray.length - 1) correctedIndex = contextualArray.length - 1;
+            setLocalViewIndex(correctedIndex);
+        }
+
+    }, [state.viewIndex]);
+
     /*
         Some FOCUS modes, which would correspond to whatDo situations (for key responses):
-            -- NPC interaction
-            -- Shopping
+            -- NPC interaction, including shopping
             -- Combat
-            -- Fishing
-            -- Foraging?
+            -- Gathering
             -- Crafting
-            -- Hiding!
+            -- Magic
+            -- Inventory/equipment
             
         Gets a bit wacky narrow at lower widths, but the shrinking text of the main view shows we can probably accomodate that ok.
 
@@ -239,11 +277,17 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                 <NPCInteractionContainer>
                     {/* 
                         Ok! What do we need to know? Aw hell, just grab the WHOLE NPC. :P 
+                        That's working well for now. Soon-ish we should probably just grab a curated subset of the NPC's "stuff."
                     */}
-                    <p>{focusObj?.name} says hi. You can do the following with them:</p>
-                    {contextualArray.map((interaction, index) => (
-                        <button key={index}>{interaction[0]}</button>
-                    ))}
+                    <p>{focusObj?.echo}</p>
+
+                    <Fader />
+
+                    <NPCInteractionOptions>
+                        {contextualArray.map((interaction, index) => (
+                            <NPCInteractionButton key={index} viewed={localViewIndex === index} onClick={() => handleInteractionSelection(interaction[0])}>{interaction[0]}</NPCInteractionButton>
+                        ))}
+                    </NPCInteractionOptions>
                 </NPCInteractionContainer>
             )
         }
@@ -291,7 +335,8 @@ const ViewBox = ({ state, dispatch }) => {
         if (state.received) {
             // ADD: parse the received data, and if it's a "move to new room" situation, add an extra blank line or two to iSpy, buffer it out a bit
             let newSights = [...iSpy];
-            newSights.push(state.received?.echo);
+            let newestSight = state.received?.echo[0].toUpperCase() + state.received?.echo.slice(1);
+            newSights.push(newestSight);
             setISpy(newSights);
             dispatch({type: actions.PACKAGE_FROM_SERVER, payload: undefined});
             // HERE, probably: clear out state.received to avoid redundancies/repeats

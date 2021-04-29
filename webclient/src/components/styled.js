@@ -740,14 +740,56 @@ export const CurrentFocus = styled.div`
 export const NPCInteractionContainer = styled.div`
     position: absolute;
     background-color: white;
+    padding-left: calc(0.5rem + 0.5vw);
+    font-size: calc(0.5rem + 0.5vw);
     display: flex;
+    flex-direction: column;
     box-sizing: border-box;
-    border: 3px solid red;
+    border: 1px solid black;
     z-index: 700;
     width: 80%;
-    height: 40%;
-    top: 75px;
+    height: calc(100px + 10vh);
+    top: 175px;
     left: 10%;
+`;
+
+export const Fader = styled.div`
+    position: absolute;
+    // border: 3px solid red;
+    top: calc(100% + 3px);
+    left: calc(-0.2rem);
+    width: 100%;
+    height: 200px;
+    background-image: linear-gradient(hsla(130, 100%, 100%, 0.7), hsla(110, 100%, 100%, 0.5));
+`;
+
+export const NPCInteractionOptions = styled.div`
+    position: absolute;
+    box-sizing: border-box;
+    bottom: calc(0.5rem + 0.5vw);
+    width: 100%;
+    // border: 3px solid green;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+`;
+
+export const NPCInteractionButton = styled.button`
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
+    align-items: center;
+    padding: calc(0.5rem + 0.5vw);
+    font-size: calc(0.5rem + 0.4vw);
+    width: calc(30px + 3vw);
+    font-weight: 600;
+    margin: 0 calc(0.3rem + 0.3vw) 0 calc(0.3rem + 0.3vw);
+    ${props => props.viewed && css`
+        border: 1px solid black;
+        font-weight: 700;
+        background-color: white;
+    `}
 `;
 
 export const CombatContainer = styled(NPCInteractionContainer)`
