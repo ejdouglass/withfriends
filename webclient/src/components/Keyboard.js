@@ -145,6 +145,12 @@ const Keyboard = () => {
                 case 'player': {
                     return console.log(`Who dis? Let's play with another player!`);
                 }
+                case 'npcinteraction': {
+                    return console.log(`You wish to speak to your NPC further.`);
+                }
+                case 'portal': {
+                    return console.log(`It would be great to enter this portal!`);
+                }
             }
         }        
 

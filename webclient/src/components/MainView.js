@@ -246,6 +246,10 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             if (state.viewIndex < 0) correctedIndex = 0;
             if (state.viewIndex > contextualArray.length - 1) correctedIndex = contextualArray.length - 1;
             setLocalViewIndex(correctedIndex);
+            // HERE: dispatch new viewTarget; contents: {type: '', id: thingToDo} ... so how to set ID in a way that hits the right result?
+            //  I guess ID can be an object, such as {menu: 'Talk', target: index#} or {menu: 'Ask', target: 'keyvalue'}
+            //      for latter, if keyvalue === 'prompt', should receive submenu data as well as the prompt text, yes?
+            // dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'npcinteraction', id: 3}});
         }
 
     }, [state.viewIndex]);
