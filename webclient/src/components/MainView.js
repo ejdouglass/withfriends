@@ -77,7 +77,6 @@ const RightMenuBox = ({ state, dispatch }) => {
         <RightMenu>
             <RightMenuLabel>Also Here:</RightMenuLabel>
             <EntityList>
-                {/* SOMETHING about this is deeply borked. Does a gazillion updates. Hold on a sec. */}
                 {entityList.length > 0 ? (
                     <>
                         {entityList.map((entity, index) => (
@@ -125,17 +124,17 @@ const EntityBox = ({ type, entity, index }) => {
     switch (type) {
         case 'mob': {
             return (
-                <EntityGlancer mob viewed={state.viewTarget?.id === entity.id || (state.currentBarSelected === 'entity' && state.viewIndex === index)}>{entity.glance}</EntityGlancer>
+                <EntityGlancer mob viewed={(state.viewTarget?.id === entity.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target.id === entity.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)}>{entity.glance}</EntityGlancer>
             )
         }
         case 'npc': {
             return (
-                <EntityGlancer npc viewed={state.viewTarget?.id === entity.id || (state.currentBarSelected === 'entity' && state.viewIndex === index)} onClick={() => targetEntity(entity)}>{entity.glance}</EntityGlancer>
+                <EntityGlancer npc viewed={(state.viewTarget?.id === entity.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target.id === entity.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)} onClick={() => targetEntity(entity)}>{entity.glance}</EntityGlancer>
             )
         }
         case 'player': {
             return (
-                <EntityGlancer player viewed={state.viewTarget?.id === entity.id || (state.currentBarSelected === 'entity' && state.viewIndex === index)}>{entity.name === state.name ? null : entity.name}</EntityGlancer>
+                <EntityGlancer player viewed={(state.viewTarget?.id === entity.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target.id === entity.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)}>{entity.name === state.name ? null : entity.name}</EntityGlancer>
             )
         }
         default: {
@@ -183,24 +182,26 @@ const TopMenuBox = ({ state, dispatch }) => {
 
 
 const CurrentFocusBox = ({ state, dispatch }) => {
-    const [mode, setMode] = useState({focused: false, type: undefined});
+    // const [mode, setMode] = useState({focused: false, type: undefined});
     const [focusObj, setFocusObj] = useState({});
     const [localViewIndex, setLocalViewIndex] = useState(0);
     const [contextualArray, setContextualArray] = useState([]);
 
-    function doneFocusing() {
-        console.log(`Done focusing, probably`);
-        dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
-    }
+    // function doneFocusing() {
+    //     console.log(`Done focusing, probably`);
+    //     dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+    // }
 
     function handleInteractionSelection(interaction) {
         console.log(`You wish to ${interaction}? With ${focusObj?.name}?`);
         // Technically, we already have all the stuff from the server for answering any questions. :P
+        // May be moving to a more server-interactive version; stand by
         switch (interaction.toLowerCase()) {
             case 'talk': {
                 let newTalkIndex = focusObj.lastTalkIndex;
-                if (newTalkIndex < 0 || (newTalkIndex > focusObj.interactions['Talk'].length - 1)) newTalkIndex = 0;
-                return setFocusObj({...focusObj, lastTalkIndex: newTalkIndex + 1, echo: `${focusObj?.name}: "${focusObj.interactions['Talk'][newTalkIndex]}"`})
+                let talkArray = focusObj.interactions['Talk'];
+                if (newTalkIndex < 0 || (newTalkIndex > talkArray.length - 1)) newTalkIndex = 0;
+                return setFocusObj({...focusObj, lastTalkIndex: newTalkIndex + 1, echo: `${focusObj?.name}: "${focusObj.interactions['Talk'][newTalkIndex]}"`});
             }
             case 'ask': {
                 return setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj?.interactions['Ask'].prompt}"`});
@@ -248,8 +249,8 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             setLocalViewIndex(correctedIndex);
             // HERE: dispatch new viewTarget; contents: {type: '', id: thingToDo} ... so how to set ID in a way that hits the right result?
             //  I guess ID can be an object, such as {menu: 'Talk', target: index#} or {menu: 'Ask', target: 'keyvalue'}
-            //      for latter, if keyvalue === 'prompt', should receive submenu data as well as the prompt text, yes?
-            // dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'npcinteraction', id: 3}});
+                //  for latter, if keyvalue === 'prompt', should receive submenu data as well as the prompt text, yes?
+            dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'npcinteraction', id: {menu: contextualArray[correctedIndex][0], target: 'prompt'}}});
         }
 
     }, [state.viewIndex]);
@@ -363,13 +364,24 @@ const ViewBox = ({ state, dispatch }) => {
             <MainViewContainer>
                 <RoomView>
                     
-                    {state.currentBarSelected === 'entity' &&
+                    {(state.currentBarSelected === 'entity' && state.whatDo === 'explore') &&
                     <>
                     <RoomName>{state.viewTarget?.glance || state.viewTarget?.name}</RoomName>
                     <RoomDetails>
                         <RoomImg />
                         <RoomDesc>
                             {state.viewTarget?.description}
+                        </RoomDesc>
+                    </RoomDetails>
+                    </>
+                    }
+                    {state.whatDo === 'npcinteract' &&
+                    <>
+                    <RoomName>{state.target?.glance || state.target?.name}</RoomName>
+                    <RoomDetails>
+                        <RoomImg />
+                        <RoomDesc>
+                            {state.target?.description}
                         </RoomDesc>
                     </RoomDetails>
                     </>

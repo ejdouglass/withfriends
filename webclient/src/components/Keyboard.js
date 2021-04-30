@@ -97,7 +97,13 @@ const Keyboard = () => {
                 // Hm. Lemme update UPDATE_WHATDO real quick...
                 // Great! Ok, now we need to update VIEW_TARGET so we can PACKAGE_FOR_SERVER the npc-interact goodies.
                 if (e.key === 'ArrowRight') return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + 1});
-                if (e.key === 'ArrowLeft') return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});                
+                if (e.key === 'ArrowLeft') return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});   
+                if (e.key === 'Enter') {
+                    if (state.viewTarget?.id?.menu === 'Leave') {
+                        dispatch({type: actions.UPDATE_TARGET, payload: {}});
+                        return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+                    }
+                }             
             }
 
             case 'magic': {
@@ -136,6 +142,7 @@ const Keyboard = () => {
                 }
                 case 'npc': {
                     dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'npcinteract', target: state.viewTarget.id}});
+                    dispatch({type: actions.UPDATE_TARGET, payload: {...state.viewTarget}});
                     dispatch({type: actions.UPDATE_WHATDO, payload: 'npcinteract'});
                     return console.log(`Time to interact with an NPC!`);
                 }
@@ -146,7 +153,7 @@ const Keyboard = () => {
                     return console.log(`Who dis? Let's play with another player!`);
                 }
                 case 'npcinteraction': {
-                    return console.log(`You wish to speak to your NPC further.`);
+                    return console.log(`You are viewing this: ${JSON.stringify(state.viewTarget)}`);
                 }
                 case 'portal': {
                     return console.log(`It would be great to enter this portal!`);

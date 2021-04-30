@@ -65,6 +65,7 @@ export const Reducer = (state, action) => {
         case actions.UPDATE_WHATDO: {
             // Trying out a quick poke to viewIndex...
             // *May* also reset viewTarget? Maybe not? Will think about the implications of that in a bit...
+            if (action.payload === 'explore') return {...state, whatDo: action.payload, viewIndex: 0, currentBarSelected: 'action'};
             return {...state, whatDo: action.payload, viewIndex: 0};
         }
         case actions.UPDATE_ACTION_INDEX: {

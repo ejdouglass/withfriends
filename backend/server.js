@@ -765,12 +765,13 @@ class NPC {
         this.number = rando(1,10);
         this.interactions = {
             'Talk': 
-            [
-            `Sure is lovely weather, isn't it? I don't even remember the last time it was dark out.`,
-            `They call me Taran Wanderer, which is funny, because I've never once moved from this spot.`,
-            `I feel very well-read.`,
-            `Did you know there are orchard muglins out the west gate? They seem like some good low-level hunting!`
-            ],
+            {
+                'prompt': `${this.name} regards you with curiosity as you approach.`,
+                0: `Sure is lovely weather, isn't it? I don't even remember the last time it was dark out.`,
+                1: `They call me Taran Wanderer, which is funny, because I've never once moved from this spot.`,
+                2: `I feel very well-read.`,
+                3: `Did you know there are orchard muglins out the west gate? They seem like some good low-level hunting!`
+            },
             'Ask': {
                 'prompt': `I'm afraid I'm new around here, so I can't really answer any of your questions... I'm sorry.`,
                 'Your name?': `Ah! Well, I can tell you that. My name is Taran.`
