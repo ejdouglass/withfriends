@@ -777,7 +777,6 @@ class NPC {
                 'Your name?': `Ah! Well, I can tell you that. My name is Taran.`
             },
             // can add other interactions here as inspiration strikes
-
         }
         this.talkTopics = [
             `Sure is lovely weather, isn't it? I don't even remember the last time it was even dark out.`,
@@ -1869,34 +1868,60 @@ io.on('connection', (socket) => {
                 break;
             }
             case 'npcinteract': {
-                /*
-                Modeling off this:
-                        this.interactions = {
-                            'Talk': 
-                            [
-                            `Sure is lovely weather, isn't it? I don't even remember the last time it was even dark out.`,
-                            `They call me Taran Wanderer, which is funny, because I've never once moved from this spot.`,
-                            `I feel very well-read.`,
-                            `Did you know there are orchard muglins out the west gate? They seem like some good low-level hunting!`
-                            ],
-                            'Ask': {
-                                'prompt': `I'm afraid I'm new around here, so I can't really answer any of your questions... I'm sorry.`,
-                                'Your name?': `Ah! Well, I can tell you that. My name is Taran.`
-                            },
-                            // can add other interactions here as inspiration strikes
-
-                        }
-                */
                 // receiving actionData.target of entity's ID, pass back useful information here for the npcinteract client to work with
 
-                // what should these responseObj-s look like? Hm...
+                // NOTE: this is pretty good so far, but we can add an 'initial greeting' concept somewhere, as well (and/or pull it from the NPC themselves)
                 let responseObj = {
                     type: 'npcdata',
                     echo: `You approach ${npcs[actionData.target].glance} and begin a conversation.`,
-                    data: {...npcs[actionData.target]}
+                    data: {...npcs[actionData.target]} // just sending the whole-arse NPC down, good job :P
                 }
                 socket.emit('own_action_result', responseObj);
                 socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} approaches ${npcs[actionData.target].glance} and begins a quiet conversation.`});
+                break;
+            }
+            case 'npcinteraction': {
+                // not confusing at all that this is named so similarly to the above :P
+                // socket.emit('own_action_result', {type: 'npcresponse', data: {}});
+                
+                // Ok, so! We can now pass the actionData.menu, the button that was booped. We should respond accordingly.
+                // Some types we can account for: Talk, Ask, Buy, Sell, Train?, Quest?
+                // Honestly, the webclient is handling 'Talk' for us pretty well at the moment, so let's not worry about that right now.
+                // It's not too hard to reconfigure two things:
+                // 1) what we're receiving from the client to look up on the NPC
+                // 2) what we're sending back as an own_action_result package, which can be type: npcresponse?
+                // However, have to make sure that we're able to appropriately update the client's current NPC interaction menu accordingly.
+
+                // Summary: rejigger the client to respond properly to incoming data, including resetting viewIndex for sub-menus (first option BACK)
+
+                /*
+                MODEL:
+                this.interactions = {
+                    'Talk': 
+                    {
+                        'prompt': `${this.name} regards you with curiosity as you approach.`,
+                        0: `Sure is lovely weather, isn't it? I don't even remember the last time it was dark out.`,
+                        1: `They call me Taran Wanderer, which is funny, because I've never once moved from this spot.`,
+                        2: `I feel very well-read.`,
+                        3: `Did you know there are orchard muglins out the west gate? They seem like some good low-level hunting!`
+                    },
+                    'Ask': {
+                        'prompt': `I'm afraid I'm new around here, so I can't really answer any of your questions... I'm sorry.`,
+                        'Your name?': `Ah! Well, I can tell you that. My name is Taran.`
+                    },
+            // can add other interactions here as inspiration strikes
+        }
+                */
+
+                // This is the most basic version: drill down one layer. We run into trouble if there are no further layers, though. :P
+                // Should probably divide between what's being currently requested and the result we give; ASK vs BUY should open up quite different concepts
+                let responseObj = {
+                    type: 'npcresponse',
+                    data: {...npcs[actionData.target].interactions[actionData.menu]},
+                    echo: `You try to do a thing with an NPC based on the menu item ${actionData.menu}.`
+                }
+                // CHANGE: delete prompt from the key-value, include it elsewhere
+                socket.emit('own_action_result', responseObj);
                 break;
             }
             case 'forage': {

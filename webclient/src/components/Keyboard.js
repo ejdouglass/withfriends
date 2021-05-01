@@ -83,6 +83,32 @@ const Keyboard = () => {
                         return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'action', id: state.currentActionBar[0].toLowerCase()}})
                     }
                 }
+                if (e.key === 'Enter') {
+                    switch (state.viewTarget?.type) {
+                        case 'action': {
+                            if (state.viewTarget?.id === 'magic') dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
+                            return console.log(`I wish to take action! :-D`);
+                        }
+                        case 'npc': {
+                            dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'npcinteract', target: state.viewTarget.id}});
+                            dispatch({type: actions.UPDATE_TARGET, payload: {...state.viewTarget}});
+                            dispatch({type: actions.UPDATE_WHATDO, payload: 'npcinteract'});
+                            return console.log(`Time to interact with an NPC!`);
+                        }
+                        case 'mob': {
+                            return console.log(`Time to engage a mob! Possibly in MORTAL COMBAT!!`);
+                        }
+                        case 'player': {
+                            return console.log(`Who dis? Let's play with another player!`);
+                        }
+                        case 'npcinteraction': {
+                            return console.log(`You are viewing this: ${JSON.stringify(state.viewTarget)}`);
+                        }
+                        case 'portal': {
+                            return console.log(`It would be great to enter this portal!`);
+                        }
+                    }
+                }
             }
 
             case 'talk': {
@@ -90,6 +116,7 @@ const Keyboard = () => {
                     e.preventDefault();
                     return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
                 }
+                return;
             }
 
             case 'npcinteract': {
@@ -99,9 +126,11 @@ const Keyboard = () => {
                 if (e.key === 'ArrowRight') return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + 1});
                 if (e.key === 'ArrowLeft') return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});   
                 if (e.key === 'Enter') {
-                    if (state.viewTarget?.id?.menu === 'Leave') {
+                    if (state.viewTarget?.menu === 'Leave') {
                         dispatch({type: actions.UPDATE_TARGET, payload: {}});
                         return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+                    } else {
+                        return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {...state.viewTarget, action: 'npcinteraction'}})
                     }
                 }             
             }

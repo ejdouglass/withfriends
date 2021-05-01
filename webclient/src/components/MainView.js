@@ -230,13 +230,23 @@ const CurrentFocusBox = ({ state, dispatch }) => {
 
     useEffect(() => {
         if (state.received) {
+            
+            // aha! here's where the magic happens... so! we can have state.received.type === 'npcresponse' and update the interactionArray?
             if (state.received.type === 'npcdata') {
                 setFocusObj({...state.received.data, lastTalkIndex: -1, echo: `${state.received.data.name} regards you with curiosity.`});
-                let interactionArray = Object.entries(state.received.data.interactions);
-                interactionArray.push(['Leave', 'winherback']);
+                // Hm, it might be better to redo this to JUST be the keys.  
+                let interactionArray = ['Leave', ...Object.keys(state.received.data.interactions)];
+                // interactionArray.push(['Leave']);
                 setContextualArray(interactionArray);
+                dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'npcinteraction', target: state.target.id, id: 0, menu: interactionArray[localViewIndex], submenu: 'prompt'}});
             }
-            // dispatch({type: actions.PACKAGE_FROM_SERVER, payload: undefined}); // this is being handled in the iSpy section, no need to duplicate?
+            if (state.received.type === 'npcresponse') {
+                // dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0}); // conditional; may refactor later, but easy way to reset to 'first option'
+                console.log(`NPC RESPONSE DATA RECEIVED: ${JSON.stringify(state.received.data)}`)
+                let newInteractionArray = ['Back', ...Object.keys(state.received?.data)];
+                setContextualArray(newInteractionArray);
+                // Neat! The above "works"... in a very limited way. :P 
+            }
         }
     }, [state.received]);
 
@@ -250,7 +260,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             // HERE: dispatch new viewTarget; contents: {type: '', id: thingToDo} ... so how to set ID in a way that hits the right result?
             //  I guess ID can be an object, such as {menu: 'Talk', target: index#} or {menu: 'Ask', target: 'keyvalue'}
                 //  for latter, if keyvalue === 'prompt', should receive submenu data as well as the prompt text, yes?
-            dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'npcinteraction', id: {menu: contextualArray[correctedIndex][0], target: 'prompt'}}});
+            dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'npcinteraction', target: state.target.id, id: 0, menu: contextualArray[correctedIndex], submenu: 'prompt'}});
         }
 
     }, [state.viewIndex]);
@@ -290,7 +300,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
 
                     <NPCInteractionOptions>
                         {contextualArray.map((interaction, index) => (
-                            <NPCInteractionButton key={index} viewed={localViewIndex === index} onClick={() => handleInteractionSelection(interaction[0])}>{interaction[0]}</NPCInteractionButton>
+                            <NPCInteractionButton key={index} viewed={localViewIndex === index} onClick={() => handleInteractionSelection(interaction)}>{interaction}</NPCInteractionButton>
                         ))}
                     </NPCInteractionOptions>
                 </NPCInteractionContainer>
@@ -340,8 +350,11 @@ const ViewBox = ({ state, dispatch }) => {
         if (state.received) {
             // ADD: parse the received data, and if it's a "move to new room" situation, add an extra blank line or two to iSpy, buffer it out a bit
             let newSights = [...iSpy];
-            let newestSight = state.received?.echo[0].toUpperCase() + state.received?.echo.slice(1);
-            newSights.push(newestSight);
+            if (state.received.echo) {
+                let newestSight = state.received?.echo[0].toUpperCase() + state.received?.echo.slice(1);
+                newSights.push(newestSight);
+            }
+
             setISpy(newSights);
             dispatch({type: actions.PACKAGE_FROM_SERVER, payload: undefined});
             // HERE, probably: clear out state.received to avoid redundancies/repeats
