@@ -199,8 +199,8 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         switch (interaction.toLowerCase()) {
             case 'talk': {
                 let newTalkIndex = focusObj.lastTalkIndex;
-                let talkArray = focusObj.interactions['Talk'];
-                if (newTalkIndex < 0 || (newTalkIndex > talkArray.length - 1)) newTalkIndex = 0;
+                let talkObj = focusObj.interactions['Talk'];
+                if (newTalkIndex < 0 || (talkObj[newTalkIndex + 1] === undefined)) newTalkIndex = 0;
                 return setFocusObj({...focusObj, lastTalkIndex: newTalkIndex + 1, echo: `${focusObj?.name}: "${focusObj.interactions['Talk'][newTalkIndex]}"`});
             }
             case 'ask': {
@@ -230,16 +230,26 @@ const CurrentFocusBox = ({ state, dispatch }) => {
 
     useEffect(() => {
         if (state.received) {
+            // ... hm, do I really want/need the back-and-forth to do separate server calls? Maybe not.
+            // Ok, since we get the whole NPC and its interactions when we fire up the interaction, why not make use of that?
+            // And just navigate through that in this component, passing to the server only for specific instances
+
+            // Either way! Let's finish this up: 
+            // How to handle the built-in 'Back' button, navigating through 'layers' of interaction and setting up an appropriate view
+
+            // Likely beyond the scope of this useEffect hook, but it does involve trimming off NPCRESPONSE.
             
             // aha! here's where the magic happens... so! we can have state.received.type === 'npcresponse' and update the interactionArray?
             if (state.received.type === 'npcdata') {
-                setFocusObj({...state.received.data, lastTalkIndex: -1, echo: `${state.received.data.name} regards you with curiosity.`});
+                // so focusObj is essentially the entire NPC right now, and we can keep it always inclusive of interactions at minimum
+                // given that, it has the entire interactions tree in there, and this section does a good job laying out the basics for us to 'consume'
+                // so this is fine for the FIRST/initial layer of all NPC interactions
+                // useEffect would be fine to trigger on "choices" made to drill down or send to server, if applicable
+                setFocusObj({...state.received.data, lastTalkIndex: -1, echo: `${state.received.data.interactions['Talk'].prompt}`});
                 // Hm, it might be better to redo this to JUST be the keys.  
-                let interactionArray = ['Leave', ...Object.keys(state.received.data.interactions)];
-                // interactionArray.push(['Leave']);
-                setContextualArray(interactionArray);
-                dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'npcinteraction', target: state.target.id, id: 0, menu: interactionArray[localViewIndex], submenu: 'prompt'}});
+                dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'npcbase'});
             }
+
             if (state.received.type === 'npcresponse') {
                 // dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0}); // conditional; may refactor later, but easy way to reset to 'first option'
                 console.log(`NPC RESPONSE DATA RECEIVED: ${JSON.stringify(state.received.data)}`)
@@ -264,6 +274,32 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         }
 
     }, [state.viewIndex]);
+
+    useEffect(() => {
+        // THIS: rig it up to respond to choices made by user and drill down in menus; scoot contextualarray definition down here
+        // Can use state.currentBarSelected for this? MEBBE.
+        // Ok! This might work just fine if VIEW_TARGET is updated with something that can let us change currentBarSelected to 'npcmenu/Ask' or somesuch
+        if (state.currentBarSelected === 'npcbase') {
+            let interactionArray = ['Leave', ...Object.keys(focusObj.interactions)];
+            setContextualArray(interactionArray);
+            return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'npcinteraction', target: state.target.id, id: 0, menu: interactionArray[localViewIndex], submenu: 'prompt'}});
+        }
+        let npcMode = state.currentBarSelected.split('/');
+
+        // Just grabbing the specific mode here, but can add extra 'npcmenu' check from npcMode[0] if found to be necessary later
+        switch (npcMode[1]) {
+            case 'Talk': {
+                let newTalkIndex = focusObj.lastTalkIndex;
+                let talkObj = focusObj.interactions['Talk'];
+                if (newTalkIndex < 0 || (talkObj[newTalkIndex + 1] === undefined)) newTalkIndex = 0;
+                dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'npcmenu/Talk'});
+                return setFocusObj({...focusObj, lastTalkIndex: newTalkIndex + 1, echo: `${focusObj?.name}: "${focusObj.interactions['Talk'][newTalkIndex]}"`});
+            }
+            case 'Ask': {
+                setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj.interactions['Ask'].prompt}"`});
+            }
+        }
+    }, [state.currentBarSelected]);
 
     /*
         Some FOCUS modes, which would correspond to whatDo situations (for key responses):

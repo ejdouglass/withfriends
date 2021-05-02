@@ -126,12 +126,19 @@ const Keyboard = () => {
                 if (e.key === 'ArrowRight') return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + 1});
                 if (e.key === 'ArrowLeft') return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});   
                 if (e.key === 'Enter') {
+                    // Time to update this in concert with MainView: remove package_for_server except in specific cases
                     if (state.viewTarget?.menu === 'Leave') {
                         dispatch({type: actions.UPDATE_TARGET, payload: {}});
                         return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
-                    } else {
-                        return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {...state.viewTarget, action: 'npcinteraction'}})
+                    } 
+                    if (state.viewTarget?.menu) {
+                        console.log(`Activating new menu selection: ${state.viewTarget.menu}`);
+                        return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: `npcmenu/${state.viewTarget?.menu}`});
                     }
+                    
+                    // else {
+                    //     return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {...state.viewTarget, action: 'npcinteraction'}})
+                    // }
                 }             
             }
 

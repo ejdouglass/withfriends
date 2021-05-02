@@ -120,7 +120,6 @@ export const Reducer = (state, action) => {
 
 /*
     Mode ponder...
-    npcinteract mode! (works for shops or just chatting, because why not)
 */
 const mode = {
     TRAVEL: 'travel',
