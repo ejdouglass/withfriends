@@ -782,11 +782,13 @@ export const NPCInteractionButton = styled.button`
     align-items: center;
     padding: calc(0.5rem + 0.5vw);
     font-size: calc(0.5rem + 0.4vw);
-    width: calc(30px + 3vw);
+    width: calc(50px + 3vw);
+    border: 1px solid #333;
     font-weight: 600;
     margin: 0 calc(0.3rem + 0.3vw) 0 calc(0.3rem + 0.3vw);
     ${props => props.viewed && css`
-        border: 1px solid black;
+        border: 2px solid black;
+        border-radius: 6px;
         font-weight: 700;
         background-color: white;
     `}

@@ -248,7 +248,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                 // given that, it has the entire interactions tree in there, and this section does a good job laying out the basics for us to 'consume'
                 // so this is fine for the FIRST/initial layer of all NPC interactions
                 // useEffect would be fine to trigger on "choices" made to drill down or send to server, if applicable
-                setFocusObj({...state.received.data, lastTalkIndex: -1, echo: `${state.received.data.interactions['Talk'].prompt}`});
+                setFocusObj({...state.received.data, lastTalkIndex: -1, echo: `${state.received.data.interactions['Talk'].prompt.echo}`});
                 // Hm, it might be better to redo this to JUST be the keys.  
                 dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'npcbase'});
             }
@@ -288,44 +288,52 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'npcinteraction', target: state.target.id, id: 0, menu: interactionArray[localViewIndex], submenu: 'prompt'}});
         }
         let npcMode = state.currentBarSelected.split('/');
-        if (npcMode[1] === undefined) return;
+        if (npcMode[1] === undefined || npcMode[1] === 'refresh') return;
+
+        if (npcMode[1] === 'Talk') {
+            let newTalkIndex = focusObj.lastTalkIndex;
+            let talkObj = focusObj.interactions['Talk'];
+            if (newTalkIndex < 0 || (talkObj[newTalkIndex] === undefined)) newTalkIndex = 0;
+            setFocusObj({...focusObj, lastTalkIndex: newTalkIndex + 1, echo: `${focusObj?.name}: "${focusObj.interactions['Talk'][newTalkIndex].echo}"`});
+            return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'npcmenu/refresh'});
+        }
+
+        // Lotta repeating happening in the Switch below. Let's see what we can do about that real quick...
+        setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj?.interactions[npcMode[1]]?.prompt?.echo}"`, meta: npcMode[1]});
+        let newMenu = {...focusObj.interactions[npcMode[1]]};
+        delete newMenu.prompt;
+        newMenu = [...Object.keys(newMenu)];
+        setContextualArray(['Back', ...newMenu]);
+        dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+        
+        
 
         // Just grabbing the specific mode here, but can add extra 'npcmenu' check from npcMode[0] if found to be necessary later
         switch (npcMode[1]) {
-            // This doesn't iterate -- stale variables? Thinking it through... 
-            case 'Talk': {
-                let newTalkIndex = focusObj.lastTalkIndex;
-                let talkObj = focusObj.interactions['Talk'];
-                if (newTalkIndex < 0 || (talkObj[newTalkIndex] === undefined)) newTalkIndex = 0;
-                setFocusObj({...focusObj, lastTalkIndex: newTalkIndex + 1, echo: `${focusObj?.name}: "${focusObj.interactions['Talk'][newTalkIndex]}"`});
-                // console.log(`newtalkindex: ${newTalkIndex}`)  
-                // The below works, but largely because of loopy code madness via Keyboard. Refactor later, but it works for now... :P
-                // Specifically, setting the BAR to the wrong possibility while the viewTarget is accurate allows the useEffect hook to fire off of the viewTarget.
-                return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'npcmenu/refresh'});
-            }
-            case 'Ask': {
-                setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj.interactions['Ask'].prompt}"`, meta: 'Ask'});
-                let askMenu = {...focusObj.interactions['Ask']};
-                delete askMenu.prompt;
-                askMenu = [...Object.keys(askMenu)];
-                console.log(`ASKMENU APPEARS THUSLY: ${JSON.stringify(askMenu)}`)
-                setContextualArray(['Back', ...askMenu]);
-                dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
-                return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'npcmenu/refresh'});
-            }
+
             case 'Back': {
-                setFocusObj({...focusObj, echo: `${focusObj.interactions['Talk'].prompt}`, meta: 'Main'});
+                setFocusObj({...focusObj, echo: `${focusObj.interactions['Talk'].prompt.echo}`, meta: 'Main'});
                 setContextualArray(['Leave', ...Object.keys(focusObj.interactions)]);
                 dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'npcinteraction', target: state.target.id, id: 0, menu: 'Leave', submenu: 'prompt'}});
                 return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
             }
-            case 'refresh': {
-                return;
-            }
+            case 'Ask':
+            case 'Buy':
+            case 'Sell':
+            case 'Train':
+            case 'Study': 
+                return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'npcmenu/refresh'});
             default: {
-                // Awkward dynamic handling... or super smooth dynamic handling, depending on how this goes!
-                // The assumption here is we have a request to interact with a key in the current interaction menu that's not hard-covered here
-                return setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj.interactions[focusObj.meta][npcMode[1]]}"`});
+                // Not bad! This works reasonably well.
+                // However, under this model there's no way to tell the client to handle anything back-end, if it's necessary...
+                // ... the first solution that comes to mind, as usual, is to adjust the key-value pairs in interactions.
+                // Specifically, instead of e.g. Ask: {'Your name?': 'Oh I'm Taran!'} -->
+                // Ask: {'Your name?': {echo: 'Oh I'm Taran!', type: 'textonly', otherData: 99}}
+                // Try this adjustment to the model...
+                // This currently is the catch-all for 'already in second tier' options, so need to define all first-tier options above
+                // Meaning that currently, any "base level" interaction with NPC's that are possible IG need to be defined above explicitly
+                // TO ADD, offhand: Buy, Sell, Train (rename?)
+                return setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj.interactions[focusObj.meta][npcMode[1]].echo}"`});
                 // return console.log(`NPC would respond with ${focusObj.interactions[focusObj.meta][npcMode[1]]}...?`);
             }
         }
