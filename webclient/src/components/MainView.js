@@ -204,7 +204,10 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                 return setFocusObj({...focusObj, lastTalkIndex: newTalkIndex + 1, echo: `${focusObj?.name}: "${focusObj.interactions['Talk'][newTalkIndex]}"`});
             }
             case 'ask': {
-                return setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj?.interactions['Ask'].prompt}"`});
+                setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj.interactions['Ask'].prompt}"`, depth: 1});
+                let askMenu = [...Object.keys(focusObj.interactions['Ask'])];
+                delete askMenu.prompt;
+                return setContextualArray(['Back', ...askMenu]);
             }
             case 'buy': {
                 return;
@@ -285,18 +288,45 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'npcinteraction', target: state.target.id, id: 0, menu: interactionArray[localViewIndex], submenu: 'prompt'}});
         }
         let npcMode = state.currentBarSelected.split('/');
+        if (npcMode[1] === undefined) return;
 
         // Just grabbing the specific mode here, but can add extra 'npcmenu' check from npcMode[0] if found to be necessary later
         switch (npcMode[1]) {
+            // This doesn't iterate -- stale variables? Thinking it through... 
             case 'Talk': {
                 let newTalkIndex = focusObj.lastTalkIndex;
                 let talkObj = focusObj.interactions['Talk'];
-                if (newTalkIndex < 0 || (talkObj[newTalkIndex + 1] === undefined)) newTalkIndex = 0;
-                dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'npcmenu/Talk'});
-                return setFocusObj({...focusObj, lastTalkIndex: newTalkIndex + 1, echo: `${focusObj?.name}: "${focusObj.interactions['Talk'][newTalkIndex]}"`});
+                if (newTalkIndex < 0 || (talkObj[newTalkIndex] === undefined)) newTalkIndex = 0;
+                setFocusObj({...focusObj, lastTalkIndex: newTalkIndex + 1, echo: `${focusObj?.name}: "${focusObj.interactions['Talk'][newTalkIndex]}"`});
+                // console.log(`newtalkindex: ${newTalkIndex}`)  
+                // The below works, but largely because of loopy code madness via Keyboard. Refactor later, but it works for now... :P
+                // Specifically, setting the BAR to the wrong possibility while the viewTarget is accurate allows the useEffect hook to fire off of the viewTarget.
+                return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'npcmenu/refresh'});
             }
             case 'Ask': {
-                setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj.interactions['Ask'].prompt}"`});
+                setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj.interactions['Ask'].prompt}"`, meta: 'Ask'});
+                let askMenu = {...focusObj.interactions['Ask']};
+                delete askMenu.prompt;
+                askMenu = [...Object.keys(askMenu)];
+                console.log(`ASKMENU APPEARS THUSLY: ${JSON.stringify(askMenu)}`)
+                setContextualArray(['Back', ...askMenu]);
+                dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+                return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'npcmenu/refresh'});
+            }
+            case 'Back': {
+                setFocusObj({...focusObj, echo: `${focusObj.interactions['Talk'].prompt}`, meta: 'Main'});
+                setContextualArray(['Leave', ...Object.keys(focusObj.interactions)]);
+                dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'npcinteraction', target: state.target.id, id: 0, menu: 'Leave', submenu: 'prompt'}});
+                return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+            }
+            case 'refresh': {
+                return;
+            }
+            default: {
+                // Awkward dynamic handling... or super smooth dynamic handling, depending on how this goes!
+                // The assumption here is we have a request to interact with a key in the current interaction menu that's not hard-covered here
+                return setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj.interactions[focusObj.meta][npcMode[1]]}"`});
+                // return console.log(`NPC would respond with ${focusObj.interactions[focusObj.meta][npcMode[1]]}...?`);
             }
         }
     }, [state.currentBarSelected]);
