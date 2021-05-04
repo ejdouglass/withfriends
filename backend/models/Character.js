@@ -44,7 +44,7 @@ const CharacterSchema = new Schema({
     tagged: Object,
     backpack: {
         type: Object,
-        default: {open: false, contents: [], size: 20, stackModifiers: {}}
+        default: {contents1: [], contents2: [], contents3: null, contents4: null, stackModifiers: {}}
     },
     wallet: {type: Object, default: {
         gems: [],
@@ -56,7 +56,7 @@ const CharacterSchema = new Schema({
             rightHand: undefined,
             leftHand: undefined,
             head: undefined,
-            torso: undefined,
+            body: undefined,
             accessory1: undefined,
             accessory2: undefined
         }

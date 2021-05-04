@@ -283,21 +283,6 @@ export const GroundBox = styled.div`
     }
 `;
 
-export const BackpackContainer = styled.div`
-    display: flex;
-    position: fixed;
-    z-index: 20;
-    top: 150px;
-    padding: 15px;
-    box-sizing: border-box;
-    left: 10%;
-    width: 80vw;
-    height: calc(100vh - 300px);
-    background-color: tan;
-    border: 3px solid brown;
-    animation: ${animateBackpackOpening} 0.1s linear;
-`;
-
 export const MainScreen = styled.div`
     position: absolute;
     display: flex;
@@ -792,6 +777,54 @@ export const NPCInteractionButton = styled.button`
         font-weight: 700;
         background-color: white;
     `}
+`;
+
+export const InventoryContainer = styled(NPCInteractionContainer)`
+    top: 50px;
+    height: calc(225px + 10vh);
+    flex-direction: row;
+    padding: 0;
+`;
+
+export const EquippedContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+    box-sizing: border-box;
+    border: 3px solid red;
+`;
+
+export const EquippedItem = styled.div`
+    display: flex;
+    box-sizing: border-box;
+    border-top: 1px solid black;
+    justify-content: flex-start;
+    align-items: center;
+    padding: calc(0.3rem + 0.3vw) 0;
+`;
+
+export const BackpackContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 70%;
+    box-sizing: border-box:
+    border: 3px solid green;
+    // animation: ${animateBackpackOpening} 0.1s linear;
+`;
+
+export const BackpackColumn = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: calc(70% / 3);
+    box-sizing: border-box;
+`;
+
+export const BackpackItem = styled.div`
+    display: flex;
+    border-top: 1px solid black;
+    justify-content: flex-start;
+    align-items: center;
+    padding-left: calc(0.3rem + 0.3vw);
 `;
 
 export const CombatContainer = styled(NPCInteractionContainer)`

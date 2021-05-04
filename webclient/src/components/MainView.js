@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton } from './styled';
+import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton, InventoryContainer, EquippedContainer, EquippedItem, BackpackContainer, BackpackItem, BackpackColumn } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -124,17 +124,17 @@ const EntityBox = ({ type, entity, index }) => {
     switch (type) {
         case 'mob': {
             return (
-                <EntityGlancer mob viewed={(state.viewTarget?.id === entity?.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target.id === entity?.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)}>{entity.glance}</EntityGlancer>
+                <EntityGlancer mob viewed={(state.viewTarget?.id === entity?.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target?.id === entity?.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)}>{entity?.glance}</EntityGlancer>
             )
         }
         case 'npc': {
             return (
-                <EntityGlancer npc viewed={(state.viewTarget?.id === entity?.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target.id === entity?.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)} onClick={() => targetEntity(entity)}>{entity.glance}</EntityGlancer>
+                <EntityGlancer npc viewed={(state.viewTarget?.id === entity?.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target?.id === entity?.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)} onClick={() => targetEntity(entity)}>{entity?.glance}</EntityGlancer>
             )
         }
         case 'player': {
             return (
-                <EntityGlancer player viewed={(state.viewTarget?.id === entity?.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target.id === entity?.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)}>{entity.name === state.name ? null : entity.name}</EntityGlancer>
+                <EntityGlancer player viewed={(state.viewTarget?.id === entity?.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target?.id === entity?.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)}>{entity?.name === state.name ? null : entity?.name}</EntityGlancer>
             )
         }
         default: {
@@ -388,6 +388,44 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                 <NPCInteractionContainer>
                     BEEP BOOP
                 </NPCInteractionContainer>
+            )
+        }
+        case 'inventory': {
+            return (
+                <InventoryContainer>
+                    <EquippedContainer>
+                        Equipped Gear
+                        <EquippedItem>Right Hand: {state.equipped?.rightHand.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem>Left Hand: {state.equipped?.leftHand.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem>Head: {state.equipped?.head.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem>Body: {state.equipped?.body.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem>Accessory: {state.equipped?.accessory1.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem>Accessory: {state.equipped?.accessory2.glance || '(Nothing)'}</EquippedItem>
+                    </EquippedContainer>
+                    <BackpackContainer>
+                        <BackpackColumn>
+                        {state?.backpack?.contents1?.map((item, index) => (
+                            <BackpackItem key={index}>{item?.glance}</BackpackItem>
+                        ))}
+                        </BackpackColumn>
+                        <BackpackColumn>
+                        {state?.backpack?.contents2?.map((item, index) => (
+                            <BackpackItem key={index}>{item?.glance}</BackpackItem>
+                        ))}
+                        </BackpackColumn>
+                        <BackpackColumn>
+                        {state?.backpack?.contents3?.map((item, index) => (
+                            <BackpackItem key={index}>{item?.glance}</BackpackItem>
+                        ))}
+                        </BackpackColumn>
+                        <BackpackColumn>
+                        {state?.backpack?.contents4?.map((item, index) => (
+                            <BackpackItem key={index}>{item?.glance}</BackpackItem>
+                        ))}
+                        </BackpackColumn>                                                                        
+
+                    </BackpackContainer>
+                </InventoryContainer>
             )
         }
         default: {
