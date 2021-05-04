@@ -132,7 +132,7 @@ const Keyboard = () => {
                         return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
                     } 
                     if (state.viewTarget?.menu) {
-                        console.log(`Activating new menu selection: ${state.viewTarget.menu}`);
+                        // console.log(`Activating new menu selection: ${state.viewTarget.menu}`);
                         return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: `npcmenu/${state.viewTarget?.menu}`});
                     }
                     

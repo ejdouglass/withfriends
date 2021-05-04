@@ -44,9 +44,12 @@ const CharacterSchema = new Schema({
     tagged: Object,
     backpack: {
         type: Object,
-        default: {open: false, contents: [], size: 10, stackModifiers: {}}
+        default: {open: false, contents: [], size: 20, stackModifiers: {}}
     },
-    purse: {type: Object, default: {}}, // can expound on this later
+    wallet: {type: Object, default: {
+        gems: [],
+        coins: [50, 2, 0, 0] // copper, silver, gold, platinum, y'know -- the usual, scales @ 100x per tier (for now)
+    }}, // sure, why not :P
     equipped: {
         type: Object,
         default: {

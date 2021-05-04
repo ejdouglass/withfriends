@@ -124,17 +124,17 @@ const EntityBox = ({ type, entity, index }) => {
     switch (type) {
         case 'mob': {
             return (
-                <EntityGlancer mob viewed={(state.viewTarget?.id === entity.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target.id === entity.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)}>{entity.glance}</EntityGlancer>
+                <EntityGlancer mob viewed={(state.viewTarget?.id === entity?.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target.id === entity?.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)}>{entity.glance}</EntityGlancer>
             )
         }
         case 'npc': {
             return (
-                <EntityGlancer npc viewed={(state.viewTarget?.id === entity.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target.id === entity.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)} onClick={() => targetEntity(entity)}>{entity.glance}</EntityGlancer>
+                <EntityGlancer npc viewed={(state.viewTarget?.id === entity?.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target.id === entity?.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)} onClick={() => targetEntity(entity)}>{entity.glance}</EntityGlancer>
             )
         }
         case 'player': {
             return (
-                <EntityGlancer player viewed={(state.viewTarget?.id === entity.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target.id === entity.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)}>{entity.name === state.name ? null : entity.name}</EntityGlancer>
+                <EntityGlancer player viewed={(state.viewTarget?.id === entity?.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target.id === entity?.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)}>{entity.name === state.name ? null : entity.name}</EntityGlancer>
             )
         }
         default: {
@@ -298,19 +298,11 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'npcmenu/refresh'});
         }
 
-        // Lotta repeating happening in the Switch below. Let's see what we can do about that real quick...
-        setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj?.interactions[npcMode[1]]?.prompt?.echo}"`, meta: npcMode[1]});
-        let newMenu = {...focusObj.interactions[npcMode[1]]};
-        delete newMenu.prompt;
-        newMenu = [...Object.keys(newMenu)];
-        setContextualArray(['Back', ...newMenu]);
-        dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
-        
-        
+        // Random thought: if META changes to something in particular, can we have an effect scoop it up and package it for server? Mmmmmaybe...
+        // That might be a 'better' way to handle a lot of the spaghetti that's fallen around here, but for now we can still reasonably build off this base.
 
         // Just grabbing the specific mode here, but can add extra 'npcmenu' check from npcMode[0] if found to be necessary later
         switch (npcMode[1]) {
-
             case 'Back': {
                 setFocusObj({...focusObj, echo: `${focusObj.interactions['Talk'].prompt.echo}`, meta: 'Main'});
                 setContextualArray(['Leave', ...Object.keys(focusObj.interactions)]);
@@ -322,17 +314,27 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             case 'Sell':
             case 'Train':
             case 'Study': 
+                setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj?.interactions[npcMode[1]]?.prompt?.echo}"`, meta: npcMode[1]});
+                let newMenu = {...focusObj.interactions[npcMode[1]]};
+                delete newMenu.prompt;
+                newMenu = [...Object.keys(newMenu)];
+                setContextualArray(['Back', ...newMenu]);
+                dispatch({type: actions.UPDATE_VIEW_INDEX, payload: 0});
+                // Idle thought: can have a useEffect catching changes to focusObj instead of this 'npcmenu/refresh' silliness, ultimately
                 return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'npcmenu/refresh'});
             default: {
-                // Not bad! This works reasonably well.
-                // However, under this model there's no way to tell the client to handle anything back-end, if it's necessary...
-                // ... the first solution that comes to mind, as usual, is to adjust the key-value pairs in interactions.
-                // Specifically, instead of e.g. Ask: {'Your name?': 'Oh I'm Taran!'} -->
-                // Ask: {'Your name?': {echo: 'Oh I'm Taran!', type: 'textonly', otherData: 99}}
-                // Try this adjustment to the model...
-                // This currently is the catch-all for 'already in second tier' options, so need to define all first-tier options above
-                // Meaning that currently, any "base level" interaction with NPC's that are possible IG need to be defined above explicitly
-                // TO ADD, offhand: Buy, Sell, Train (rename?)
+                // This trickle-down default 'catches' all second-tier interactions. 
+                // Now, how to handle sending specific requests to backend for assessment?
+                // Well, we'll know from META what menu we're in, so we can parse from there.
+                if (focusObj.meta === 'Buy') {
+                    console.log(`It appears you wish to purchase this ${focusObj.interactions[focusObj.meta][npcMode[1]].name}?`);
+                    // Now, IDEALLY, we'd make a new confirm menu with cost when this happens.
+                    // meta set to BuyConfirm? :P
+                    // Double ideally, we'd have a prettier format for the inventory showing stats 'n such, our money, the cost, etc.
+                }
+                if (focusObj.meta === 'Train') {
+                    console.log(`It appears you wish to learn the ${focusObj.interactions[focusObj.meta][npcMode[1]].name} technique?`);
+                }
                 return setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj.interactions[focusObj.meta][npcMode[1]].echo}"`});
                 // return console.log(`NPC would respond with ${focusObj.interactions[focusObj.meta][npcMode[1]]}...?`);
             }

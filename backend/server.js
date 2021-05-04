@@ -779,12 +779,13 @@ class NPC {
             'Buy': {
                 // THIS: let's figure out how to classify items so they pass innocuously to the front-end but can make new items on the backend
                 'prompt': {echo: `I suppose I can sell you some basic supplies. Here's what I have:`},
-                'Warblade': {echo: `Whoowee!`, cost: 0, itemRef: {}, }
+                'Warblade': {echo: `Whoowee!`, name: 'Ancient Warblade', cost: {money: 0, }, itemRef: '', },
+                'Gold Crown': {echo: `Expensive!`, name: 'Golden Crown', cost: {money: 0, }, itemRef: '', },
             },
             'Train': {
                 // THIS: differentiate between Techs, Spells, other?
                 'prompt': {echo: `I know a thing or two. What would you like to learn?`},
-                'Dance Fighting': {echo: `Oh, my favorite. It doesn't even make sense! But it works!`}
+                'Dance Fighting': {echo: `Oh, my favorite. It doesn't even make sense! But it works!`, name: 'Slamdance', techRef: '', cost: {money: 0, tdps: 0}}
             }
             // can add other interactions here as inspiration strikes
         }
@@ -1920,9 +1921,11 @@ io.on('connection', (socket) => {
                         'prompt': `I'm afraid I'm new around here, so I can't really answer any of your questions... I'm sorry.`,
                         'Your name?': `Ah! Well, I can tell you that. My name is Taran.`
                     },
-            // can add other interactions here as inspiration strikes
-        }
+                    // can add other interactions here as inspiration strikes
+                 }
                 */
+
+                 // Ok, let's aim to receive an ACTION ('Buy'), TARGET (id), and GOAL (item to buy, tech to try to learn, etc.)
 
                 // This is the most basic version: drill down one layer. We run into trouble if there are no further layers, though. :P
                 // Should probably divide between what's being currently requested and the result we give; ASK vs BUY should open up quite different concepts
