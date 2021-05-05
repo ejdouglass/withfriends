@@ -817,6 +817,7 @@ export const BackpackColumn = styled.div`
     flex-direction: column;
     width: calc(70% / 3);
     box-sizing: border-box;
+    border-right: 1px solid black;
 `;
 
 export const BackpackItem = styled.div`
