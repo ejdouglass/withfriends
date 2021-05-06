@@ -87,6 +87,7 @@ export const Reducer = (state, action) => {
             // mobs/npcs will have a much more robust display including their glance and description for now
             // ... might have to add additional variables
             
+            // VIEW_TARGET always has a type and id, for raisins
             // console.log(`Setting viewTarget to ${action.payload}`);
             return {...state, viewTarget: action.payload};
         }

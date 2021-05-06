@@ -279,6 +279,10 @@ const CurrentFocusBox = ({ state, dispatch }) => {
     }, [state.viewIndex]);
 
     useEffect(() => {
+        // Just a hacky way to avoid an error during inventory -- forgot that I have this all set up for NPCINTERACT and nothing else :P
+        // Refactor later to properly handle different modes that go here
+        if (state.whatDo !== 'npcinteract') return;
+
         // THIS: rig it up to respond to choices made by user and drill down in menus; scoot contextualarray definition down here
         // Can use state.currentBarSelected for this? MEBBE.
         // Ok! This might work just fine if VIEW_TARGET is updated with something that can let us change currentBarSelected to 'npcmenu/Ask' or somesuch
@@ -335,7 +339,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                 if (focusObj.meta === 'Train') {
                     console.log(`It appears you wish to learn the ${focusObj.interactions[focusObj.meta][npcMode[1]].name} technique?`);
                 }
-                return setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj.interactions[focusObj.meta][npcMode[1]].echo}"`});
+                return setFocusObj({...focusObj, echo: `${focusObj?.name}: "${focusObj?.interactions[focusObj.meta][npcMode[1]]?.echo}"`});
                 // return console.log(`NPC would respond with ${focusObj.interactions[focusObj.meta][npcMode[1]]}...?`);
             }
         }
@@ -395,32 +399,32 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                 <InventoryContainer>
                     <EquippedContainer>
                         Equipped Gear
-                        <EquippedItem>Right Hand: {state.equipped?.rightHand.glance || '(Nothing)'}</EquippedItem>
-                        <EquippedItem>Left Hand: {state.equipped?.leftHand.glance || '(Nothing)'}</EquippedItem>
-                        <EquippedItem>Head: {state.equipped?.head.glance || '(Nothing)'}</EquippedItem>
-                        <EquippedItem>Body: {state.equipped?.body.glance || '(Nothing)'}</EquippedItem>
-                        <EquippedItem>Accessory: {state.equipped?.accessory1.glance || '(Nothing)'}</EquippedItem>
-                        <EquippedItem>Accessory: {state.equipped?.accessory2.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 0}>Right Hand: {state.equipped?.rightHand.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 1}>Left Hand: {state.equipped?.leftHand.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 2}>Head: {state.equipped?.head.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 3}>Body: {state.equipped?.body.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 4}>Accessory: {state.equipped?.accessory1.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 5}>Accessory: {state.equipped?.accessory2.glance || '(Nothing)'}</EquippedItem>
                     </EquippedContainer>
                     <BackpackContainer>
                         <BackpackColumn>
                         {state?.backpack?.contents1?.map((item, index) => (
-                            <BackpackItem key={index}>{item?.glance}</BackpackItem>
+                            <BackpackItem key={index} viewed={state?.currentBarSelected === 'inventory/1' && state?.viewTarget?.id === index}>{item?.glance}</BackpackItem>
                         ))}
                         </BackpackColumn>
                         <BackpackColumn>
                         {state?.backpack?.contents2?.map((item, index) => (
-                            <BackpackItem key={index}>{item?.glance}</BackpackItem>
+                            <BackpackItem key={index} viewed={state?.currentBarSelected === 'inventory/2' && state?.viewTarget?.id === index}>{item?.glance}</BackpackItem>
                         ))}
                         </BackpackColumn>
                         <BackpackColumn>
                         {state?.backpack?.contents3?.map((item, index) => (
-                            <BackpackItem key={index}>{item?.glance}</BackpackItem>
+                            <BackpackItem key={index} viewed={state?.currentBarSelected === 'inventory/3' && state?.viewTarget?.id === index}>{item?.glance}</BackpackItem>
                         ))}
                         </BackpackColumn>
                         <BackpackColumn>
                         {state?.backpack?.contents4?.map((item, index) => (
-                            <BackpackItem key={index}>{item?.glance}</BackpackItem>
+                            <BackpackItem key={index} viewed={state?.currentBarSelected === 'inventory/4' && state?.viewTarget?.id === index}>{item?.glance}</BackpackItem>
                         ))}
                         </BackpackColumn>                                                                        
 
@@ -433,19 +437,6 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         }
    }
 }
-
-/*
-
-
-
-
-
-
-
-
-
-
-*/
 
 
 const ViewBox = ({ state, dispatch }) => {

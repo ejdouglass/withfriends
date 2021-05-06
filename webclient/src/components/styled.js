@@ -801,11 +801,16 @@ export const EquippedItem = styled.div`
     justify-content: flex-start;
     align-items: center;
     padding: calc(0.3rem + 0.3vw) 0;
+    ${props => props.viewed && css`
+        background-color: #0AF;
+        color: white;
+        font-weight: 600;
+    `}
 `;
 
 export const BackpackContainer = styled.div`
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     width: 70%;
     box-sizing: border-box:
     border: 3px solid green;
@@ -815,7 +820,7 @@ export const BackpackContainer = styled.div`
 export const BackpackColumn = styled.div`
     display: flex;
     flex-direction: column;
-    width: calc(70% / 3);
+    width: calc(70% / 2);
     box-sizing: border-box;
     border-right: 1px solid black;
 `;
@@ -825,7 +830,14 @@ export const BackpackItem = styled.div`
     border-top: 1px solid black;
     justify-content: flex-start;
     align-items: center;
+    height: 30px;
     padding-left: calc(0.3rem + 0.3vw);
+    text-overflow: ellipsis;
+    ${props => props.viewed && css`
+        background-color: #0AF;
+        color: white;
+        font-weight: 600;
+    `}
 `;
 
 export const CombatContainer = styled(NPCInteractionContainer)`

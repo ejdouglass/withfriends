@@ -46,7 +46,13 @@ const Keyboard = () => {
                 if (e.key === 'f') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'forage'}});
                 if (e.key === 's') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'search'}});
                 if (e.key === 'm') return dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
-                if (e.key === 'i') return dispatch({type: actions.UPDATE_WHATDO, payload: 'inventory'})
+                if (e.key === 'i') {
+                    // Update viewIndex, currentBarSelected, and viewTarget:
+                    dispatch({type: actions.UPDATE_VIEW_INDEX});
+                    dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'inventory/1'});
+                    dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'inventory', id: 0}});
+                    return dispatch({type: actions.UPDATE_WHATDO, payload: 'inventory'});
+                }
                 if (e.key === 'Tab') {
                     e.preventDefault();
                     return dispatch({type: actions.UPDATE_WHATDO, payload: 'talk'});
@@ -149,6 +155,39 @@ const Keyboard = () => {
 
             case 'inventory': {
                 if (e.key === 'i') return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+                if (e.key === 'ArrowLeft') {
+                    if (state.currentBarSelected === 'inventory/1') {
+                        dispatch({type: actions.UPDATE_VIEW_INDEX});
+                        dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'equipment', id: 0}});
+                        return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'equipment'});
+                    }
+                    if (state.currentBarSelected === 'equipment') return;
+                    let inventorySpot = state.currentBarSelected.split('/');
+                    inventorySpot[1] = parseInt(inventorySpot[1]) - 1;
+                    return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: inventorySpot.join('/')});
+                }
+                if (e.key === 'ArrowRight') {
+                    if (state.currentBarSelected === 'equipment') {
+                        dispatch({type: actions.UPDATE_VIEW_INDEX});
+                        dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'inventory', id: 0}});
+                        return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'inventory/1'});
+                    }
+                    if (state.currentBarSelected === 'inventory/4') return;
+                    let inventorySpot = state.currentBarSelected.split('/');
+                    inventorySpot[1] = parseInt(inventorySpot[1]) + 1;
+                    return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: inventorySpot.join('/')});
+                }
+                if (e.key === 'ArrowUp') {
+                    if (state.viewIndex === 0) return;
+                    dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex - 1}});
+                    return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});
+                }
+                if (e.key === 'ArrowDown') {
+                    if (state.currentBarSelected === 'equipment' && state.viewIndex === 5) return;
+                    if (state.currentBarSelected.split('/')[0] === 'inventory' && state.viewIndex === 9) return;
+                    dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex + 1}});
+                    return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + 1});
+                }
                 break;
             }
 
