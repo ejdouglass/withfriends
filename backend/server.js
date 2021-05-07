@@ -1564,7 +1564,7 @@ app.post('/character/create', (req, res, next) => {
         accessory1: {},
         accessory2: {}
     };
-    newChar.backpack = {contents1: [{glance: 'Thingamajig'}, {glance: 'MacGuffin'}, {}, {}, {}, {}, {}, {}, {}, {}], contents2: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], contents3: null, contents4: null, stackModifiers: {}};
+    newChar.backpack = {contents1: [{glance: 'Thingamajig', description: `It appears to like to sing?`}, {glance: 'MacGuffin', description: `It's the very thing you were looking for!`}, {}, {}, {}, {}, {}, {}, {}, {}], contents2: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], contents3: null, contents4: null, size: 2, stackModifiers: {}};
 
     // THIS: Take the request from the user to create a new character, validate it (inputs okay, character name not yet taken), create, and pass back
     // Don't forget to create a charToken to pass back as well! This will be saved with the character on the client to allow further logging in.

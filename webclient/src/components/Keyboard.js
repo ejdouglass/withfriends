@@ -50,7 +50,7 @@ const Keyboard = () => {
                     // Update viewIndex, currentBarSelected, and viewTarget:
                     dispatch({type: actions.UPDATE_VIEW_INDEX});
                     dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'inventory/1'});
-                    dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'inventory', id: 0}});
+                    dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'inventory', id: 0, item: {...state.backpack?.contents1[0]}}});
                     return dispatch({type: actions.UPDATE_WHATDO, payload: 'inventory'});
                 }
                 if (e.key === 'Tab') {
@@ -154,38 +154,101 @@ const Keyboard = () => {
             }
 
             case 'inventory': {
+                // Having trouble with 'what's currently targeted' -- currently updating VIEW_TARGET id to include column/index in that format?
+                // Update again: using SPLIT every time is nonsense; update into new object with column and row
+                // Could also just pass in an ITEM for viewTarget that has all the item's stats and just reference that :P
                 if (e.key === 'i') return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
                 if (e.key === 'ArrowLeft') {
                     if (state.currentBarSelected === 'inventory/1') {
                         dispatch({type: actions.UPDATE_VIEW_INDEX});
-                        dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'equipment', id: 0}});
+                        dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'equipment', id: 0, item: {...state?.equipped?.rightHand}}});
                         return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'equipment'});
                     }
                     if (state.currentBarSelected === 'equipment') return;
                     let inventorySpot = state.currentBarSelected.split('/');
                     inventorySpot[1] = parseInt(inventorySpot[1]) - 1;
+                    dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'inventory', id: state.viewIndex, item: {...state?.backpack[`contents${inventorySpot[1].toString()}`][state.viewIndex]}}});
                     return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: inventorySpot.join('/')});
                 }
                 if (e.key === 'ArrowRight') {
+                    if (state.currentBarSelected === 'inventory/2' && state.backpack?.size < 3) return;
+                    if (state.currentBarSelected === 'inventory/3' && state.backpack?.size < 4) return;
                     if (state.currentBarSelected === 'equipment') {
                         dispatch({type: actions.UPDATE_VIEW_INDEX});
-                        dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'inventory', id: 0}});
+                        dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'inventory', id: 0, item: {...state?.backpack?.contents1[0]}}});
                         return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'inventory/1'});
                     }
                     if (state.currentBarSelected === 'inventory/4') return;
                     let inventorySpot = state.currentBarSelected.split('/');
                     inventorySpot[1] = parseInt(inventorySpot[1]) + 1;
+                    dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'inventory', id: state.viewIndex, item: {...state?.backpack[`contents${inventorySpot[1].toString()}`][state.viewIndex]}}});
                     return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: inventorySpot.join('/')});
                 }
                 if (e.key === 'ArrowUp') {
                     if (state.viewIndex === 0) return;
-                    dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex - 1}});
+                    let inventoryColumn = state.currentBarSelected.split('/');
+                    inventoryColumn = inventoryColumn[1];
+                    if (state.currentBarSelected === 'equipment') {
+                        let equipmentTarget;
+                        switch (state.viewIndex - 1) {
+                            case 0: {
+                                equipmentTarget = 'rightHand';
+                                break;
+                            }
+                            case 1: {
+                                equipmentTarget = 'leftHand';
+                                break;
+                            }
+                            case 2: {
+                                equipmentTarget = 'head';
+                                break;
+                            }
+                            case 3: {
+                                equipmentTarget = 'body';
+                                break;
+                            }
+                            case 4: {
+                                equipmentTarget = 'accessory1';
+                                break;
+                            }
+                        }
+                        dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex - 1, item: {...state?.equipped[equipmentTarget]}}});
+                    }
+                    if (state.currentBarSelected.split('/')[0] === 'inventory') dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex - 1, item: {...state?.backpack[`contents${inventoryColumn.toString()}`][state.viewIndex + 1]}}});
                     return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});
                 }
                 if (e.key === 'ArrowDown') {
                     if (state.currentBarSelected === 'equipment' && state.viewIndex === 5) return;
                     if (state.currentBarSelected.split('/')[0] === 'inventory' && state.viewIndex === 9) return;
-                    dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex + 1}});
+                    let inventoryColumn = state.currentBarSelected.split('/');
+                    inventoryColumn = inventoryColumn[1];
+                    if (state.currentBarSelected === 'equipment') {
+                        let equipmentTarget;
+                        switch (state.viewIndex + 1) {
+                            case 1: {
+                                equipmentTarget = 'leftHand';
+                                break;
+                            }
+                            case 2: {
+                                equipmentTarget = 'head';
+                                break;
+                            }
+                            case 3: {
+                                equipmentTarget = 'body';
+                                break;
+                            }
+                            case 4: {
+                                equipmentTarget = 'accessory1';
+                                break;
+                            }
+                            case 5: {
+                                equipmentTarget = 'accessory2';
+                                break;
+                            }
+                        }
+                        dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex + 1, item: {...state?.equipped[equipmentTarget]}}});                        
+                    }
+                    if (state.currentBarSelected.split('/')[0] === 'inventory') dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex + 1, item: {...state?.backpack[`contents${inventoryColumn.toString()}`][state.viewIndex + 1]}}});
                     return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + 1});
                 }
                 break;

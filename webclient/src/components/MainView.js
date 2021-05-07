@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton, InventoryContainer, EquippedContainer, EquippedItem, BackpackContainer, BackpackItem, BackpackColumn } from './styled';
+import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton, InventoryContainer, EquippedContainer, EquippedItem, BackpackContainer, BackpackItem, BackpackColumn, InventoryItemDetails } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -417,18 +417,21 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                             <BackpackItem key={index} viewed={state?.currentBarSelected === 'inventory/2' && state?.viewTarget?.id === index}>{item?.glance}</BackpackItem>
                         ))}
                         </BackpackColumn>
-                        <BackpackColumn>
+                        <BackpackColumn locked={state.backpack?.size < 3}>
                         {state?.backpack?.contents3?.map((item, index) => (
                             <BackpackItem key={index} viewed={state?.currentBarSelected === 'inventory/3' && state?.viewTarget?.id === index}>{item?.glance}</BackpackItem>
                         ))}
                         </BackpackColumn>
-                        <BackpackColumn>
+                        <BackpackColumn locked={state.backpack?.size < 4}>
                         {state?.backpack?.contents4?.map((item, index) => (
                             <BackpackItem key={index} viewed={state?.currentBarSelected === 'inventory/4' && state?.viewTarget?.id === index}>{item?.glance}</BackpackItem>
                         ))}
                         </BackpackColumn>                                                                        
 
                     </BackpackContainer>
+                    <InventoryItemDetails>
+                    {state?.viewTarget?.item?.description || `An ethereal whisper of an item.`}
+                    </InventoryItemDetails>
                 </InventoryContainer>
             )
         }

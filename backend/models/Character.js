@@ -44,7 +44,7 @@ const CharacterSchema = new Schema({
     tagged: Object,
     backpack: {
         type: Object,
-        default: {contents1: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], contents2: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], contents3: null, contents4: null, stackModifiers: {}}
+        default: {contents1: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], contents2: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], contents3: null, contents4: null, size: 2, stackModifiers: {}}
     },
     wallet: {type: Object, default: {
         gems: [],

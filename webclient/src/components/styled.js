@@ -823,6 +823,10 @@ export const BackpackColumn = styled.div`
     width: calc(70% / 2);
     box-sizing: border-box;
     border-right: 1px solid black;
+    ${props => props.locked && css`
+        background-color: #777;
+        border-right: 0;
+    `}
 `;
 
 export const BackpackItem = styled.div`
@@ -838,6 +842,18 @@ export const BackpackItem = styled.div`
         color: white;
         font-weight: 600;
     `}
+`;
+
+export const InventoryItemDetails = styled.div`
+    display: flex;
+    position: absolute;
+    box-sizing: border-box;
+    background-color: white;
+    font-size: (0.5rem + 0.5vw);
+    width: 100%;
+    height: 100px;
+    border: 3px solid orange;
+    top: 100%;
 `;
 
 export const CombatContainer = styled(NPCInteractionContainer)`
