@@ -753,6 +753,7 @@ class NPC {
         this.entityType = 'npc';
         this.name = name;
         this.level = 1; // Placeholder for now
+        this.stat = {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, spirit: 15};
         this.glance = glance; // Room/sidebar text
         this.location = location;
         this.description = description || `This being is very nondescript.`;
@@ -878,7 +879,6 @@ class Mob {
         this.name = '';
         this.glance = glance;
         this.stat = JSON.parse(JSON.stringify(stats)); // Deep copy. Just in case. :P Though may not end up doing it this way, can receive an obj and parse into separate fields in a fashion similar to Characer.
-        this.derivedStat = {};
         this.location = location;
         this.description = description || `This being is very nondescript.`;
         this.race = race;
@@ -916,8 +916,8 @@ class orchardGoblin {
         this.entityType = 'mob';
         this.mobType = {meta: 'humanoid', race: 'muglin'};
         this.spawnMessage = `Leaves rustle and twigs snap as ${this.glance} scrambles into view, its eyes darting from tree to tree hungrily.`;
-        this.baseStat = {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, charisma: 15};
-        this.derivedStat = {};
+        this.stat = {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, charisma: 15,
+            HPmax: 60, MPmax: 15};
         this.skill = {
             fighting: 5,
             gathering: 5,
@@ -930,7 +930,6 @@ class orchardGoblin {
             building: 0,
             medicine: 0
         };
-        this.secondaryStat = {HP: undefined, HPmax: 60, MP: 15, MPmax: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, DFL: undefined};
         this.mode = 'idle'; // gotta define modes and such, too, like wandering, self-care (later), etc.... may want to set 'default' names for ease and later mobs
         this.injuries = {}; // haven't decided how to define these quite yet
         this.equilibrium = 100;
@@ -945,8 +944,9 @@ class orchardGoblin {
     }
 
     init() {
-        // HERE: give an entityID, roll for gear, etc. and probably start up the actOut setTimeout loop and actInterval
-        // Roll up gear, 'equip' gear (not through equip function, just slap 'em into here real quick), calc all secondaryStats (fxn!)
+        // THIS: give an entityID, roll for gear, etc. and probably start up the actOut setTimeout loop and actInterval
+        // Roll up gear, 'equip' gear (not through equip function, just slap 'em into here real quick), calc all derivedStats (fxn!)
+        // Still not equipped with anything yet
         this.entityID = 'mob' + generateRandomID();
         // OH! Yeah, maybe we can roll up 'custom' glances for them, too. Separate them a little bit.
         let appearanceRoll = rando(1,10);
@@ -976,9 +976,11 @@ class orchardGoblin {
 
         // HERE: generate equipment
 
-        // HERE: calc secondaryStats, set starting HP/MP up to max
-        this.secondaryStat.HP = this.secondaryStat.HPmax;
-        this.secondaryStat.MP = this.secondaryStat.MPmax;
+        // HERE: calcStats fxn, once operational
+
+        // HERE: calc derivedStats, set starting HP/MP up to max
+        this.stat.HP = this.stat.HPmax;
+        this.stat.MP = this.stat.MPmax;
 
         this.actInterval = 8000;
         setTimeout(() => this.actOut(), this.actInterval);
@@ -1033,8 +1035,63 @@ class orchardGoblin {
 
 function calcStats(entity) {
     // THIS: pass in an entity, calculate their derived and secondary stats based on their skills, stats, equipment, buffs, debuffs, injuries, etc.
-    //  so, this SHOULD spit out a viable secondaryStats object, meaning we can just go ahead and choose either to
+    //  so, this SHOULD spit out a viable derivedStats object, meaning we can just go ahead and choose either to
     //  A) modify the entity directly, or B) RETURN the object and have any calling function do that for us
+    // Hmm... for now, I think I'll go with (A). Pass in the entity and set its stats on the fly using the same criteria regardless of entity.
+
+    /*
+        Times to run this:
+        -- creation
+        -- equipment change
+        -- status change
+        -- ???
+
+        ... oh, huh. I just realized that even "base" stats are derived, all of them being currently 15 plus any perk mods...
+        ... hmmm. So they're not any more "base" than the derivedStats. Plus there's a base HP value, as well...
+
+            WEAPON EXAMPLE:
+                    newChar.equipped.rightHand = new Item(
+                {mainType: 'weapon', buildType: 'sword', subType: 'straightblade', range: 'melee', skill: 'fighting', slot: 'hands', hands: 1},
+                `Scapping Sword`,
+                `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
+                {atk: 'str/50', def: 'agi/30'},
+                {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2'},
+                {physicalDamageBonus: 6},
+                [],
+                500            
+            );   
+
+            FROM CLASS:
+            class Item {
+                constructor(type, glance, description, stat, build, effects, techs, value) {
+                    this.type = type; // objectified - item type and subtypes, if applicable
+                    this.glance = glance;
+                    this.description = description;
+                    this.stat = stat; // objectified - derivedStats in the format of atk: 'agi/50'
+                    this.build = build; // objectified - size, weight, durability, materials, maybe level/quality/etc.
+                    this.effects = effects; // object with stuff like physicalDamageBonus, injuryBonus, etc.
+                    this.techs = techs;
+                    this.value = value; // ideally derived from materials as well as skill/difficulty in its creation modified by overall concept of rarity, buuuut whatever for now
+                    this.itemID = generateRandomID();
+                }
+            }
+
+
+
+        Stuff to consider:
+        -- perks: array of objects, iterate over to get totals (will define perks to have explicit and predictable stat boosts)
+        -- skills: skills directly impact especially 'secondary' stats like ATK, etc.
+        -- equipment: currently nothing is slated to provide 'flat' boosts, but rather have dependent boosts (that scale with relevant skill)
+        -- effects
+
+        Just made a "modifiers" object for character (will go and apply to other entities shortly if I like the name enough)
+            -- modifiers to skills, rolls, etc. (stuff like swordDamage, skinningWhatever, so on -- choose keys carefully for quick access across any requesting purpose)
+
+        Hm, effects is currently an object; pondering...
+        ... does it make more sense to turn it into an array to iterate over? An array of objects?
+        ... hm, what about stuff like poison? Bleeding? Want to be able to show that on the HUD.
+        ... eh, can just collect effectTypes while iterating and slap 'em up there
+    */
 }
 
 const connectionParams = {
@@ -1586,10 +1643,10 @@ app.post('/character/create', (req, res, next) => {
         case 'Gatherer': {
             newChar.equipped.leftHand = new Item(
                 {mainType: 'tool', buildType: 'dagger', subType: 'carving', range: 'melee', skill: 'gathering', slot: 'hands', hands: 1},
-                `an outdoors knife`,
+                `Outdoors Knife`,
                 `A short, single-edged iron knife with a sharp edge and tip and a comfortable grip. It seems well-suited to all manner of practical activities, from 
                 skinning to woodcarving.`,
-                {atk: 'agi/20'},
+                {atk: 'agi/30'},
                 {size: 2, weight: 3, durability: 500, maxDurability: 500, materials: 'iron/1,wood/1'},
                 {physicalDamageBonus: 3},
                 [],
@@ -1600,9 +1657,9 @@ app.post('/character/create', (req, res, next) => {
         case 'Laborer': {
             newChar.equipped.leftHand = new Item(
                 {mainType: 'tool', buildType: 'hammer', subType: 'hammer', range: 'melee', skill: 'building', slot: 'hands', hands: 1},
-                `a sturdy hammer`,
+                `Claw Hammer`,
                 `A simple but durable hammer.`,
-                {atk: 'str/20'},
+                {atk: 'str/30'},
                 {size: 3, weight: 3, durability: 500, maxDurability: 500, materials: 'iron/1,wood/2'},
                 {physicalDamageBonus: 3},
                 [],
@@ -1613,10 +1670,10 @@ app.post('/character/create', (req, res, next) => {
         case 'Healer': {
             newChar.equipped.leftHand = new Item(
                 {mainType: 'tool', buildType: 'rod', subType: 'channeling', range: 'melee', skill: 'medicine', slot: 'hands', hands: 1},
-                `a copper healer's rod`,
+                `Healer's Rod`,
                 `About as long as your arm, no thicker than two fingers, this wood-handled rod ends in a simple copper end fashioned into a symbol of 
                 peace and healing.`,
-                {res: 'spi/20'},
+                {res: 'spi/30'},
                 {size: 3, weight: 3, durability: 500, maxDurability: 500, materials: 'copper/2,wood/2'},
                 {magicalDamageBonus: 3},
                 [],
@@ -1630,9 +1687,9 @@ app.post('/character/create', (req, res, next) => {
         case 'Mercenary': {
             newChar.equipped.rightHand = new Item(
                 {mainType: 'weapon', buildType: 'sword', subType: 'straightblade', range: 'melee', skill: 'fighting', slot: 'hands', hands: 1},
-                `a broad-bladed iron sword`,
+                `Scapping Sword`,
                 `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
-                {atk: 'str/50', def: 'agi/20'},
+                {atk: 'str/50', def: 'agi/30'},
                 {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2'},
                 {physicalDamageBonus: 6},
                 [],
@@ -1643,10 +1700,10 @@ app.post('/character/create', (req, res, next) => {
         case 'Hedgewizard': {
             newChar.equipped.rightHand = new Item(
                 {mainType: 'weapon', buildType: 'staff', subType: 'wizard', range: 'melee', skill: 'casting', slot: 'hands', hands: 3},
-                `a topaz-tipped hedgewizard's staff`,
+                `Hedging Staff`,
                 `Longer than the average person is tall, this staff has been meticulously carved to be almost entirely smooth and uniform in its wood finish. It 
                 is topped with a simple copper fitting that houses a small sphere of topaz, presumably for amplifying magical intent and spellcasting focus.`,
-                {mag: 'wil/50', res: 'wis/20'},
+                {mag: 'wil/50', res: 'wis/30'},
                 {size: 5, weight: 3, durability: 500, maxDurability: 500, materials: 'copper/1,wood/4,topaz/1'},
                 {magicalDamageBonus: 6},
                 [],
@@ -1657,10 +1714,10 @@ app.post('/character/create', (req, res, next) => {
         case 'Thief': {
             newChar.equipped.rightHand = new Item(
                 {mainType: 'weapon', buildType: 'dagger', subType: 'stabbing', range: 'melee', skill: 'sneaking', slot: 'hands', hands: 1},
-                `a long narrow-bladed dagger`,
+                `Sleek Smallblade`,
                 `It has a simple, just-long-enough grip below an elegantly long blade with two slender but razor-sharp edges. Its overall profile is very 
                 minimalistic, making it very easy to conceal.`,
-                {atk: 'agi/50', acc: 'agi/20'},
+                {atk: 'agi/50', acc: 'agi/30'},
                 {size: 2, weight: 4, durability: 500, maxDurability: 500, materials: 'iron/2,wood/1'},
                 {physicalDamageBonus: 5},
                 [],
@@ -1674,9 +1731,9 @@ app.post('/character/create', (req, res, next) => {
         case 'Trader': {
             newChar.equipped.body = new Item(
                 {mainType: 'armor', buildType: 'clothes', subType: 'cloth', skill: 'sensing', slot: 'body'},
-                `fancy garb`,
+                `Merchant Robes`,
                 `The fancy clothes of an apsiring trader.`,
-                {def: 'spi/50', eva: 'wis/20'},
+                {def: 'spi/50', eva: 'wis/30'},
                 {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/4'},
                 {physicalDamageMitigation: 20},
                 [],
@@ -1687,9 +1744,9 @@ app.post('/character/create', (req, res, next) => {
         case 'Scribe': {
             newChar.equipped.body = new Item(
                 {mainType: 'armor', buildType: 'robes', subType: 'cloth', skill: 'scholarship', slot: 'body'},
-                `scholar's robes`,
+                `Scholar Robes`,
                 `Simple, clean, and comfortable robes with a simply adorned collar and hem with patterns indicating the wearer is a scholastic professional.`,
-                {def: 'int/50', eva: 'wis/20'},
+                {def: 'int/50', eva: 'wis/30'},
                 {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/6'},
                 {physicalDamageMitigation: 20},
                 [],
@@ -1700,10 +1757,10 @@ app.post('/character/create', (req, res, next) => {
         case 'Runner': {
             newChar.equipped.body = new Item(
                 {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'traversal', slot: 'body'},
-                `light runner's gear`,
+                `Swift Gear`,
                 `Minimalistic garb stitched together from snug but breathable cloth padded tactically here and there with pads of supple leather 
                 to ensure ease of movement while still providing some critical protection where it counts.`,
-                {def: 'agi/50', eva: 'agi/20'},
+                {def: 'agi/50', eva: 'agi/30'},
                 {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/3,leather/3'},
                 {physicalDamageMitigation: 20},
                 [],
@@ -1714,9 +1771,9 @@ app.post('/character/create', (req, res, next) => {
         case 'Apprentice': {
             newChar.equipped.body = new Item(
                 {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'crafting', slot: 'body'},
-                `sturdy artisan's gear`,
+                `Crafter Gear`,
                 `Simple but sturdy clothing of thick cloth reinforced with layers of leather at the joints and extremities.`,
-                {def: 'str/50', eva: 'agi/20'},
+                {def: 'str/50', eva: 'agi/30'},
                 {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/4,leather/4'},
                 {physicalDamageMitigation: 20, fireResist: 5},
                 [],

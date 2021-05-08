@@ -46,6 +46,7 @@ const Keyboard = () => {
                 if (e.key === 'f') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'forage'}});
                 if (e.key === 's') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'search'}});
                 if (e.key === 'm') return dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
+                if (e.key === 't') return dispatch({type: actions.UPDATE_WHATDO, payload: 'stats'});
                 if (e.key === 'i') {
                     // Update viewIndex, currentBarSelected, and viewTarget:
                     dispatch({type: actions.UPDATE_VIEW_INDEX});
@@ -153,6 +154,10 @@ const Keyboard = () => {
                 break;
             }
 
+            case 'stats': {
+                if (e.key === 't') return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+            }
+
             case 'inventory': {
                 // Having trouble with 'what's currently targeted' -- currently updating VIEW_TARGET id to include column/index in that format?
                 // Update again: using SPLIT every time is nonsense; update into new object with column and row
@@ -214,7 +219,7 @@ const Keyboard = () => {
                         }
                         dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex - 1, item: {...state?.equipped[equipmentTarget]}}});
                     }
-                    if (state.currentBarSelected.split('/')[0] === 'inventory') dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex - 1, item: {...state?.backpack[`contents${inventoryColumn.toString()}`][state.viewIndex + 1]}}});
+                    if (state.currentBarSelected.split('/')[0] === 'inventory') dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex - 1, item: {...state?.backpack[`contents${inventoryColumn.toString()}`][state.viewIndex - 1]}}});
                     return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});
                 }
                 if (e.key === 'ArrowDown') {

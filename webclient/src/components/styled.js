@@ -856,6 +856,12 @@ export const InventoryItemDetails = styled.div`
     top: 100%;
 `;
 
+export const StatusScreenContainer = styled(NPCInteractionContainer)`
+    top: 50px;
+    border: 4px solid green;
+    height: 100%;
+`;
+
 export const CombatContainer = styled(NPCInteractionContainer)`
     // moar here
 `;

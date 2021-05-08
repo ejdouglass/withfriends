@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton, InventoryContainer, EquippedContainer, EquippedItem, BackpackContainer, BackpackItem, BackpackColumn, InventoryItemDetails } from './styled';
+import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton, InventoryContainer, EquippedContainer, EquippedItem, BackpackContainer, BackpackItem, BackpackColumn, InventoryItemDetails, StatusScreenContainer, MagicContainer } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -389,9 +389,9 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         case 'magic': {
             // NOTE: currently this is the same 'small menu' as combat and such; will change later to be full-screen wackiness
             return (
-                <NPCInteractionContainer>
+                <MagicContainer>
                     BEEP BOOP
-                </NPCInteractionContainer>
+                </MagicContainer>
             )
         }
         case 'inventory': {
@@ -405,6 +405,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                         <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 3}>Body: {state.equipped?.body.glance || '(Nothing)'}</EquippedItem>
                         <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 4}>Accessory: {state.equipped?.accessory1.glance || '(Nothing)'}</EquippedItem>
                         <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 5}>Accessory: {state.equipped?.accessory2.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem>Money: {`${state?.wallet?.coins[0] + state?.wallet?.coins[1] * 100 + state?.wallet?.coins[2] * 10000 + state?.wallet?.coins[3] * 1000000} (${state?.wallet?.coins[0]}c, ${state?.wallet?.coins[1]}s, ${state?.wallet?.coins[2]}g, ${state?.wallet?.coins[3]}p)`}</EquippedItem>
                     </EquippedContainer>
                     <BackpackContainer>
                         <BackpackColumn>
@@ -433,6 +434,13 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                     {state?.viewTarget?.item?.description || `An ethereal whisper of an item.`}
                     </InventoryItemDetails>
                 </InventoryContainer>
+            )
+        }
+        case 'stats': {
+            return (
+                <StatusScreenContainer>
+
+                </StatusScreenContainer>
             )
         }
         default: {

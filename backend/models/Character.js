@@ -25,15 +25,11 @@ const CharacterSchema = new Schema({
     experience: {type: Object, default: {
         exp: 0
     }},
-    baseStat: {
+    stat: {
         type: Object, 
         required: true,
-        default: {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, spirit: 15}
-    },
-    derivedStat: Object,
-    secondaryStat: {
-        type: Object,
-        default: {HP: undefined, HPmax: undefined, MP: undefined, MPmax: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, LUK: undefined}
+        default: {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, spirit: 15, 
+            HP: undefined, HPmax: undefined, MP: undefined, MPmax: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, LUK: undefined}
     },
     injuries: Object, // thinking adding key=type, and other stats... 
     target: Object, // Just leaving this here for now... thinking through its implementation, may remove or reconfigure
@@ -63,7 +59,8 @@ const CharacterSchema = new Schema({
     },
     buffs: Array,
     debuffs: Array, // hm, thinking of just having an 'effects' object instead... with keys such as atkUP, atkDOWN, poison, etc.
-    effects: Object, // probably will just go with this
+    effects: Array, // probably will just go with this
+    modifiers: Object, // pondering implementation
     position: {type: String, default: 'standing'},
     skill: {
         type: Object,
