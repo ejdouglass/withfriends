@@ -633,6 +633,7 @@ class SpawnMap {
 let Rivercrossing = new Zone('Town of Rivercrossing');
 let WestOfRivercrossing = new Zone('West of Rivercrossing');
 
+// Hm... add an 'iconImgSrc' attribute?
 class Item {
     constructor(type, glance, description, stat, build, effects, techs, value) {
         this.type = type; // objectified - item type and subtypes, if applicable
@@ -916,8 +917,12 @@ class orchardGoblin {
         this.entityType = 'mob';
         this.mobType = {meta: 'humanoid', race: 'muglin'};
         this.spawnMessage = `Leaves rustle and twigs snap as ${this.glance} scrambles into view, its eyes darting from tree to tree hungrily.`;
-        this.stat = {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, charisma: 15,
-            HPmax: 60, MPmax: 15};
+        this.stat = {
+            seed: {HPmax: 60, MPmax: 15, strength: 10, agility: 10, constitution: 10, willpower: 10, intelligence: 10, wisdom: 10, spirit: 10},
+            strength: undefined, agility: undefined, constitution: undefined, willpower: undefined, intelligence: undefined, wisdom: undefined, charisma: undefined,
+            HP: undefined, HPmax: undefined, MP: undefined, MPmax: undefined,
+            ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, LUK: undefined
+        };
         this.skill = {
             fighting: 5,
             gathering: 5,
@@ -930,8 +935,11 @@ class orchardGoblin {
             building: 0,
             medicine: 0
         };
+        this.backpack = {contents: []};
+        this.wallet = {gems: [], coins: [0, 0, 0, 0]}; // thinking this will be 'stealable' money/gems
         this.mode = 'idle'; // gotta define modes and such, too, like wandering, self-care (later), etc.... may want to set 'default' names for ease and later mobs
         this.injuries = {}; // haven't decided how to define these quite yet
+        this.modifiers = {};
         this.equilibrium = 100;
         this.stance = 300;
         this.equipped = {rightHand: undefined, leftHand: undefined, head: undefined, torso: undefined, accessory1: undefined, accessory2: undefined};
@@ -1050,7 +1058,7 @@ function calcStats(entity) {
         ... hmmm. So they're not any more "base" than the derivedStats. Plus there's a base HP value, as well...
 
             WEAPON EXAMPLE:
-                    newChar.equipped.rightHand = new Item(
+                newChar.equipped.rightHand = new Item(
                 {mainType: 'weapon', buildType: 'sword', subType: 'straightblade', range: 'melee', skill: 'fighting', slot: 'hands', hands: 1},
                 `Scapping Sword`,
                 `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
@@ -1076,7 +1084,14 @@ function calcStats(entity) {
                 }
             }
 
+        Finally, STATS TO CALC:
+        strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, spirit: 15, 
+        HP: undefined, HPmax: undefined, MP: undefined, MPmax: undefined, 
+        ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, LUK: undefined
 
+        Miiiiight have to improve the creation process and add at least basic perks to test this properly, buuuuut...
+        ... we can definitely add skills, equipment, and base stats
+        ... 
 
         Stuff to consider:
         -- perks: array of objects, iterate over to get totals (will define perks to have explicit and predictable stat boosts)
@@ -1092,6 +1107,24 @@ function calcStats(entity) {
         ... hm, what about stuff like poison? Bleeding? Want to be able to show that on the HUD.
         ... eh, can just collect effectTypes while iterating and slap 'em up there
     */
+
+    // STEP 1: calc 'base' stats -- str, agi, etc.
+    // STEP 2: calc 'derived' stats -- HPmax, MPmax, ATK, MAG, etc.
+    // note: for init() of characters and mobs and entities of the like, we'll set HP to max HP manually during the creation process/fxns
+    // Deciding on stat rolls now. Here we go!
+
+    // HERE: calc base stats boosted from perks (currently unavailable due to lack of perks :P)
+
+    entity.stat.HPmax = 0;
+    entity.stat.MPmax = 0;
+    entity.stat.ATK = 0;
+    entity.stat.MAG = 0;
+    entity.stat.DEF = 0;
+    entity.stat.RES = 0;
+    entity.stat.ACC = 0;
+    entity.stat.EVA = 0;
+    entity.stat.FOC = 0;
+    entity.stat.LUK = 0;
 }
 
 const connectionParams = {

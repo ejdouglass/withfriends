@@ -28,8 +28,12 @@ const CharacterSchema = new Schema({
     stat: {
         type: Object, 
         required: true,
-        default: {strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, spirit: 15, 
-            HP: undefined, HPmax: undefined, MP: undefined, MPmax: undefined, ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, LUK: undefined}
+        default: {
+            seed: {HPmax: 100, MPmax: 15, strength: 10, agility: 10, constitution: 10, willpower: 10, intelligence: 10, wisdom: 10, spirit: 10},
+            strength: undefined, agility: undefined, constitution: undefined, willpower: undefined, intelligence: undefined, wisdom: undefined, spirit: undefined, 
+            HP: undefined, HPmax: undefined, MP: undefined, MPmax: undefined, 
+            ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, LUK: undefined
+        }
     },
     injuries: Object, // thinking adding key=type, and other stats... 
     target: Object, // Just leaving this here for now... thinking through its implementation, may remove or reconfigure
