@@ -1106,17 +1106,47 @@ function calcStats(entity) {
         ... does it make more sense to turn it into an array to iterate over? An array of objects?
         ... hm, what about stuff like poison? Bleeding? Want to be able to show that on the HUD.
         ... eh, can just collect effectTypes while iterating and slap 'em up there
+
+        Here's our skill list: 
+            fighting: 5, -- adds ATK, DEF
+            gathering: 5, -- adds HPmax, MPmax
+            sneaking: 0, -- adds ACC, EVA
+            traversal: 0, -- adds LUK, MPmax
+            crafting: 0, -- adds ACC, FOC
+            spellcasting: 0, -- adds MAG, RES
+            scholarship: 0, -- adds MAG, FOC
+            sensing: 5, -- adds EVA, LUK
+            building: 0, -- adds ATK, HPmax
+            medicine: 0 -- adds RES, DEF
+            Yay. Starting out, point-for-point!
+
+
+        ... ok. Now, let's think how (core) STATS influence (again point for point to begin with) stats...
+        ... we can weight stats 'higher' and have each stat add 10 points. DONE :P (Just make sure the splits are balanced)
+        ... this means that the total addition from stats should be +10 for each cumulatively
+        ... ok, that's shenanigans, each stat now will give 3 points total, for 21 points across 10 sub-stats, so each sub-stat gets 2 total
+        strength: 15 -- adds 1-ATK, 1-DEF, 1-HPmax
+        agility: 15 -- adds 1-ATK, 1-ACC, 1-EVA
+        constitution: 15 -- adds 1-HPmax, 1-DEF
+        willpower: 15 -- adds 1-MAG, 1-RES, 1-MPmax
+        intelligence: 15 -- adds 1-MAG, 1-FOC, 1-LUK
+        wisdom: 15 -- adds 1-RES, 1-FOC
+        spirit: 15 -- adds 1-ACC, 1-EVA, 1-LUK
+        NOTE that we have 7 stats for 10 derived, so... hmmm, dunno the best way to 'balance' it 
+
+        ... gotta have a better concept for how MP is defined in this concept :P Right now it's just kind of "physical energy" which is skewing away from mental stats.
+
     */
 
-    // STEP 1: calc 'base' stats -- str, agi, etc.
+    // STEP 1: calc 'base' stats -- str, agi, etc. (we now have access to stat.seed for the core stuff)
     // STEP 2: calc 'derived' stats -- HPmax, MPmax, ATK, MAG, etc.
     // note: for init() of characters and mobs and entities of the like, we'll set HP to max HP manually during the creation process/fxns
     // Deciding on stat rolls now. Here we go!
 
     // HERE: calc base stats boosted from perks (currently unavailable due to lack of perks :P)
 
-    entity.stat.HPmax = 0;
-    entity.stat.MPmax = 0;
+    entity.stat.HPmax = entity.stat.seed.HPmax;
+    entity.stat.MPmax = entity.stat.seed.MPmax;
     entity.stat.ATK = 0;
     entity.stat.MAG = 0;
     entity.stat.DEF = 0;
