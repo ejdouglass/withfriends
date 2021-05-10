@@ -1130,8 +1130,8 @@ function calcStats(entity) {
         constitution: 15 -- adds 1-HPmax, 1-DEF
         willpower: 15 -- adds 1-MAG, 1-RES, 1-MPmax
         intelligence: 15 -- adds 1-MAG, 1-FOC, 1-LUK
-        wisdom: 15 -- adds 1-RES, 1-FOC
-        spirit: 15 -- adds 1-ACC, 1-EVA, 1-LUK
+        wisdom: 15 -- adds 1-RES, 1-FOC, 1-ACC
+        spirit: 15 -- adds 1-HPmax, 1-EVA, 1-LUK
         NOTE that we have 7 stats for 10 derived, so... hmmm, dunno the best way to 'balance' it 
 
         ... gotta have a better concept for how MP is defined in this concept :P Right now it's just kind of "physical energy" which is skewing away from mental stats.
@@ -1145,16 +1145,26 @@ function calcStats(entity) {
 
     // HERE: calc base stats boosted from perks (currently unavailable due to lack of perks :P)
 
-    entity.stat.HPmax = entity.stat.seed.HPmax;
-    entity.stat.MPmax = entity.stat.seed.MPmax;
-    entity.stat.ATK = 0;
-    entity.stat.MAG = 0;
-    entity.stat.DEF = 0;
-    entity.stat.RES = 0;
-    entity.stat.ACC = 0;
-    entity.stat.EVA = 0;
-    entity.stat.FOC = 0;
-    entity.stat.LUK = 0;
+    // Will likely add accelerating modifiers so that 1-to-1 skills can be upgraded later, but this is just a note for that in the future
+
+    // Since we're going for a partially 'relative' situation (ATK vs DEF ratio, etc.), it makes sense to seed the stats -- starting with 10 across the board for now
+    // Stats should always be at least 1, so they'll always be non-zero, but an extra boost should help round out "low number" issues a bit
+    // Don't forget to factor in modifiers (from effects, etc.)
+    // For MPmax, might 'decelerate' its growth by applying an MPmodifier variable attached to the entity later (to the non-seed portion)
+
+    // FIRST SECTION: 'base' substats
+    entity.stat.HPmax = entity.stat.seed.HPmax + entity.skill.gathering + entity.skill.building + entity.stat.strength + entity.stat.constitution + entity.stat.spirit;
+    entity.stat.MPmax = entity.stat.seed.MPmax + entity.skill.gathering + entity.skill.traversal + entity.stat.willpower;
+    entity.stat.ATK = 10 + entity.skill.fighting + entity.skill.building + entity.stat.strength + entity.stat.agility;
+    entity.stat.MAG = 10 + entity.skill.spellcasting + entity.skill.scholarship + entity.stat.willpower + entity.stat.intelligence;
+    entity.stat.DEF = 10 + entity.skill.fighting + entity.skill.medicine + entity.stat.strength + entity.stat.constitution;
+    entity.stat.RES = 10 + entity.skill.spellcasting + entity.skill.medicine + entity.stat.willpower + entity.stat.wisdom;
+    entity.stat.ACC = 10 + entity.skill.sneaking + entity.skill.crafting + entity.stat.agility + entity.stat.wisdom;
+    entity.stat.EVA = 10 + entity.skill.sneaking + entity.skill.sensing + entity.stat.agility + entity.stat.spirit;
+    entity.stat.FOC = 10 + entity.skill.crafting + entity.skill.scholarship + entity.stat.intelligence + entity.stat.wisdom;
+    entity.stat.LUK = 10 + entity.skill.traversal + entity.skill.sensing + entity.stat.intelligence + entity.stat.spirit;
+
+    // SECOND SECTION: equipment mods -- refer to comments section above for how those are modeled
 }
 
 const connectionParams = {
