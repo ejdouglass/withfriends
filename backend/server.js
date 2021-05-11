@@ -1054,15 +1054,20 @@ function calcStats(entity) {
         -- status change
         -- ???
 
-        ... oh, huh. I just realized that even "base" stats are derived, all of them being currently 15 plus any perk mods...
-        ... hmmm. So they're not any more "base" than the derivedStats. Plus there's a base HP value, as well...
+            ... trying not to overthink it, but now wondering at 'single-stat spreads' per tool?
+            ... maybe reframe as AGI: 'ATK/50,ACC/30,EVA/10' ... weapons/tools with descending base stats
+            ... secondary stat would maybe default to 30/10, and tertiary at just 10?
+            ... higher 'rarity' or quality weapons would be eligible for these additional stat boosts, but we can sort that out later
+            ... I do like the idea of a main 'skill' and 'stat' for each weapon, along with 2~3 'speciality' perks (like +backstab, etc.) and a tech attached
+
+            ... so, for now, maybe just rescale one "class" starter weapon, and just have 'Dekanax' be that class until further notice as we test
 
             WEAPON EXAMPLE:
                 newChar.equipped.rightHand = new Item(
                 {mainType: 'weapon', buildType: 'sword', subType: 'straightblade', range: 'melee', skill: 'fighting', slot: 'hands', hands: 1},
                 `Scapping Sword`,
                 `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
-                {atk: 'str/50', def: 'agi/30'},
+                {atk: 'str/50', def: 'agi/30'}, ... oh, heck. I'ma have to change those to ATK from atk, aren't I? Yeah, that'd be best.
                 {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2'},
                 {physicalDamageBonus: 6},
                 [],
@@ -1165,6 +1170,20 @@ function calcStats(entity) {
     entity.stat.LUK = 10 + entity.skill.traversal + entity.skill.sensing + entity.stat.intelligence + entity.stat.spirit;
 
     // SECOND SECTION: equipment mods -- refer to comments section above for how those are modeled
+    // currently, weapon.stat = {strength: 'ATK/50,DEF/30,ACC/10'}
+    // Just a thought, this can be the 'fullCalc' function, but it's not unreasonable to have a separate function for the first section above and the equipment sxn below
+    // Gonna bang out the core logic right now, then create a 'add equipment stats to entity' function right below and use it for all equipment slots
+    if (entity.equipped.rightHand) {
+        // Let's see, how to parse above... well, can do for-in for object? One sec... ok, for (const property in statObj)? Let's see...
+        for (const guidingStat in entity.equipped.rightHand.stat) {
+            // For each item such as STRENGTH above, we need to pull out all the substats, and successfully apply them to the right substats based on the main stat
+            // ... modifying upward based on the weapon.type.skill
+            let baseBonusArray = entity.equipped.rightHand.stat[guidingStat].split(','); // i.e. ['ATK/50', 'DEF/30', 'ACC/10']
+            baseBonusArray.forEach(bonus => {
+                let bonusSplitArray = bonus.split('/'); // i.e. ['ATK', '50']
+            })
+        }
+    }
 }
 
 const connectionParams = {
@@ -1762,12 +1781,12 @@ app.post('/character/create', (req, res, next) => {
                 {mainType: 'weapon', buildType: 'sword', subType: 'straightblade', range: 'melee', skill: 'fighting', slot: 'hands', hands: 1},
                 `Scapping Sword`,
                 `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
-                {atk: 'str/50', def: 'agi/30'},
+                {strength: 'ATK/50,DEF/30,ACC/10'},
                 {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2'},
                 {physicalDamageBonus: 6},
                 [],
                 500            
-            );              
+            );
             break;
         }
         case 'Hedgewizard': {
@@ -1781,7 +1800,7 @@ app.post('/character/create', (req, res, next) => {
                 {magicalDamageBonus: 6},
                 [],
                 500            
-            );  
+            );
             break;
         }
         case 'Thief': {
@@ -1795,7 +1814,7 @@ app.post('/character/create', (req, res, next) => {
                 {physicalDamageBonus: 5},
                 [],
                 500            
-            );  
+            );
             break;
         }
     }
