@@ -1054,24 +1054,62 @@ function calcStats(entity) {
         -- status change
         -- ???
 
-            ... trying not to overthink it, but now wondering at 'single-stat spreads' per tool?
-            ... maybe reframe as AGI: 'ATK/50,ACC/30,EVA/10' ... weapons/tools with descending base stats
-            ... secondary stat would maybe default to 30/10, and tertiary at just 10?
-            ... higher 'rarity' or quality weapons would be eligible for these additional stat boosts, but we can sort that out later
-            ... I do like the idea of a main 'skill' and 'stat' for each weapon, along with 2~3 'speciality' perks (like +backstab, etc.) and a tech attached
+
+            ... I do like the idea of a main 'skill' and 'stat' for each weapon, along with 2~3 'speciality' perks (like +backstab, skinning, etc.) and a tech attached
 
             ... so, for now, maybe just rescale one "class" starter weapon, and just have 'Dekanax' be that class until further notice as we test
 
+            Let's remodel how weapons/armor work.
+            Simplify weapon... if it's a weapon, it raises ATK and/or MAG by some basic value, which itself is amplified by skill.
+                -- reconfig the bonus from stats
+            Example:
+            Scrapping Sword - 15 base atk, fighting skill, strength stat, 'heft' (extra raw bonus damage from str)
+            Thief Knife - 10 atk, 5 acc, sneaking, 'precision' (something-something crit rate/dmg)
+                -- 'heft,' 'precision' are creation/crafting elements attached to the 'build' of the item, and calculate its base stats on creation
+                -- listed in its build, not necessarily 'live' attributes
+
+            @latest - items (weapons in particular)
+
+            add:
+                improvement potential (varname undecided, points spent/points available for customization)
+
+            core stats for all weapons:
+                damType (new: damage mod for moves & injury purposes)
+                ATK, ACC, MAG, FOC - scale off main skill for that weapon
+                (for scaling, we'll assume [skill + stat]% bonus... so 10 str and 10 fighting on a str-fighting weapon is 20% total boost to flat stats)
+                
+
+
+            body (armor)
+            - primary source of defensive stats, protective qualities, protection techs
+                DEF, EVA, RES, LUK - scale off main skill for that armor
+
+
+            head
+            - "fills in the gaps" depending on type of headgear (helmet enhances core defense, circlet, twist headband, etc.)
+                can provide boosts to just about anything, which (as above) scale off the main skill for that piece of equipment
+
+
+            accessories
+            - generally, flat stats and flat effect gear (achieved through having no 'skill' attached to them)
+
+
+
+            other qualities? -- 'killer' effects, injury parameters
+
             WEAPON EXAMPLE:
                 newChar.equipped.rightHand = new Item(
-                {mainType: 'weapon', buildType: 'sword', subType: 'straightblade', range: 'melee', skill: 'fighting', slot: 'hands', hands: 1},
+                {
+                    mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
+                    enhancements: 0, quality: 30
+                },
                 `Scapping Sword`,
                 `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
-                {atk: 'str/50', def: 'agi/30'}, ... oh, heck. I'ma have to change those to ATK from atk, aren't I? Yeah, that'd be best.
-                {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2'},
+                {ATK: 15, ACC: 5, MAG: 5, FOC: 5},
+                {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2', attributes: 'heft'},
                 {physicalDamageBonus: 6},
                 [],
-                500            
+                500
             );   
 
             FROM CLASS:
@@ -1113,31 +1151,33 @@ function calcStats(entity) {
         ... eh, can just collect effectTypes while iterating and slap 'em up there
 
         Here's our skill list: 
-            fighting: 5, -- adds ATK, DEF
-            gathering: 5, -- adds HPmax, MPmax
-            sneaking: 0, -- adds ACC, EVA
-            traversal: 0, -- adds LUK, MPmax
-            crafting: 0, -- adds ACC, FOC
-            spellcasting: 0, -- adds MAG, RES
-            scholarship: 0, -- adds MAG, FOC
-            sensing: 5, -- adds EVA, LUK
-            building: 0, -- adds ATK, HPmax
-            medicine: 0 -- adds RES, DEF
-            Yay. Starting out, point-for-point!
+            fighting: 5
+            gathering: 5
+            sneaking: 0
+            traversal: 0
+            crafting: 0
+            spellcasting: 0
+            scholarship: 0
+            sensing: 5
+            building: 0
+            medicine: 0
+            Each skill raises a stat? Hm. By some modifier? 1-to-1 seems a lot to start with. Or not!
+            ... or we can just have the skills be skills, and have bonuses come from perks and just let the skills dicate their own areas.
 
 
         ... ok. Now, let's think how (core) STATS influence (again point for point to begin with) stats...
         ... we can weight stats 'higher' and have each stat add 10 points. DONE :P (Just make sure the splits are balanced)
         ... this means that the total addition from stats should be +10 for each cumulatively
-        ... ok, that's shenanigans, each stat now will give 3 points total, for 21 points across 10 sub-stats, so each sub-stat gets 2 total
-        strength: 15 -- adds 1-ATK, 1-DEF, 1-HPmax
-        agility: 15 -- adds 1-ATK, 1-ACC, 1-EVA
-        constitution: 15 -- adds 1-HPmax, 1-DEF
-        willpower: 15 -- adds 1-MAG, 1-RES, 1-MPmax
-        intelligence: 15 -- adds 1-MAG, 1-FOC, 1-LUK
-        wisdom: 15 -- adds 1-RES, 1-FOC, 1-ACC
-        spirit: 15 -- adds 1-HPmax, 1-EVA, 1-LUK
-        NOTE that we have 7 stats for 10 derived, so... hmmm, dunno the best way to 'balance' it 
+
+        strength: 10
+        agility: 10
+        constitution: 10
+        willpower: 10
+        intelligence: 10
+        wisdom: 10
+        spirit: 10
+        ... eh, just have them calculated in different rolls. 
+        
 
         ... gotta have a better concept for how MP is defined in this concept :P Right now it's just kind of "physical energy" which is skewing away from mental stats.
 
@@ -1157,32 +1197,49 @@ function calcStats(entity) {
     // Don't forget to factor in modifiers (from effects, etc.)
     // For MPmax, might 'decelerate' its growth by applying an MPmodifier variable attached to the entity later (to the non-seed portion)
 
+    const eStat = entity.stat;
+    const eSkill = entity.skill;
     // FIRST SECTION: 'base' substats
     entity.stat.HPmax = entity.stat.seed.HPmax + entity.skill.gathering + entity.skill.building + entity.stat.strength + entity.stat.constitution + entity.stat.spirit;
     entity.stat.MPmax = entity.stat.seed.MPmax + entity.skill.gathering + entity.skill.traversal + entity.stat.willpower;
-    entity.stat.ATK = 10 + entity.skill.fighting + entity.skill.building + entity.stat.strength + entity.stat.agility;
-    entity.stat.MAG = 10 + entity.skill.spellcasting + entity.skill.scholarship + entity.stat.willpower + entity.stat.intelligence;
-    entity.stat.DEF = 10 + entity.skill.fighting + entity.skill.medicine + entity.stat.strength + entity.stat.constitution;
-    entity.stat.RES = 10 + entity.skill.spellcasting + entity.skill.medicine + entity.stat.willpower + entity.stat.wisdom;
-    entity.stat.ACC = 10 + entity.skill.sneaking + entity.skill.crafting + entity.stat.agility + entity.stat.wisdom;
-    entity.stat.EVA = 10 + entity.skill.sneaking + entity.skill.sensing + entity.stat.agility + entity.stat.spirit;
-    entity.stat.FOC = 10 + entity.skill.crafting + entity.skill.scholarship + entity.stat.intelligence + entity.stat.wisdom;
-    entity.stat.LUK = 10 + entity.skill.traversal + entity.skill.sensing + entity.stat.intelligence + entity.stat.spirit;
+    eStat.ATK = 5;
+    eStat.MAG = 5;
+    eStat.DEF = 5;
+    eStat.RES = 5;
+    eStat.ACC = 5;
+    eStat.EVA = 5;
+    eStat.FOC = 5;
+    eStat.LUK = 5;
 
     // SECOND SECTION: equipment mods -- refer to comments section above for how those are modeled
-    // currently, weapon.stat = {strength: 'ATK/50,DEF/30,ACC/10'}
-    // Just a thought, this can be the 'fullCalc' function, but it's not unreasonable to have a separate function for the first section above and the equipment sxn below
-    // Gonna bang out the core logic right now, then create a 'add equipment stats to entity' function right below and use it for all equipment slots
+    // Ok, I've decided the currently proposed model is not currently ideal. Let's simplify!
+    /*
+    newChar.equipped.rightHand = new Item(
+        {
+            mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
+            enhancements: 0, quality: 30
+        },
+        `Scapping Sword`,
+        `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
+        {ATK: 15, ACC: 5, MAG: 5, FOC: 5},
+        {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2', attributes: 'heft'},
+        {physicalDamageBonus: 6},
+        [],
+        500
+    );
+    */
     if (entity.equipped.rightHand) {
-        // Let's see, how to parse above... well, can do for-in for object? One sec... ok, for (const property in statObj)? Let's see...
-        for (const guidingStat in entity.equipped.rightHand.stat) {
-            // For each item such as STRENGTH above, we need to pull out all the substats, and successfully apply them to the right substats based on the main stat
-            // ... modifying upward based on the weapon.type.skill
-            let baseBonusArray = entity.equipped.rightHand.stat[guidingStat].split(','); // i.e. ['ATK/50', 'DEF/30', 'ACC/10']
-            baseBonusArray.forEach(bonus => {
-                let bonusSplitArray = bonus.split('/'); // i.e. ['ATK', '50']
-            })
-        }
+        // do we need to check if mainType is weapon here? ... maybe?... let's say yes, always a weapon, tools checked automatically for tool-tasks
+        // so, apply the .stat to the character, modified by the factor of skill.split('/')[0] by that [1]
+        let skillModArray = entity.equipped.rightHand.type.skill.split('/');
+        let skillMod = eSkill[skillModArray[0]] * skillModArray[1] / 100;
+        let statModArray = entity.equipped.rightHand.type.stat.split('/');
+        let statMod = eStat[statModArray[0]] * statModArray[1] / 100;
+        let totalMod = 1 + skillMod + statMod;
+        eStat.ATK += entity.equipped.rightHand.stat.ATK * totalMod;
+        eStat.ACC += entity.equipped.rightHand.stat.ACC * totalMod;
+        eStat.MAG += entity.equipped.rightHand.stat.MAG * totalMod;
+        eStat.FOC += entity.equipped.rightHand.stat.FOC * totalMod;
     }
 }
 
