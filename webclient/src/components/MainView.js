@@ -399,12 +399,12 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                 <InventoryContainer>
                     <EquippedContainer>
                         Equipped Gear
-                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 0}>Right Hand: {state.equipped?.rightHand.glance || '(Nothing)'}</EquippedItem>
-                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 1}>Left Hand: {state.equipped?.leftHand.glance || '(Nothing)'}</EquippedItem>
-                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 2}>Head: {state.equipped?.head.glance || '(Nothing)'}</EquippedItem>
-                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 3}>Body: {state.equipped?.body.glance || '(Nothing)'}</EquippedItem>
-                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 4}>Accessory: {state.equipped?.accessory1.glance || '(Nothing)'}</EquippedItem>
-                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 5}>Accessory: {state.equipped?.accessory2.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 0}>Right Hand: {state.equipped?.rightHand?.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 1}>Left Hand: {state.equipped?.leftHand?.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 2}>Head: {state.equipped?.head?.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 3}>Body: {state.equipped?.body?.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 4}>Accessory: {state.equipped?.accessory1?.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 5}>Accessory: {state.equipped?.accessory2?.glance || '(Nothing)'}</EquippedItem>
                         <EquippedItem>Money: {`${state?.wallet?.coins[0] + state?.wallet?.coins[1] * 100 + state?.wallet?.coins[2] * 10000 + state?.wallet?.coins[3] * 1000000} (${state?.wallet?.coins[0]}c, ${state?.wallet?.coins[1]}s, ${state?.wallet?.coins[2]}g, ${state?.wallet?.coins[3]}p)`}</EquippedItem>
                     </EquippedContainer>
                     <BackpackContainer>
@@ -439,7 +439,15 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         case 'stats': {
             return (
                 <StatusScreenContainer>
-
+                    {/* Ok! Display works. Noice. Now let's pretty it up. Also, a lot of numbers end up the same, so let's vary the starter equipment a bit more. */}
+                    {`ATK: ${state.stat.ATK}`}<br></br>
+                    {`DEF: ${state.stat.DEF}`}<br></br>
+                    {`ACC: ${state.stat.ACC}`}<br></br>
+                    {`EVA: ${state.stat.EVA}`}<br></br>
+                    {`MAG: ${state.stat.MAG}`}<br></br>
+                    {`RES: ${state.stat.RES}`}<br></br>
+                    {`FOC: ${state.stat.FOC}`}<br></br>
+                    {`LUK: ${state.stat.LUK}`}<br></br>
                 </StatusScreenContainer>
             )
         }

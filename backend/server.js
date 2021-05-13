@@ -1200,8 +1200,19 @@ function calcStats(entity) {
     const eStat = entity.stat;
     const eSkill = entity.skill;
     // FIRST SECTION: 'base' substats
-    entity.stat.HPmax = entity.stat.seed.HPmax + entity.skill.gathering + entity.skill.building + entity.stat.strength + entity.stat.constitution + entity.stat.spirit;
-    entity.stat.MPmax = entity.stat.seed.MPmax + entity.skill.gathering + entity.skill.traversal + entity.stat.willpower;
+    entity.stat.HPmax = entity.stat.seed.HPmax;
+    // Might have to set HP and MP, too, around here
+    entity.stat.MPmax = entity.stat.seed.MPmax;
+
+    // Will ultimately need to calc perks and such on top of these, and maybe modifiers as well
+    eStat.strength = entity.stat.seed.strength;
+    eStat.agility = entity.stat.seed.agility;
+    eStat.constitution = entity.stat.seed.constitution;
+    eStat.willpower = entity.stat.seed.willpower;
+    eStat.intelligence = entity.stat.seed.intelligence;
+    eStat.wisdom = entity.stat.seed.wisdom;
+    eStat.spirit = entity.stat.seed.spirit;
+
     eStat.ATK = 5;
     eStat.MAG = 5;
     eStat.DEF = 5;
@@ -1236,11 +1247,118 @@ function calcStats(entity) {
         let statModArray = entity.equipped.rightHand.type.stat.split('/');
         let statMod = eStat[statModArray[0]] * statModArray[1] / 100;
         let totalMod = 1 + skillMod + statMod;
-        eStat.ATK += entity.equipped.rightHand.stat.ATK * totalMod;
-        eStat.ACC += entity.equipped.rightHand.stat.ACC * totalMod;
-        eStat.MAG += entity.equipped.rightHand.stat.MAG * totalMod;
-        eStat.FOC += entity.equipped.rightHand.stat.FOC * totalMod;
+        // CHANGE: let's turn all of the below into object-iterating for loops
+        for (const statToBoost in entity.equipped.rightHand.stat) {
+            eStat[statToBoost] += entity.equipped.rightHand.stat[statToBoost] * totalMod;
+        }
+        // eStat.ATK += entity.equipped.rightHand.stat.ATK * totalMod;
+        // eStat.ACC += entity.equipped.rightHand.stat.ACC * totalMod;
+        // eStat.MAG += entity.equipped.rightHand.stat.MAG * totalMod;
+        // eStat.FOC += entity.equipped.rightHand.stat.FOC * totalMod;
+    } else {
+        // HERE: barehand calculations
     }
+
+    if (entity.equipped.leftHand) {
+        // console.log(`Something found in the left hand?`);
+        // possibility of mainType here: weapon, shield
+
+        // for (const statToBoost in entity.equipped.leftHand.stat) {
+        //     eStat[statToBoost] += entity.equipped.leftHand.stat[statToBoost] * totalMod;
+        // }
+        if (entity.equipped.leftHand.type.mainType === 'weapon') {
+            // Dualwield modifier comes into play here... which currently doesn't exist, so we're faking it for now :P
+            let skillModArray = entity.equipped.leftHand.type.skill.split('/');
+            let skillMod = eSkill[skillModArray[0]] * skillModArray[1] / 100;
+            let statModArray = entity.equipped.leftHand.type.stat.split('/');
+            let statMod = eStat[statModArray[0]] * statModArray[1] / 100;
+            let totalMod = 1 + skillMod + statMod;
+            for (const statToBoost in entity.equipped.leftHand.stat) {
+                eStat[statToBoost] += entity.equipped.leftHand.stat[statToBoost] * totalMod  * (entity.modifiers.dualWieldMastery || 0.3);
+            }
+            // eStat.ATK += (entity.equipped.leftHand.stat.ATK * totalMod) * (entity.modifiers.dualWieldMastery || 0.3);
+            // eStat.ACC += (entity.equipped.leftHand.stat.ACC * totalMod) * (entity.modifiers.dualWieldMastery || 0.3);
+            // eStat.MAG += (entity.equipped.leftHand.stat.MAG * totalMod) * (entity.modifiers.dualWieldMastery || 0.3);
+            // eStat.FOC += (entity.equipped.leftHand.stat.FOC * totalMod) * (entity.modifiers.dualWieldMastery || 0.3);
+        }
+        if (entity.equipped.leftHand.type.mainType === 'shield') {
+            // Shield mastery is probably worth considering at some point, but for now, same logic as weapons, different stat spread
+            let skillModArray = entity.equipped.leftHand.type.skill.split('/');
+            let skillMod = eSkill[skillModArray[0]] * skillModArray[1] / 100;
+            let statModArray = entity.equipped.leftHand.type.stat.split('/');
+            let statMod = eStat[statModArray[0]] * statModArray[1] / 100;
+            let totalMod = 1 + skillMod + statMod;
+            for (const statToBoost in entity.equipped.leftHand.stat) {
+                eStat[statToBoost] += entity.equipped.leftHand.stat[statToBoost] * totalMod;
+            }
+            // eStat.DEF += entity.equipped.leftHand.stat.DEF * totalMod;
+            // eStat.EVA += entity.equipped.leftHand.stat.EVA * totalMod;
+            // eStat.RES += entity.equipped.leftHand.stat.RES * totalMod;
+            // eStat.LUK += entity.equipped.leftHand.stat.LUK * totalMod;
+        }
+    } else {
+        // HERE: barehand calculations
+    }
+    if (entity.equipped.head) {
+        let skillModArray = entity.equipped.head.type.skill.split('/');
+        let skillMod = eSkill[skillModArray[0]] * skillModArray[1] / 100;
+        let statModArray = entity.equipped.head.type.stat.split('/');
+        let statMod = eStat[statModArray[0]] * statModArray[1] / 100;
+        let totalMod = 1 + skillMod + statMod;
+        for (const statToBoost in entity.equipped.head.stat) {
+            eStat[statToBoost] += entity.equipped.head.stat[statToBoost] * totalMod;
+        }
+        // eStat.ATK += entity.equipped.head.stat.ATK * totalMod;
+        // eStat.ACC += entity.equipped.head.stat.ACC * totalMod;
+        // eStat.MAG += entity.equipped.head.stat.MAG * totalMod;
+        // eStat.FOC += entity.equipped.head.stat.FOC * totalMod;
+        // eStat.DEF += entity.equipped.head.stat.DEF * totalMod;
+        // eStat.EVA += entity.equipped.head.stat.EVA * totalMod;
+        // eStat.RES += entity.equipped.head.stat.RES * totalMod;
+        // eStat.LUK += entity.equipped.head.stat.LUK * totalMod;
+    } else {
+        // HERE: barehead calculations :P
+    }
+
+    if (entity.equipped.body) {
+        let skillModArray = entity.equipped.body.type.skill.split('/');
+        let skillMod = eSkill[skillModArray[0]] * skillModArray[1] / 100;
+        let statModArray = entity.equipped.body.type.stat.split('/');
+        let statMod = eStat[statModArray[0]] * statModArray[1] / 100;
+        let totalMod = 1 + skillMod + statMod;
+        for (const statToBoost in entity.equipped.body.stat) {
+            eStat[statToBoost] += entity.equipped.body.stat[statToBoost] * totalMod;
+        }
+        // eStat.DEF += entity.equipped.body.stat.DEF * totalMod;
+        // eStat.EVA += entity.equipped.body.stat.EVA * totalMod;
+        // eStat.RES += entity.equipped.body.stat.RES * totalMod;
+        // eStat.LUK += entity.equipped.body.stat.LUK * totalMod;
+    } else {
+        // ohhhh myyyyyy
+    }
+
+    if (entity.equipped.accessory1) {
+        // Idle thought: it prooooobably makes sense just to loop through the accessory and slap any found stats onto the entity :P
+        for (const statToBoost in entity.equipped.accessory1.stat) {
+            eStat[statToBoost] += entity.equipped.accessory1.stat[statToBoost];
+        }
+    }
+
+    if (entity.equipped.accessory2) {
+        for (const statToBoost in entity.equipped.accessory2.stat) {
+            eStat[statToBoost] += entity.equipped.accessory2.stat[statToBoost];
+        }
+    }
+
+    // HERE: final section, gotta Math.floor() everything (or parseInt()) because all this MATH in JS creates some interesting side effects :P
+    // Probably just use a stat loop? Ignoring stat.seed, which won't be Math.floorable
+    for (let nebulousStat in entity.stat) {
+        if (nebulousStat !== 'seed') entity.stat[nebulousStat] = Math.floor(entity.stat[nebulousStat]);
+    }
+
+    // ... and I *think* that pretty much covers a proper stat setting session from scratch for now? Let's test it out!
+    // ... right after I mod up the original character/create initial weapons to function properly with this new concept
+
 }
 
 const connectionParams = {
@@ -1787,47 +1905,65 @@ app.post('/character/create', (req, res, next) => {
     // parseBackground(newChar.background.first, newChar);
     // parseBackground(newChar.background.second, newChar);
     // parseBackground(newChar.background.third, newChar);
+    newChar.stat = {};
+    newChar.stat.seed = {HPmax: 100, MPmax: 15, strength: 10, agility: 10, constitution: 10, willpower: 10, intelligence: 10, wisdom: 10, spirit: 10};
+    newChar.skill = {
+        fighting: 0,
+        gathering: 0,
+        sneaking: 0,
+        traversal: 0,
+        crafting: 0,
+        spellcasting: 0,
+        scholarship: 0,
+        sensing: 0,
+        building: 0,
+        medicine: 0
+    };
+    newChar.equipped = {rightHand: undefined, leftHand: undefined, head: undefined, body: undefined, accessory1: undefined, accessory2: undefined};
 
     switch (newChar.background.first) {
         case 'Gatherer': {
-            newChar.equipped.leftHand = new Item(
-                {mainType: 'tool', buildType: 'dagger', subType: 'carving', range: 'melee', skill: 'gathering', slot: 'hands', hands: 1},
-                `Outdoors Knife`,
-                `A short, single-edged iron knife with a sharp edge and tip and a comfortable grip. It seems well-suited to all manner of practical activities, from 
-                skinning to woodcarving.`,
-                {atk: 'agi/30'},
-                {size: 2, weight: 3, durability: 500, maxDurability: 500, materials: 'iron/1,wood/1'},
-                {physicalDamageBonus: 3},
-                [],
-                500            
-            );
+            // newChar.equipped.leftHand = new Item(
+            //     {mainType: 'tool', buildType: 'dagger', subType: 'carving', range: 'melee', skill: 'gathering', slot: 'hands', hands: 1},
+            //     `Outdoors Knife`,
+            //     `A short, single-edged iron knife with a sharp edge and tip and a comfortable grip. It seems well-suited to all manner of practical activities, from 
+            //     skinning to woodcarving.`,
+            //     {atk: 'agi/30'},
+            //     {size: 2, weight: 3, durability: 500, maxDurability: 500, materials: 'iron/1,wood/1'},
+            //     {physicalDamageBonus: 3},
+            //     [],
+            //     500            
+            // );
+            newChar.skill.gathering = 10;
             break;
         }
         case 'Laborer': {
-            newChar.equipped.leftHand = new Item(
-                {mainType: 'tool', buildType: 'hammer', subType: 'hammer', range: 'melee', skill: 'building', slot: 'hands', hands: 1},
-                `Claw Hammer`,
-                `A simple but durable hammer.`,
-                {atk: 'str/30'},
-                {size: 3, weight: 3, durability: 500, maxDurability: 500, materials: 'iron/1,wood/2'},
-                {physicalDamageBonus: 3},
-                [],
-                500            
-            );            
+            // newChar.equipped.leftHand = new Item(
+            //     {mainType: 'tool', buildType: 'hammer', subType: 'hammer', range: 'melee', skill: 'building', slot: 'hands', hands: 1},
+            //     `Claw Hammer`,
+            //     `A simple but durable hammer.`,
+            //     {atk: 'str/30'},
+            //     {size: 3, weight: 3, durability: 500, maxDurability: 500, materials: 'iron/1,wood/2'},
+            //     {physicalDamageBonus: 3},
+            //     [],
+            //     500            
+            // );   
+            newChar.skill.building = 10;         
             break;
         }
         case 'Healer': {
-            newChar.equipped.leftHand = new Item(
-                {mainType: 'tool', buildType: 'rod', subType: 'channeling', range: 'melee', skill: 'medicine', slot: 'hands', hands: 1},
-                `Healer's Rod`,
-                `About as long as your arm, no thicker than two fingers, this wood-handled rod ends in a simple copper end fashioned into a symbol of 
-                peace and healing.`,
-                {res: 'spi/30'},
-                {size: 3, weight: 3, durability: 500, maxDurability: 500, materials: 'copper/2,wood/2'},
-                {magicalDamageBonus: 3},
-                [],
-                500            
-            );            
+            // newChar.equipped.leftHand = new Item(
+            //     {mainType: 'tool', buildType: 'rod', subType: 'channeling', range: 'melee', skill: 'medicine', slot: 'hands', hands: 1},
+            //     `Healer's Rod`,
+            //     `About as long as your arm, no thicker than two fingers, this wood-handled rod ends in a simple copper end fashioned into a symbol of 
+            //     peace and healing.`,
+            //     {res: 'spi/30'},
+            //     {size: 3, weight: 3, durability: 500, maxDurability: 500, materials: 'copper/2,wood/2'},
+            //     {magicalDamageBonus: 3},
+            //     [],
+            //     500            
+            // );   
+            newChar.skill.medicine = 10;         
             break;
         }
     }
@@ -1835,105 +1971,141 @@ app.post('/character/create', (req, res, next) => {
     switch (newChar.background.second) {
         case 'Mercenary': {
             newChar.equipped.rightHand = new Item(
-                {mainType: 'weapon', buildType: 'sword', subType: 'straightblade', range: 'melee', skill: 'fighting', slot: 'hands', hands: 1},
+                {
+                    mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
+                    enhancements: 0, quality: 30
+                },
                 `Scapping Sword`,
                 `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
-                {strength: 'ATK/50,DEF/30,ACC/10'},
-                {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2'},
-                {physicalDamageBonus: 6},
+                {ATK: 15, ACC: 5, MAG: 5, FOC: 5},
+                {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2', attributes: undefined},
+                {intimidating: 5},
                 [],
-                500            
+                500
             );
+            newChar.skill.fighting = 10;          
+            // newChar.equipped.rightHand = new Item(
+            //     {mainType: 'weapon', buildType: 'sword', subType: 'straightblade', range: 'melee', skill: 'fighting', slot: 'hands', hands: 1},
+            //     `Scapping Sword`,
+            //     `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
+            //     {strength: 'ATK/50,DEF/30,ACC/10'},
+            //     {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2'},
+            //     {physicalDamageBonus: 6},
+            //     [],
+            //     500            
+            // );
             break;
         }
         case 'Hedgewizard': {
             newChar.equipped.rightHand = new Item(
-                {mainType: 'weapon', buildType: 'staff', subType: 'wizard', range: 'melee', skill: 'casting', slot: 'hands', hands: 3},
+                {mainType: 'weapon', buildType: 'staff', subType: 'wizard', range: 'melee', skill: 'casting/1', stat: 'willpower/1', slot: 'hands', hands: 3, enhancements: 0, quality: 30},
                 `Hedging Staff`,
                 `Longer than the average person is tall, this staff has been meticulously carved to be almost entirely smooth and uniform in its wood finish. It 
                 is topped with a simple copper fitting that houses a small sphere of topaz, presumably for amplifying magical intent and spellcasting focus.`,
-                {mag: 'wil/50', res: 'wis/30'},
-                {size: 5, weight: 3, durability: 500, maxDurability: 500, materials: 'copper/1,wood/4,topaz/1'},
-                {magicalDamageBonus: 6},
+                {ATK: 5, ACC: 5, MAG: 15, FOC: 5},
+                {size: 5, weight: 3, durability: 500, maxDurability: 500, materials: 'copper/1,wood/4,topaz/1', attributes: undefined},
+                {wizardly: 5},
                 [],
                 500            
             );
+            newChar.skill.spellcasting = 10;
             break;
         }
         case 'Thief': {
             newChar.equipped.rightHand = new Item(
-                {mainType: 'weapon', buildType: 'dagger', subType: 'stabbing', range: 'melee', skill: 'sneaking', slot: 'hands', hands: 1},
-                `Sleek Smallblade`,
+                {mainType: 'weapon', buildType: 'dagger', subType: 'stabbing', range: 'melee', skill: 'sneaking/1', stat: 'agility/1', slot: 'hands', hands: 1, enhancements: 0, quality: 30},
+                `Snatcher's Dagger`,
                 `It has a simple, just-long-enough grip below an elegantly long blade with two slender but razor-sharp edges. Its overall profile is very 
                 minimalistic, making it very easy to conceal.`,
-                {atk: 'agi/50', acc: 'agi/30'},
-                {size: 2, weight: 4, durability: 500, maxDurability: 500, materials: 'iron/2,wood/1'},
-                {physicalDamageBonus: 5},
+                {ATK: 5, ACC: 15, MAG: 5, FOC: 5},
+                {size: 2, weight: 4, durability: 500, maxDurability: 500, materials: 'iron/2,wood/1', attributes: undefined},
+                {stealthy: 5},
                 [],
                 500            
             );
+            newChar.skill.sneaking = 10;
             break;
         }
     }
 
     switch (newChar.background.third) {
+        /*
+            Remodel basis: 
+            newChar.equipped.rightHand = new Item(
+                {
+                    mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
+                    enhancements: 0, quality: 30
+                },
+                `Scapping Sword`,
+                `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
+                {ATK: 15, ACC: 5, MAG: 5, FOC: 5},
+                {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2', attributes: 'heft'},
+                {physicalDamageBonus: 6},
+                [],
+                500
+            );   
+        */
         case 'Trader': {
             newChar.equipped.body = new Item(
-                {mainType: 'armor', buildType: 'clothes', subType: 'cloth', skill: 'sensing', slot: 'body'},
-                `Merchant Robes`,
+                {mainType: 'armor', buildType: 'clothes', subType: 'cloth', skill: 'sensing/1', stat: 'spirit/1', slot: 'body', enhancements: 0, quality: 30},
+                `Merchant Garb`,
                 `The fancy clothes of an apsiring trader.`,
-                {def: 'spi/50', eva: 'wis/30'},
-                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/4'},
-                {physicalDamageMitigation: 20},
+                {DEF: 10, EVA: 5, RES: 10, LUK: 5},
+                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/4', attributes: undefined},
+                {fancy: 5},
                 [],
                 500            
-            );  
+            );
+            newChar.skill.sensing = 10;
             break;
         }
         case 'Scribe': {
             newChar.equipped.body = new Item(
-                {mainType: 'armor', buildType: 'robes', subType: 'cloth', skill: 'scholarship', slot: 'body'},
+                {mainType: 'armor', buildType: 'robes', subType: 'cloth', skill: 'scholarship/1', stat: 'intelligence/1', slot: 'body', enhancements: 0, quality: 30},
                 `Scholar Robes`,
                 `Simple, clean, and comfortable robes with a simply adorned collar and hem with patterns indicating the wearer is a scholastic professional.`,
-                {def: 'int/50', eva: 'wis/30'},
-                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/6'},
-                {physicalDamageMitigation: 20},
+                {DEF: 10, EVA: 5, RES: 10, LUK: 5},
+                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/6', attributes: undefined},
+                {scholastic: 5},
                 [],
                 500            
             );  
+            newChar.skill.scholarship = 10;
             break;
         }
         case 'Runner': {
             newChar.equipped.body = new Item(
-                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'traversal', slot: 'body'},
+                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'traversal/1', stat: 'agility/1', slot: 'body', enhancements: 0, quality: 30},
                 `Swift Gear`,
                 `Minimalistic garb stitched together from snug but breathable cloth padded tactically here and there with pads of supple leather 
                 to ensure ease of movement while still providing some critical protection where it counts.`,
-                {def: 'agi/50', eva: 'agi/30'},
-                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/3,leather/3'},
-                {physicalDamageMitigation: 20},
+                {DEF: 5, EVA: 15, RES: 5, LUK: 5},
+                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/3,leather/3', attributes: undefined},
+                {sleek: 5},
                 [],
                 500            
             );  
+            newChar.skill.traversal = 10;
             break;
         }
         case 'Apprentice': {
             newChar.equipped.body = new Item(
-                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'crafting', slot: 'body'},
-                `Crafter Gear`,
+                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'crafting/1', stat: 'constitution/1', slot: 'body', enhancements: 0, quality: 30},
+                `Work Gear`,
                 `Simple but sturdy clothing of thick cloth reinforced with layers of leather at the joints and extremities.`,
-                {def: 'str/50', eva: 'agi/30'},
-                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/4,leather/4'},
-                {physicalDamageMitigation: 20, fireResist: 5},
+                {DEF: 15, EVA: 5, RES: 5, LUK: 5},
+                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/4,leather/4', attributes: undefined},
+                {dirty: 5, fireResist: 5},
                 [],
                 500            
             );  
+            newChar.skill.crafting = 10;
             break;
         }
     }
 
-
     // HERE: calcStats, set HP/MP, prepare the character for 'real life' IG
+    calcStats(newChar);
     
     if (error) res.status(406).json({message: error});
 
