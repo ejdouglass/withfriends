@@ -863,6 +863,84 @@ export const StatusScreenContainer = styled(NPCInteractionContainer)`
     flex-direction: column;
 `;
 
+export const StatusScreenTitleContainer = styled.div``;
+
+export const StatusScreenCharacterContainer = styled.div``;
+
+export const StatusScreenHealthContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+`;
+
+export const HealthItem = styled.div`
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    box-sizing: border-box;
+    padding: calc(0.4rem + 0.4vw);
+    margin-right: calc(0.5rem + 0.5vw);
+    border: 1px solid #777;
+`;
+
+export const StatusScreenCoreStatsContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    background-color: pink;
+    justify-content: space-around;
+    padding: 2rem 0 2rem 0;
+`;
+
+export const CoreStatItem = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: calc(0.5rem + 0.5vw);
+    font-weight: 500;
+    border: 1px solid red;
+    border-radius: 10%;
+    padding: 0.5rem 0.25rem;
+`;
+
+export const StatusScreenDerivedStatsContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    background-color: hsl(30, 60%, 70%);
+    padding-bottom: 0.5rem;
+`;
+
+export const DerivedStatsRow = styled.div`
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin: 0.5rem 0 0 0;
+`;
+
+export const DerivedStatItem = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 500;
+    font-size: calc(0.5rem + 0.5vw);
+`;
+
+export const StatusScreenSkillsContainer = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+`;
+
+export const SkillItem = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 500;
+    width: 20%;
+    box-sizing: border-box;
+    height: 3rem;
+    font-size: calc(0.5rem + 0.5vw);
+`;
+
 export const CombatContainer = styled(NPCInteractionContainer)`
     // moar here
 `;

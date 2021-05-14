@@ -1101,7 +1101,7 @@ function calcStats(entity) {
                 newChar.equipped.rightHand = new Item(
                 {
                     mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
-                    enhancements: 0, quality: 30
+                    enhancements: 0, quality: 20
                 },
                 `Scapping Sword`,
                 `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
@@ -1203,6 +1203,8 @@ function calcStats(entity) {
     entity.stat.HPmax = entity.stat.seed.HPmax;
     // Might have to set HP and MP, too, around here
     entity.stat.MPmax = entity.stat.seed.MPmax;
+    if (!entity.stat.HP) entity.stat.HP = entity.stat.HPmax;
+    if (!entity.stat.MP) entity.stat.MP = entity.stat.MPmax;
 
     // Will ultimately need to calc perks and such on top of these, and maybe modifiers as well
     eStat.strength = entity.stat.seed.strength;
@@ -1228,7 +1230,7 @@ function calcStats(entity) {
     newChar.equipped.rightHand = new Item(
         {
             mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
-            enhancements: 0, quality: 30
+            enhancements: 0, quality: 20
         },
         `Scapping Sword`,
         `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
@@ -1973,11 +1975,11 @@ app.post('/character/create', (req, res, next) => {
             newChar.equipped.rightHand = new Item(
                 {
                     mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
-                    enhancements: 0, quality: 30
+                    enhancements: 0, quality: 20
                 },
                 `Scapping Sword`,
                 `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
-                {ATK: 15, ACC: 5, MAG: 5, FOC: 5},
+                {ATK: 12, ACC: 8, MAG: 3, FOC: 1},
                 {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2', attributes: undefined},
                 {intimidating: 5},
                 [],
@@ -1998,11 +2000,11 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Hedgewizard': {
             newChar.equipped.rightHand = new Item(
-                {mainType: 'weapon', buildType: 'staff', subType: 'wizard', range: 'melee', skill: 'casting/1', stat: 'willpower/1', slot: 'hands', hands: 3, enhancements: 0, quality: 30},
+                {mainType: 'weapon', buildType: 'staff', subType: 'wizard', range: 'melee', skill: 'casting/1', stat: 'willpower/1', slot: 'hands', hands: 3, enhancements: 0, quality: 20},
                 `Hedging Staff`,
                 `Longer than the average person is tall, this staff has been meticulously carved to be almost entirely smooth and uniform in its wood finish. It 
                 is topped with a simple copper fitting that houses a small sphere of topaz, presumably for amplifying magical intent and spellcasting focus.`,
-                {ATK: 5, ACC: 5, MAG: 15, FOC: 5},
+                {ATK: 3, ACC: 1, MAG: 12, FOC: 8},
                 {size: 5, weight: 3, durability: 500, maxDurability: 500, materials: 'copper/1,wood/4,topaz/1', attributes: undefined},
                 {wizardly: 5},
                 [],
@@ -2013,11 +2015,11 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Thief': {
             newChar.equipped.rightHand = new Item(
-                {mainType: 'weapon', buildType: 'dagger', subType: 'stabbing', range: 'melee', skill: 'sneaking/1', stat: 'agility/1', slot: 'hands', hands: 1, enhancements: 0, quality: 30},
+                {mainType: 'weapon', buildType: 'dagger', subType: 'stabbing', range: 'melee', skill: 'sneaking/1', stat: 'agility/1', slot: 'hands', hands: 1, enhancements: 0, quality: 20},
                 `Snatcher's Dagger`,
                 `It has a simple, just-long-enough grip below an elegantly long blade with two slender but razor-sharp edges. Its overall profile is very 
                 minimalistic, making it very easy to conceal.`,
-                {ATK: 5, ACC: 15, MAG: 5, FOC: 5},
+                {ATK: 8, ACC: 12, MAG: 2, FOC: 2},
                 {size: 2, weight: 4, durability: 500, maxDurability: 500, materials: 'iron/2,wood/1', attributes: undefined},
                 {stealthy: 5},
                 [],
@@ -2034,7 +2036,7 @@ app.post('/character/create', (req, res, next) => {
             newChar.equipped.rightHand = new Item(
                 {
                     mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
-                    enhancements: 0, quality: 30
+                    enhancements: 0, quality: 20
                 },
                 `Scapping Sword`,
                 `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
@@ -2047,10 +2049,10 @@ app.post('/character/create', (req, res, next) => {
         */
         case 'Trader': {
             newChar.equipped.body = new Item(
-                {mainType: 'armor', buildType: 'clothes', subType: 'cloth', skill: 'sensing/1', stat: 'spirit/1', slot: 'body', enhancements: 0, quality: 30},
+                {mainType: 'armor', buildType: 'clothes', subType: 'cloth', skill: 'sensing/1', stat: 'spirit/1', slot: 'body', enhancements: 0, quality: 20},
                 `Merchant Garb`,
                 `The fancy clothes of an apsiring trader.`,
-                {DEF: 10, EVA: 5, RES: 10, LUK: 5},
+                {DEF: 12, EVA: 3, RES: 8, LUK: 1},
                 {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/4', attributes: undefined},
                 {fancy: 5},
                 [],
@@ -2061,10 +2063,10 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Scribe': {
             newChar.equipped.body = new Item(
-                {mainType: 'armor', buildType: 'robes', subType: 'cloth', skill: 'scholarship/1', stat: 'intelligence/1', slot: 'body', enhancements: 0, quality: 30},
+                {mainType: 'armor', buildType: 'robes', subType: 'cloth', skill: 'scholarship/1', stat: 'intelligence/1', slot: 'body', enhancements: 0, quality: 20},
                 `Scholar Robes`,
                 `Simple, clean, and comfortable robes with a simply adorned collar and hem with patterns indicating the wearer is a scholastic professional.`,
-                {DEF: 10, EVA: 5, RES: 10, LUK: 5},
+                {DEF: 8, EVA: 1, RES: 12, LUK: 3},
                 {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/6', attributes: undefined},
                 {scholastic: 5},
                 [],
@@ -2075,11 +2077,11 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Runner': {
             newChar.equipped.body = new Item(
-                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'traversal/1', stat: 'agility/1', slot: 'body', enhancements: 0, quality: 30},
+                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'traversal/1', stat: 'agility/1', slot: 'body', enhancements: 0, quality: 20},
                 `Swift Gear`,
                 `Minimalistic garb stitched together from snug but breathable cloth padded tactically here and there with pads of supple leather 
                 to ensure ease of movement while still providing some critical protection where it counts.`,
-                {DEF: 5, EVA: 15, RES: 5, LUK: 5},
+                {DEF: 8, EVA: 12, RES: 2, LUK: 2},
                 {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/3,leather/3', attributes: undefined},
                 {sleek: 5},
                 [],
@@ -2090,10 +2092,10 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Apprentice': {
             newChar.equipped.body = new Item(
-                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'crafting/1', stat: 'constitution/1', slot: 'body', enhancements: 0, quality: 30},
+                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'crafting/1', stat: 'constitution/1', slot: 'body', enhancements: 0, quality: 20},
                 `Work Gear`,
                 `Simple but sturdy clothing of thick cloth reinforced with layers of leather at the joints and extremities.`,
-                {DEF: 15, EVA: 5, RES: 5, LUK: 5},
+                {DEF: 12, EVA: 3, RES: 8, LUK: 1},
                 {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/4,leather/4', attributes: undefined},
                 {dirty: 5, fireResist: 5},
                 [],

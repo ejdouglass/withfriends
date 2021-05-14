@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton, InventoryContainer, EquippedContainer, EquippedItem, BackpackContainer, BackpackItem, BackpackColumn, InventoryItemDetails, StatusScreenContainer, MagicContainer } from './styled';
+import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton, InventoryContainer, EquippedContainer, EquippedItem, BackpackContainer, BackpackItem, BackpackColumn, InventoryItemDetails, StatusScreenContainer, MagicContainer, StatusScreenTitleContainer, StatusScreenCharacterContainer, StatusScreenHealthContainer, StatusScreenCoreStatsContainer, StatusScreenDerivedStatsContainer, StatusScreenSkillsContainer, HealthItem, CoreStatItem, DerivedStatsRow, DerivedStatItem, SkillItem } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -440,14 +440,77 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             return (
                 <StatusScreenContainer>
                     {/* Ok! Display works. Noice. Now let's pretty it up. Also, a lot of numbers end up the same, so let's vary the starter equipment a bit more. */}
-                    {`ATK: ${state.stat.ATK}`}<br></br>
-                    {`DEF: ${state.stat.DEF}`}<br></br>
-                    {`ACC: ${state.stat.ACC}`}<br></br>
-                    {`EVA: ${state.stat.EVA}`}<br></br>
-                    {`MAG: ${state.stat.MAG}`}<br></br>
-                    {`RES: ${state.stat.RES}`}<br></br>
-                    {`FOC: ${state.stat.FOC}`}<br></br>
-                    {`LUK: ${state.stat.LUK}`}<br></br>
+                    {/* 
+                        Let's design! Stat screen. Uh, let's see...
+                        HP, MP, eight derived stats, uh... oh, seven 'core' stats, obviously... what else...
+                        ... skills? Skills! And maybe stuff related to that, like perk points, perks, etc.
+                        ... oh, huh, I need to maybe record somewhere those perk point bits. Note to self! Do that. Ok, moving on.
+                        ... being able to select for greater detail would be good, especially for skills/perks. Separate sub-screen? Hm.
+
+                        TOP: Name, Class, indication this is stat screen :P
+                        First, current status! HP/max, MP/max, injuries, other 'health' effects
+                            -- 
+                        Seven stats next, physical left, magical right, spirit in the center?
+                            -- 
+                        Below that: 'derived stats' in two four-group collections
+                            -- 
+                        Further down from that, skills! Listed in rows of... eh, three?
+                            -- 
+                        
+
+                        ... this is also a status screen! Amending.
+                    */}
+
+                    <StatusScreenTitleContainer>
+                        <h1>Stats and Status of {state?.name}, {state?.class || 'Adventurer'}</h1>
+                    </StatusScreenTitleContainer>
+
+
+                    <StatusScreenCharacterContainer>
+
+                    </StatusScreenCharacterContainer>
+
+
+                    <StatusScreenHealthContainer>
+                        <HealthItem>{`HP: ${state?.stat?.HP}/${state?.stat?.HPmax}`}</HealthItem>
+                        <HealthItem>{`MP: ${state?.stat?.MP}/${state?.stat?.MPmax}`}</HealthItem>
+                        <HealthItem>{`Injuries: none`}</HealthItem>
+                    </StatusScreenHealthContainer>
+
+
+                    <StatusScreenCoreStatsContainer>
+                        <CoreStatItem>Strength: {state?.stat?.strength}</CoreStatItem>
+                        <CoreStatItem>Agility: {state?.stat?.agility}</CoreStatItem>
+                        <CoreStatItem>Constitution: {state?.stat?.constitution}</CoreStatItem>
+                        <CoreStatItem>Spirit: {state?.stat?.spirit}</CoreStatItem>
+                        <CoreStatItem>Willpower: {state?.stat?.willpower}</CoreStatItem>
+                        <CoreStatItem>Intelligence: {state?.stat?.intelligence}</CoreStatItem>
+                        <CoreStatItem>Wisdom: {state?.stat?.wisdom}</CoreStatItem>
+                    </StatusScreenCoreStatsContainer>
+
+
+                    <StatusScreenDerivedStatsContainer>
+                        <DerivedStatsRow>
+                            <DerivedStatItem>Attack: {state?.stat?.ATK}</DerivedStatItem>
+                            <DerivedStatItem>Accuracy: {state?.stat?.ACC}</DerivedStatItem>
+                            <DerivedStatItem>Defense: {state?.stat?.DEF}</DerivedStatItem>
+                            <DerivedStatItem>Evasion: {state?.stat?.EVA}</DerivedStatItem>
+                        </DerivedStatsRow>
+                        <DerivedStatsRow>
+                            <DerivedStatItem>Magic: {state?.stat?.MAG}</DerivedStatItem>
+                            <DerivedStatItem>Focus: {state?.stat?.FOC}</DerivedStatItem>
+                            <DerivedStatItem>Resistance: {state?.stat?.RES}</DerivedStatItem>
+                            <DerivedStatItem>Luck: {state?.stat?.LUK}</DerivedStatItem>
+                        </DerivedStatsRow>
+                    </StatusScreenDerivedStatsContainer>
+
+
+                    <StatusScreenSkillsContainer>
+                        {Object.keys(state?.skill).map((skill) => (
+                            <SkillItem key={skill}>{skill[0].toUpperCase()}{skill.slice(1)}: {state?.skill[skill]}</SkillItem>
+                        ))}
+                    </StatusScreenSkillsContainer>
+
                 </StatusScreenContainer>
             )
         }
