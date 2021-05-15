@@ -66,6 +66,7 @@ const CharacterSchema = new Schema({
     effects: Array, // probably will just go with this
     modifiers: Object, // pondering implementation
     position: {type: String, default: 'standing'},
+    fighting: {type: Object, default: {main: undefined, others: []}},
     skill: {
         type: Object,
         default: {

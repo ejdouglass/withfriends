@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton, InventoryContainer, EquippedContainer, EquippedItem, BackpackContainer, BackpackItem, BackpackColumn, InventoryItemDetails, StatusScreenContainer, MagicContainer, StatusScreenTitleContainer, StatusScreenCharacterContainer, StatusScreenHealthContainer, StatusScreenCoreStatsContainer, StatusScreenDerivedStatsContainer, StatusScreenSkillsContainer, HealthItem, CoreStatItem, DerivedStatsRow, DerivedStatItem, SkillItem } from './styled';
+import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton, InventoryContainer, EquippedContainer, EquippedItem, BackpackContainer, BackpackItem, BackpackColumn, InventoryItemDetails, StatusScreenContainer, MagicContainer, StatusScreenTitleContainer, StatusScreenCharacterContainer, StatusScreenHealthContainer, StatusScreenCoreStatsContainer, StatusScreenDerivedStatsContainer, StatusScreenSkillsContainer, HealthItem, CoreStatItem, DerivedStatsRow, DerivedStatItem, SkillItem, CombatScreenContainer } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -513,6 +513,26 @@ const CurrentFocusBox = ({ state, dispatch }) => {
 
                 </StatusScreenContainer>
             )
+        }
+        case 'combat': {
+            /*
+                Combat mode basics time! 
+                So, combat can be initiated by being attacked or by attacking a target.
+                BEING ATTACKED:
+                    -- something initiates combat... this should be occurring backend but reflected here in the client
+                    -- so, say a muglin ATTACKS! ... at that moment, the muglin's status and your status must change
+                    -- whatDo being combat is a start, but what about something on the mob/player to indicate this?
+                    -- lemme look at both real quick...
+                    -- ok, added a "fighting" object, with MAIN and OTHERS. Main will be the currently focused target, others is an array of others that
+                        are in combat engagement mode but aren't the default focus
+                    -- so on the backend, muglin should set its mode to combat, add the player id as the key for MAIN, and its content will be a reference to that player obj
+                    -- at the same time, it should check to see if the player has a main fighting focus yet... if not, muglin is new one; else, push into fighting others arr
+                    -- then emit to the room an object that triggers the same thing locally for fighting state obj, and updates whatDo to combat
+                    -- ok, let's give it a whirl!
+            */
+            return (
+                <CombatScreenContainer></CombatScreenContainer>
+            );
         }
         default: {
             return null;

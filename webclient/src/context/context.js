@@ -187,7 +187,8 @@ const initialState = {
     received: undefined,
     target: undefined,
     viewTarget: undefined,
-    combatTarget: undefined
+    combatTarget: undefined,
+    fighting: {main: undefined, others: []}
 }
 
 export const Context = createContext(initialState);

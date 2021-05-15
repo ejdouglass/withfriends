@@ -948,6 +948,7 @@ class orchardGoblin {
         this.tagged = {}; // thinking using this for 'spotted' entities, base key is their entityID, contains also the time of tagging and tag quality/duration metric
         this.actInterval = undefined;
         this.level = 1; // hrmmm, might set this up to be a constructor variable, and then pop stats and values up from there
+        this.fighting = {main: undefined, others: []};
         this.loot = undefined; // hm, how to define loot... table-style, or individually?
     }
 
@@ -985,6 +986,8 @@ class orchardGoblin {
         // HERE: generate equipment
 
         // HERE: calcStats fxn, once operational
+        calcStats(this); // huh... uh, let's see if this works :P
+        // Hm, so far, at the very least, nothing is crashing. Fascinating. Now let's see if we can trigger 'combat.'
 
         // HERE: calc derivedStats, set starting HP/MP up to max
         this.stat.HP = this.stat.HPmax;
@@ -998,9 +1001,15 @@ class orchardGoblin {
         // basic orchard muglin behavior: they do colorful nothing, search the area, or ATTACK! ... they're aggressive, so will always attack if they see player(s)
         // HERE: define 'seenPlayers' as array of attackables... once hiding is a thing
         if (zaWarudo[this.location.RPS][this.location.GPS].players.length > 0) {
+            // Currently just arbitrarily smacking whichever player is the first name in the room. Can add some nuance later. :P
             this.target = characters[`${zaWarudo[this.location.RPS][this.location.GPS].players[0].id}`]; // later: fix to include seenPlayers array length, and change to seenPlayers array instead
             // console.log(`Rawr! Now targeting: ${JSON.stringify(this.target.name)}`);
+            this.fighting.main = this.target;
+            if (this.fighting.main.fighting.main === undefined) this.fighting.main.fighting.main = this
+            else this.fighting.main.fighting.others.push(this); // this code is ridiculous :P
             this.mode = 'combat';
+            // Let's update the below to include data that causes a whatDo of COMBAT for the referenced player
+            io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin lunges menacingly at ${this.target.name}!`});
         }
 
         switch (this.mode) {
@@ -1015,9 +1024,14 @@ class orchardGoblin {
             }
             case 'combat': {
                 if (this.location.GPS === this.target.location.GPS) {
+                    // later: amend to see if target is visible, assess muglin's current state to see what actions are possible, and update accordingly
+                    // for now: attack!
+                    // basic logic: normal attacks, with the occasional goblin punch; goblin punch becomes more likely at lower HP?
                     io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin lunges menacingly at ${this.target.name}!`});
                 } else {
                     this.mode = 'idle';
+                    this.target = undefined;
+                    this.fighting = {main: undefined, others: []};
                     io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin lost track of its target, glancing around warily.`});
                 }
                 break;

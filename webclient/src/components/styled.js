@@ -863,6 +863,13 @@ export const StatusScreenContainer = styled(NPCInteractionContainer)`
     flex-direction: column;
 `;
 
+export const CombatScreenContainer = styled(NPCInteractionContainer)`
+    top: 50px;
+    box-sizing: border-box;
+    border: 4px solid red;
+    flex-direction: column;
+`;
+
 export const StatusScreenTitleContainer = styled.div``;
 
 export const StatusScreenCharacterContainer = styled.div``;
