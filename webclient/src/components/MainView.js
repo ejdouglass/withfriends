@@ -262,9 +262,18 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             }
 
             if (state.received.type === 'combatinit') {
-                console.log(`Combat has begun!`);
+                console.log(`Combat has begun! For whom?`);
                 // Let's figure out what we need from the server to make this effective
-                // ... knowing the fighting object for ourselves and the mobs would be useful
+                // We should receive:
+                // -- the fighting object for our character
+                // -- ideally, the fighting object for any mobs in the room (for display purposes) ... may need to update propagation of room entities for this
+                // -- 
+                // HERE: update fighting, update whatDo
+                // dispatch({type: actions.UPDATE_WHATDO, payload: 'combat'}); // note: need to add way to LEAVE combat, as well... FLEE? Victory? A few ways at first
+                if (state.received?.targetName === state.name) {
+                    dispatch({type: actions.START_COMBAT, payload: state.received.fighting});
+                }
+                
             }
         }
     }, [state.received]);

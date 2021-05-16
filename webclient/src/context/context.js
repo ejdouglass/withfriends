@@ -16,7 +16,8 @@ export const actions = {
     PACKAGE_FROM_SERVER: 'package_from_server',
     TARGET_ENTITY: 'target_entity',
     UPDATE_SELECTED_BAR: 'update_selected_bar',
-    RESET_VIEW: 'reset_view'
+    RESET_VIEW: 'reset_view',
+    START_COMBAT: 'start_combat'
 }
 
 export const Reducer = (state, action) => {
@@ -112,6 +113,10 @@ export const Reducer = (state, action) => {
         }
         case actions.UPDATE_SELECTED_BAR: {
             return {...state, currentBarSelected: action.payload};
+        }
+        case actions.START_COMBAT: {
+            // Our payload should include an object: {main: {}, others: []}
+            return {...state, whatDo: 'combat', fighting: action.payload};
         }
         default: {
             return state;

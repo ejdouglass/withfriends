@@ -1005,11 +1005,20 @@ class orchardGoblin {
             this.target = characters[`${zaWarudo[this.location.RPS][this.location.GPS].players[0].id}`]; // later: fix to include seenPlayers array length, and change to seenPlayers array instead
             // console.log(`Rawr! Now targeting: ${JSON.stringify(this.target.name)}`);
             this.fighting.main = this.target;
+            // This if-else below, while kind of odd to read, essentially slots this muglin into the target's fighting object in the proper spot
             if (this.fighting.main.fighting.main === undefined) this.fighting.main.fighting.main = this
             else this.fighting.main.fighting.others.push(this); // this code is ridiculous :P
             this.mode = 'combat';
-            // Let's update the below to include data that causes a whatDo of COMBAT for the referenced player
-            io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin lunges menacingly at ${this.target.name}!`});
+
+            // Note: roomData here is an experiment that, if successful, will likely be appended more regularly to all io.to(room) events
+            const clientData = {
+                echo: `An orchard muglin lunges menacingly at ${this.target.name}!`,
+                type: 'combatinit',
+                targetName: this.target.name,
+                roomData: null
+            };
+            io.to(this.target.name).emit('character_data', {}); // THIS can be the foundation for initializing combat for the 'receiving party'
+            io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', clientData);
         }
 
         switch (this.mode) {
@@ -1027,12 +1036,9 @@ class orchardGoblin {
                     // later: amend to see if target is visible, assess muglin's current state to see what actions are possible, and update accordingly
                     // for now: attack!
                     // basic logic: normal attacks, with the occasional goblin punch; goblin punch becomes more likely at lower HP?
-                    const clientData = {
-                        echo: `An orchard muglin lunges menacingly at ${this.target.name}!`,
-                        type: 'combatinit',
-                        targetName: this.target.name,
-                    };
-                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', clientData);
+
+                    
+
                 } else {
                     this.mode = 'idle';
                     this.target = undefined;
@@ -1449,14 +1455,17 @@ function depopulateRoom(entity) {
 
 function populateRoom(entity) {
     // console.log(`Attempting to populate room with ${entity.entityID} who is ${entity.name} at new GPS ${entity.location.GPS}`);
+
+    // We'll still stick with this 'entity stub' for now, but may have to move to just slotting the entire entity into the array depending on how interactions shape up
     let roomArrayObject = {
         id: entity.entityID,
         type: entity.entityType,
         name: entity.name || '',
         glance: entity.glance || '',
         description: entity.description || `This being is rather indescribable.`,
-        level: entity.level || 0,
-        HP: 100,
+        level: entity.level || 1,
+        fighting: entity.fighting || {main: {}, others: []},
+        HP: entity.stat.HP || 100,
         condition: [] // asleep, stunned, not-so-alive, etc.
     }
     let entityRPS = entity.location.RPS || '0';
