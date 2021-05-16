@@ -1027,7 +1027,12 @@ class orchardGoblin {
                     // later: amend to see if target is visible, assess muglin's current state to see what actions are possible, and update accordingly
                     // for now: attack!
                     // basic logic: normal attacks, with the occasional goblin punch; goblin punch becomes more likely at lower HP?
-                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin lunges menacingly at ${this.target.name}!`});
+                    const clientData = {
+                        echo: `An orchard muglin lunges menacingly at ${this.target.name}!`,
+                        type: 'combatinit',
+                        targetName: this.target.name,
+                    };
+                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', clientData);
                 } else {
                     this.mode = 'idle';
                     this.target = undefined;

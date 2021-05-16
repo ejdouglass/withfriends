@@ -260,6 +260,12 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                 setContextualArray(newInteractionArray);
                 // Neat! The above "works"... in a very limited way. :P 
             }
+
+            if (state.received.type === 'combatinit') {
+                console.log(`Combat has begun!`);
+                // Let's figure out what we need from the server to make this effective
+                // ... knowing the fighting object for ourselves and the mobs would be useful
+            }
         }
     }, [state.received]);
 
