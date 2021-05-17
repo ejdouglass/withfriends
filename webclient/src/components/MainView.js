@@ -261,7 +261,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                 // Neat! The above "works"... in a very limited way. :P 
             }
 
-            if (state.received.type === 'combatinit') {
+            if (state.received?.type === 'combatinit') {
                 console.log(`Combat has begun! For whom?`);
                 // Let's figure out what we need from the server to make this effective
                 // We should receive:
@@ -270,9 +270,8 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                 // -- 
                 // HERE: update fighting, update whatDo
                 // dispatch({type: actions.UPDATE_WHATDO, payload: 'combat'}); // note: need to add way to LEAVE combat, as well... FLEE? Victory? A few ways at first
-                if (state.received?.targetName === state.name) {
-                    dispatch({type: actions.START_COMBAT, payload: state.received.fighting});
-                }
+                dispatch({type: actions.START_COMBAT, payload: state.received.fightingObj});
+                
                 
             }
         }

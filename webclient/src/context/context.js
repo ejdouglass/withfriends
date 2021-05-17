@@ -17,7 +17,8 @@ export const actions = {
     TARGET_ENTITY: 'target_entity',
     UPDATE_SELECTED_BAR: 'update_selected_bar',
     RESET_VIEW: 'reset_view',
-    START_COMBAT: 'start_combat'
+    START_COMBAT: 'start_combat',
+    UPDATE_FIGHTING: 'update_fighting'
 }
 
 export const Reducer = (state, action) => {
@@ -115,8 +116,11 @@ export const Reducer = (state, action) => {
             return {...state, currentBarSelected: action.payload};
         }
         case actions.START_COMBAT: {
-            // Our payload should include an object: {main: {}, others: []}
+            // Our payload should include an object: {main: {}, others: []}, all entityID's
             return {...state, whatDo: 'combat', fighting: action.payload};
+        }
+        case actions.UPDATE_FIGHTING: {
+            return {...state, fighting: action.payload || {main: '', others: []}};
         }
         default: {
             return state;

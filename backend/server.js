@@ -1000,46 +1000,72 @@ class orchardGoblin {
     actOut() {
         // basic orchard muglin behavior: they do colorful nothing, search the area, or ATTACK! ... they're aggressive, so will always attack if they see player(s)
         // HERE: define 'seenPlayers' as array of attackables... once hiding is a thing
-        if (zaWarudo[this.location.RPS][this.location.GPS].players.length > 0) {
-            // Currently just arbitrarily smacking whichever player is the first name in the room. Can add some nuance later. :P
-            this.target = characters[`${zaWarudo[this.location.RPS][this.location.GPS].players[0].id}`]; // later: fix to include seenPlayers array length, and change to seenPlayers array instead
-            // console.log(`Rawr! Now targeting: ${JSON.stringify(this.target.name)}`);
-            this.fighting.main = this.target;
-            // This if-else below, while kind of odd to read, essentially slots this muglin into the target's fighting object in the proper spot
-            if (this.fighting.main.fighting.main === undefined) this.fighting.main.fighting.main = this
-            else this.fighting.main.fighting.others.push(this); // this code is ridiculous :P
-            this.mode = 'combat';
 
-            // Note: roomData here is an experiment that, if successful, will likely be appended more regularly to all io.to(room) events
-            const clientData = {
-                echo: `An orchard muglin lunges menacingly at ${this.target.name}!`,
-                type: 'combatinit',
-                targetName: this.target.name,
-                roomData: null
-            };
-            io.to(this.target.name).emit('character_data', {}); // THIS can be the foundation for initializing combat for the 'receiving party'
-            io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', clientData);
-        }
 
         switch (this.mode) {
             case 'idle': {
-                io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin mumbles to itself as it skulks from tree to 
+                // Currently 'idle' just means 'not attacking anybody'... change to more nuanced behavior later
+                if (zaWarudo[this.location.RPS][this.location.GPS].players.length > 0) {
+
+                    // Change for above, eventually: do a scanRoom() function or such to create an array of detected players, then ultimately act based on that
+
+                    // WHOOPS. Call stack mangled! I think it's likely because if the player's here it runs this combat init every single time. Which is wacky.
+                    // How to refactor... 
+        
+                    // Currently just arbitrarily smacking whichever player is the first name in the room. Can add some nuance later. :P
+                    this.fighting.main = characters[`${zaWarudo[this.location.RPS][this.location.GPS].players[0].id}`].entityID; // later: fix to include seenPlayers array length, and change to seenPlayers array instead
+                    // console.log(`Rawr! Now targeting: ${JSON.stringify(this.target.name)}`);
+                    // This if-else below, while kind of odd to read, essentially slots this muglin into the target's fighting object in the proper spot
+                    if (characters[this.fighting.main].fighting.main === undefined) characters[this.fighting.main].fighting.main = this.entityID
+                    else characters[this.fighting.main].fighting.others.push(this.entityID); 
+                    this.mode = 'combat';
+
+                    // NOTE: amended above to JUST give the player the mob's entityID in their fighting object.
+        
+                    console.log(`Ok! The object for the muglin is ${JSON.stringify(this.fighting)}, and the character being targeted now has a fighting obj of 
+                    ${JSON.stringify(characters[this.fighting.main].fighting)}`);
+
+                    // Woof. Ok, I can probably 'fix' this by storing JUST the entityID of the fighting-targets?
+
+                    // console.log(`The character who is fighting, ${this.fighting.main.name}, has a fighting object now looking like this: ${JSON.stringify(this.fighting.main.fighting)}`)
+            
+                    // The below is being set up as the foundation for initializing combat for the 'receiving party'
+                    // For situations where an AoE is used, can use a loop to send relevant data to all affected parties
+                    // BRAINSTORM: what data should be sent to the specific character being targeted here?
+                    //  -- their own new fighting object
+                    // let charaFightingObj = characters[this.fighting.main.entityID].fighting;
+                    io.to(characters[this.fighting.main].name).emit('character_data', {
+                        echo: `You feel the menace of MUGLIN COMBAT!`,
+                        type: 'combatinit',
+                        fightingObj: characters[this.fighting.main].fighting, // I have to assume this is the culprit for the call stack overload?
+                    });
+
+                    // This 'room-wide' object will be the basis for updating the roomData; the above is for updating the affected character/s own fighting obj
+                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {
+                        echo: `An orchard muglin lunges menacingly at ${characters[this.fighting.main].name}!`,
+                        type: 'combatinfo',
+                        roomData: zaWarudo[this.location.RPS][this.location.GPS], // I *think* this will pass what we want, let's test!
+                    });
+                    console.log(`Probably successfully emitted room-wide data.`);
+                } else io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin mumbles to itself as it skulks from tree to 
                 tree, scanning back and forth between branches and roots.`});
-                break;
-                // change this to actIdle or something later for more nuanced options
-                // 'idle' may not be the best descriptor
-                // regardless, it'd be fun if occasionally the muglin succeeds in adding FRUIT to its inventory
-                // and if hungry/injured, maybe eats it... for whimsical effects to be determined later
+                break;          
             }
             case 'combat': {
-                if (this.location.GPS === this.target.location.GPS) {
+                // console.log(`Entering COMBAT LOOP!`);
+                // NOTE: 'target' is no longer defined, so this needs to be updated
+                if (this.location.GPS === characters[this.fighting.main].location.GPS) {
                     // later: amend to see if target is visible, assess muglin's current state to see what actions are possible, and update accordingly
                     // for now: attack!
                     // basic logic: normal attacks, with the occasional goblin punch; goblin punch becomes more likely at lower HP?
 
-                    
+                    // So, the below works, but the io.to is... NOT working? Huh.
+                    console.log(`Fighting target is still present! Muglin must fight!`);
+
+                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `The muglin is fighting! Scrappy!`});
 
                 } else {
+                    console.log(`Muglin cannot combat. Muglin am sleepy now. Zzz.`);
                     this.mode = 'idle';
                     this.target = undefined;
                     this.fighting = {main: undefined, others: []};
@@ -1049,7 +1075,7 @@ class orchardGoblin {
             }
         }
         
-
+        // Should probably change the actInterval based on current mode, WITHIN the mode logic above
         this.actInterval = rando(3,12) * 1000;
         setTimeout(() => this.actOut(), this.actInterval);
         // HERE: assess self and situation, modify mode if necessary, and get going!

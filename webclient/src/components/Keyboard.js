@@ -36,6 +36,19 @@ const Keyboard = () => {
                 break;
             }
 
+            case 'combat': {
+                // Let's decide on some keys to use for combat!
+                // The numbered key for shortcuts to techs/etc., definitely... oh, we should have combatShortcuts defined somewhere, huh? 
+                //  -- Weapon/equipment techs should be readily available; menu for 'slower' selections?
+                //  -- also maybe work with arrow keys in concert with specific alpha keys
+                if (e.key === 'r') {
+                    dispatch({type: actions.UPDATE_FIGHTING});
+                    dispatch({type: actions.PACKAGE_FROM_SERVER, payload: {echo: `You run the heck out of combat. Whew!`}});
+                    return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+                }
+                break;
+            }
+
             case 'explore': {
                 if (e.key === 'w' || e.key === 'e' || e.key === 'd' || e.key === 'c' || e.key === 'x' || e.key === 'z' || e.key === 'a' || e.key === 'q') {
                     // probably change this into more now-standard PACKAGE_FOR_SERVER style call
@@ -479,13 +492,15 @@ const Keyboard = () => {
                 // 3) the raw stringly bit(s) to let the client know what's happening -- we can parse it here into a message to pass below
                 dispatch({type: actions.PACKAGE_FROM_SERVER, payload: roomEventObj});
             });
+            socketToMe.on('character_data', eventObj => {
+                // Currently testing this as a 'data sent to specific player' situation; may entirely replace 'own_action_result' below
+                dispatch({type: actions.PACKAGE_FROM_SERVER, payload: eventObj});
+            });
             socketToMe.on('own_action_result', resultObj => {
                 // HERE: set up to parse the resultObj into a coherent result string and any changes to state that need to be known to the user
                 // The main difference between room_event and own_action_result is the former *might* not have access to every effected player on the backend, currently.
                 
-                // Right now, we want to sort out what to do when we interact with an NPC (or SHOP!) or MOB!
-                // 
-                let processedObj;
+                // let processedObj;
                 dispatch({type: actions.PACKAGE_FROM_SERVER, payload: resultObj});
                 
             });
