@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton, InventoryContainer, EquippedContainer, EquippedItem, BackpackContainer, BackpackItem, BackpackColumn, InventoryItemDetails, StatusScreenContainer, MagicContainer, StatusScreenTitleContainer, StatusScreenCharacterContainer, StatusScreenHealthContainer, StatusScreenCoreStatsContainer, StatusScreenDerivedStatsContainer, StatusScreenSkillsContainer, HealthItem, CoreStatItem, DerivedStatsRow, DerivedStatItem, SkillItem, CombatScreenContainer } from './styled';
+import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton, InventoryContainer, EquippedContainer, EquippedItem, BackpackContainer, BackpackItem, BackpackColumn, InventoryItemDetails, StatusScreenContainer, MagicContainer, StatusScreenTitleContainer, StatusScreenCharacterContainer, StatusScreenHealthContainer, StatusScreenCoreStatsContainer, StatusScreenDerivedStatsContainer, StatusScreenSkillsContainer, HealthItem, CoreStatItem, DerivedStatsRow, DerivedStatItem, SkillItem, CombatScreenContainer, CombatFeedBack } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
@@ -186,6 +186,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
     const [focusObj, setFocusObj] = useState({});
     const [localViewIndex, setLocalViewIndex] = useState(0);
     const [contextualArray, setContextualArray] = useState([]);
+    const [combatFeedback, setCombatFeedback] = useState(['You ready yourself for combat!']);
 
     // function doneFocusing() {
     //     console.log(`Done focusing, probably`);
@@ -274,6 +275,11 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                 
                 
             }
+
+            if (state.received?.type === 'combat_msg') {
+                // console.log(`You receive this data about your current battle: ${state.received?.echo}.`);
+                setCombatFeedback([...combatFeedback, state.received?.echo]);
+            }
         }
     }, [state.received]);
 
@@ -358,6 +364,11 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             }
         }
     }, [state.currentBarSelected]);
+
+    useEffect(() => {
+        let combatViewElement = document.getElementById('combatview');
+        if (combatViewElement) combatViewElement.scrollTop = combatViewElement.scrollHeight;
+    }, [combatFeedback]);
 
     /*
         Some FOCUS modes, which would correspond to whatDo situations (for key responses):
@@ -532,20 +543,37 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             /*
                 Combat mode basics time! 
                 So, combat can be initiated by being attacked or by attacking a target.
-                BEING ATTACKED:
-                    -- something initiates combat... this should be occurring backend but reflected here in the client
-                    -- so, say a muglin ATTACKS! ... at that moment, the muglin's status and your status must change
-                    -- whatDo being combat is a start, but what about something on the mob/player to indicate this?
-                    -- lemme look at both real quick...
-                    -- ok, added a "fighting" object, with MAIN and OTHERS. Main will be the currently focused target, others is an array of others that
-                        are in combat engagement mode but aren't the default focus
-                    -- so on the backend, muglin should set its mode to combat, add the player id as the key for MAIN, and its content will be a reference to that player obj
-                    -- at the same time, it should check to see if the player has a main fighting focus yet... if not, muglin is new one; else, push into fighting others arr
-                    -- then emit to the room an object that triggers the same thing locally for fighting state obj, and updates whatDo to combat
-                    -- ok, let's give it a whirl!
+                Right now we're playing with the MOB initiating combat.
+                Let's figure out what we want our key inputs to do, make them live, and build out the basic GUI.
+                ... with this complete, we'll be quite close to ALPHA RELEASE! Fantastic.
+
+                GUI:
+                    -- We'll start with NON full-screen, but 'obscure' the iSpy below
+                    -- Leave room for 'placement' concepts (grid v grid, or single grid)
+                    -- Main commands on the left (i.e. (R)un, which should replace core commands of exploration)
+                    -- Each enemy should display name, threat level, HP, overall status, status effects (ideally - maybe later, but consider room for it)
+                    -- Texty area to see combat feedback
+                    -- Maybe a way to look more closely at individual mobs? See their equipment, status, etc. in greater detail?
+                    
+                    -- To begin with, we need to know WHAT is attacking us! A threat list of sorts. So everything attacking us (and at-a-glance status for each).
+                    -- The entity we're targeting should be front-and center.
+                    -- Consider adding a brief flickering animation or something when they attack the player.
+                    -- 'Target Window' will display the details of the current main fighting target
+                    -- At-a-glance for the 'rest' (currently only one target is expected, muglins don't swarm)
+
+                BUTTONS: 
+                    -- (R)un
+                    -- ?
+
             */
             return (
-                <CombatScreenContainer></CombatScreenContainer>
+                <CombatScreenContainer>
+                    <CombatFeedBack id="combatview">
+                        {combatFeedback.map((combatMessage, index) => (
+                            <p key={index}>{combatMessage}</p>
+                        ))}
+                    </CombatFeedBack>
+                </CombatScreenContainer>
             );
         }
         default: {
@@ -583,7 +611,8 @@ const ViewBox = ({ state, dispatch }) => {
         if (state.received) {
             // ADD: parse the received data, and if it's a "move to new room" situation, add an extra blank line or two to iSpy, buffer it out a bit
             let newSights = [...iSpy];
-            if (state.received.echo) {
+            // Added a quick type check to omit combat_msg from the main iSpy log; later might want to have *some* reflection, just not the same exact text x2
+            if (state.received.echo && state.received?.type !== 'combat_msg') {
                 let newestSight = state.received?.echo[0].toUpperCase() + state.received?.echo.slice(1);
                 newSights.push(newestSight);
             }

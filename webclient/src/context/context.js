@@ -67,6 +67,9 @@ export const Reducer = (state, action) => {
         case actions.UPDATE_WHATDO: {
             // Trying out a quick poke to viewIndex...
             // *May* also reset viewTarget? Maybe not? Will think about the implications of that in a bit...
+
+            // Update to below: the currentActionBar might change for whatDo === 'combat', so we might want to reset that here as well
+            // ... but haven't decided on a good core currentActionBar content set yet, so just a note to self for now
             if (action.payload === 'explore') return {...state, whatDo: action.payload, viewIndex: 0, currentBarSelected: 'action'};
             return {...state, whatDo: action.payload, viewIndex: 0};
         }
@@ -100,6 +103,10 @@ export const Reducer = (state, action) => {
             return {...state, package: action.payload};
         }
         case actions.PACKAGE_FROM_SERVER: {
+            if (action.payload?.roomData) {
+                console.log(`Received new room data: ${JSON.stringify(action.payload.roomData)}`);
+                return {...state, received: action.payload, location: action.payload.roomData};
+            }
             return {...state, received: action.payload};
         }
         case actions.TARGET_ENTITY: {

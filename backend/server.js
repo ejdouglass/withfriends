@@ -984,6 +984,38 @@ class orchardGoblin {
         // NOTE: SpawnMapping handles pushing to global mobs list, so we don't do that here.
 
         // HERE: generate equipment
+        this.equipped.rightHand = new Item(
+            {
+                mainType: 'weapon', buildType: 'dagger', subType: 'curved', range: 'melee', skill: 'gathering/1', stat: 'agility/1', slot: 'hands', hands: 1,
+                enhancements: 0, quality: 20
+            },
+            `Muglin Fruitknife`,
+            `A simplistic curved knife made of meticulously shaped stone. Its handle is wrapped in leather crusted with dried sugar.`,
+            {ATK: 8, ACC: 12, MAG: 3, FOC: 1},
+            {size: 2, weight: 5, durability: 500, maxDurability: 500, materials: 'stone/2,leather/1', attributes: undefined},
+            {primitive: 5},
+            [],
+            50
+        );
+        this.equipped.body = new Item(
+            {
+                mainType: 'armor', buildType: 'clothes', subType: 'leather', skill: 'gathering/1', stat: 'agility/1', slot: 'body', enhancements: 0, quality: 20
+            },
+            `Muglin Rags`,
+            
+        )
+        /*
+            newChar.equipped.body = new Item(
+                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'crafting/1', stat: 'constitution/1', slot: 'body', enhancements: 0, quality: 20},
+                `Work Gear`,
+                `Simple but sturdy clothing of thick cloth reinforced with layers of leather at the joints and extremities.`,
+                {DEF: 12, EVA: 3, RES: 8, LUK: 1},
+                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/4,leather/4', attributes: undefined},
+                {dirty: 5, fireResist: 5},
+                [],
+                500            
+            );          
+        */
 
         // HERE: calcStats fxn, once operational
         calcStats(this); // huh... uh, let's see if this works :P
@@ -1008,9 +1040,6 @@ class orchardGoblin {
                 if (zaWarudo[this.location.RPS][this.location.GPS].players.length > 0) {
 
                     // Change for above, eventually: do a scanRoom() function or such to create an array of detected players, then ultimately act based on that
-
-                    // WHOOPS. Call stack mangled! I think it's likely because if the player's here it runs this combat init every single time. Which is wacky.
-                    // How to refactor... 
         
                     // Currently just arbitrarily smacking whichever player is the first name in the room. Can add some nuance later. :P
                     this.fighting.main = characters[`${zaWarudo[this.location.RPS][this.location.GPS].players[0].id}`].entityID; // later: fix to include seenPlayers array length, and change to seenPlayers array instead
@@ -1019,15 +1048,10 @@ class orchardGoblin {
                     if (characters[this.fighting.main].fighting.main === undefined) characters[this.fighting.main].fighting.main = this.entityID
                     else characters[this.fighting.main].fighting.others.push(this.entityID); 
                     this.mode = 'combat';
-
-                    // NOTE: amended above to JUST give the player the mob's entityID in their fighting object.
         
                     console.log(`Ok! The object for the muglin is ${JSON.stringify(this.fighting)}, and the character being targeted now has a fighting obj of 
                     ${JSON.stringify(characters[this.fighting.main].fighting)}`);
 
-                    // Woof. Ok, I can probably 'fix' this by storing JUST the entityID of the fighting-targets?
-
-                    // console.log(`The character who is fighting, ${this.fighting.main.name}, has a fighting object now looking like this: ${JSON.stringify(this.fighting.main.fighting)}`)
             
                     // The below is being set up as the foundation for initializing combat for the 'receiving party'
                     // For situations where an AoE is used, can use a loop to send relevant data to all affected parties
@@ -1037,31 +1061,27 @@ class orchardGoblin {
                     io.to(characters[this.fighting.main].name).emit('character_data', {
                         echo: `You feel the menace of MUGLIN COMBAT!`,
                         type: 'combatinit',
-                        fightingObj: characters[this.fighting.main].fighting, // I have to assume this is the culprit for the call stack overload?
+                        fightingObj: characters[this.fighting.main].fighting,
                     });
 
                     // This 'room-wide' object will be the basis for updating the roomData; the above is for updating the affected character/s own fighting obj
                     io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {
                         echo: `An orchard muglin lunges menacingly at ${characters[this.fighting.main].name}!`,
                         type: 'combatinfo',
-                        roomData: zaWarudo[this.location.RPS][this.location.GPS], // I *think* this will pass what we want, let's test!
+                        roomData: {RPS: this.location.RPS, GPS: this.location.GPS, room: zaWarudo[this.location.RPS][this.location.GPS]},
                     });
+                    // Quick note on roomData above: the client stores location as separate RPS, GPS, and 'room' object data, with that last bit being the whole location obj
                     console.log(`Probably successfully emitted room-wide data.`);
                 } else io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin mumbles to itself as it skulks from tree to 
                 tree, scanning back and forth between branches and roots.`});
                 break;          
             }
             case 'combat': {
-                // console.log(`Entering COMBAT LOOP!`);
-                // NOTE: 'target' is no longer defined, so this needs to be updated
                 if (this.location.GPS === characters[this.fighting.main].location.GPS) {
                     // later: amend to see if target is visible, assess muglin's current state to see what actions are possible, and update accordingly
                     // for now: attack!
                     // basic logic: normal attacks, with the occasional goblin punch; goblin punch becomes more likely at lower HP?
-
-                    // So, the below works, but the io.to is... NOT working? Huh.
-                    console.log(`Fighting target is still present! Muglin must fight!`);
-
+                    io.to(characters[this.fighting.main].name).emit('combat_event', {echo: `The muglin wants to use its ${this.stat.ATK} attack power on you!`, type: 'combat_msg'});
                     io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `The muglin is fighting! Scrappy!`});
 
                 } else {

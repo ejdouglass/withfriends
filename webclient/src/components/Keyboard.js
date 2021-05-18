@@ -496,6 +496,9 @@ const Keyboard = () => {
                 // Currently testing this as a 'data sent to specific player' situation; may entirely replace 'own_action_result' below
                 dispatch({type: actions.PACKAGE_FROM_SERVER, payload: eventObj});
             });
+            socketToMe.on('combat_event', combatEventObj => {
+                dispatch({type: actions.PACKAGE_FROM_SERVER, payload: combatEventObj});
+            });
             socketToMe.on('own_action_result', resultObj => {
                 // HERE: set up to parse the resultObj into a coherent result string and any changes to state that need to be known to the user
                 // The main difference between room_event and own_action_result is the former *might* not have access to every effected player on the backend, currently.

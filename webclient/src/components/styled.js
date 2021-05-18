@@ -873,6 +873,27 @@ export const CombatScreenContainer = styled(NPCInteractionContainer)`
     // HM. Let's brainstorm how this one'll look. Use iSpy for all feedback and risk interference, or have a separate full combat window with feedback screen?
 `;
 
+export const ThreatsContainer = styled.div`
+    width: 100%;
+
+`;
+
+export const CombatFeedBack = styled.div`
+    display: flex;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60%;
+    padding: 0.5rem 1rem;
+    left: 0;
+    flex-direction: column;
+    box-sizing: border-box;
+    border: 1px solid green;
+    font-size: calc(0.5rem + 0.5vw);
+    font-weight: 400;
+    overflow-y: scroll;
+`;
+
 export const StatusScreenTitleContainer = styled.div``;
 
 export const StatusScreenCharacterContainer = styled.div``;
