@@ -1002,7 +1002,12 @@ class orchardGoblin {
                 mainType: 'armor', buildType: 'clothes', subType: 'leather', skill: 'gathering/1', stat: 'agility/1', slot: 'body', enhancements: 0, quality: 20
             },
             `Muglin Rags`,
-            
+            `It's not entirely clear what sort of leather these are made from, or how it was treated, and it's probably better not to know.`,
+            {DEF: 6, EVA: 6, RES: 6, LUK: 6},
+            {size: 6, weight: 8, durability: 500, maxDurability: 500, materials: 'leather/6', attributes: undefined},
+            {primitive: 5},
+            [],
+            50
         )
         /*
             newChar.equipped.body = new Item(
@@ -1077,6 +1082,8 @@ class orchardGoblin {
                 break;          
             }
             case 'combat': {
+                // We can do very basic logic here for which of the all of two moves the muglin knows, but for other future mobs, maybe have a more modular combat logic
+                //  (i.e. an object and basic AI typing that can be inserted into the constructor)
                 if (this.location.GPS === characters[this.fighting.main].location.GPS) {
                     // later: amend to see if target is visible, assess muglin's current state to see what actions are possible, and update accordingly
                     // for now: attack!
@@ -2599,14 +2606,26 @@ orchardGoblinSpawn.init();
 function strike(attackingEntity, defendingEntity) {
     // THIS: the most basic attack, just whack 'em with your weapon
     // Considerations: relevant stats, equilibrium, stance, changes to both on both sides
-    // Call any relevant decrement methods on entities for damage/expended energy here as well
+    // Call any relevant decrement methods on entities for damage/expended energy here as well, such as .ouch(amount, type)
+
+    // Model changes to EQL and stance here, as well as effects to both
+    // EQL is 100-point scale, and stance defaults @300 and goes from -599 to 599 (if I recall correctly)
+
+    // Let's say at MAX EQL, the strike always gives some STANCE
+    // At minimum EQL, it always costs some
+    // What's the EQL cost? Let's say... 30! Immediate cost.
+
+    // Ok! Muglin has 14 ATK, 10 STR. How does damage play out?
+    // This is a super basic move, so pretty low mods is fine. 
 
     // if attackingEntity.entityType === 'player' calcExp();
+
+    // Let's have this RETURN the string of the attack, but do all the permutations within the function itself
 }
 
 function smite(attackingEntity, defendingEntity) {
     // THIS: the most basic MAGIC attack, just slap 'em with raw magic energy
-    // model its basics off of strike
+    // model its basics off of strike, a little stronger and slower, with a slight MP cost potentially (strike is 'free')
 }
 
 function logSplitter(attackingEntity, defendingEntity) {
