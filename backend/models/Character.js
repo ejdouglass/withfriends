@@ -15,7 +15,7 @@ const CharacterSchema = new Schema({
     salt: {type: String, required: true},
     hash: {type: String, required: true},
     equilibrium: {type: Number, default: 100},
-    stance: {type: Number, default: 300},
+    stance: {type: Number, default: 0},
     mainHand: {type: String, default: 'right'},
     location: {
         type: Object,

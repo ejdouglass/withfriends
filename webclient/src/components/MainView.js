@@ -370,6 +370,12 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         if (combatViewElement) combatViewElement.scrollTop = combatViewElement.scrollHeight;
     }, [combatFeedback]);
 
+    useEffect(() => {
+        if (state.whatDo === 'combat') return setCombatFeedback([`You ready yourself for battle!`]);
+        return setCombatFeedback([]);
+        
+    }, [state.whatDo])
+
     /*
         Some FOCUS modes, which would correspond to whatDo situations (for key responses):
             -- NPC interaction, including shopping

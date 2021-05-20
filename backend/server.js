@@ -941,7 +941,7 @@ class orchardGoblin {
         this.injuries = {}; // haven't decided how to define these quite yet
         this.modifiers = {};
         this.equilibrium = 100;
-        this.stance = 300;
+        this.stance = 0;
         this.equipped = {rightHand: undefined, leftHand: undefined, head: undefined, torso: undefined, accessory1: undefined, accessory2: undefined};
         this.target = undefined;
         this.flags = {}; // for later-- mark when they've been stolen from, or other sundry attributes we need to slap on
@@ -957,7 +957,6 @@ class orchardGoblin {
         // Roll up gear, 'equip' gear (not through equip function, just slap 'em into here real quick), calc all derivedStats (fxn!)
         // Still not equipped with anything yet
         this.entityID = 'mob' + generateRandomID();
-        // OH! Yeah, maybe we can roll up 'custom' glances for them, too. Separate them a little bit.
         let appearanceRoll = rando(1,10);
         switch (appearanceRoll) {
             case 1:
@@ -1002,33 +1001,20 @@ class orchardGoblin {
                 mainType: 'armor', buildType: 'clothes', subType: 'leather', skill: 'gathering/1', stat: 'agility/1', slot: 'body', enhancements: 0, quality: 20
             },
             `Muglin Rags`,
-            `It's not entirely clear what sort of leather these are made from, or how it was treated, and it's probably better not to know.`,
+            `It's not entirely clear what sort of leather these are made from, or how it was treated. Based on the smell, it's probably better not to know.`,
             {DEF: 6, EVA: 6, RES: 6, LUK: 6},
             {size: 6, weight: 8, durability: 500, maxDurability: 500, materials: 'leather/6', attributes: undefined},
             {primitive: 5},
             [],
             50
         )
-        /*
-            newChar.equipped.body = new Item(
-                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'crafting/1', stat: 'constitution/1', slot: 'body', enhancements: 0, quality: 20},
-                `Work Gear`,
-                `Simple but sturdy clothing of thick cloth reinforced with layers of leather at the joints and extremities.`,
-                {DEF: 12, EVA: 3, RES: 8, LUK: 1},
-                {size: 4, weight: 15, durability: 500, maxDurability: 500, materials: 'cloth/4,leather/4', attributes: undefined},
-                {dirty: 5, fireResist: 5},
-                [],
-                500            
-            );          
-        */
 
-        // HERE: calcStats fxn, once operational
-        calcStats(this); // huh... uh, let's see if this works :P
-        // Hm, so far, at the very least, nothing is crashing. Fascinating. Now let's see if we can trigger 'combat.'
+        calcStats(this);
 
         // HERE: calc derivedStats, set starting HP/MP up to max
-        this.stat.HP = this.stat.HPmax;
-        this.stat.MP = this.stat.MPmax;
+        // ... I actually think calcStats already handles this?
+        // this.stat.HP = this.stat.HPmax;
+        // this.stat.MP = this.stat.MPmax;
 
         this.actInterval = 8000;
         setTimeout(() => this.actOut(), this.actInterval);
@@ -1038,6 +1024,9 @@ class orchardGoblin {
         // basic orchard muglin behavior: they do colorful nothing, search the area, or ATTACK! ... they're aggressive, so will always attack if they see player(s)
         // HERE: define 'seenPlayers' as array of attackables... once hiding is a thing
 
+        // HERE: the actInterval has expired, so we can increment EQL by that amount / 100
+        this.equilibrium += this.actInterval / 100;
+        if (this.equilibrium > 100) this.equilibrium = 100;
 
         switch (this.mode) {
             case 'idle': {
@@ -1079,6 +1068,7 @@ class orchardGoblin {
                     console.log(`Probably successfully emitted room-wide data.`);
                 } else io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin mumbles to itself as it skulks from tree to 
                 tree, scanning back and forth between branches and roots.`});
+                this.actInterval = rando(3,8) * 1000;
                 break;          
             }
             case 'combat': {
@@ -1088,7 +1078,10 @@ class orchardGoblin {
                     // later: amend to see if target is visible, assess muglin's current state to see what actions are possible, and update accordingly
                     // for now: attack!
                     // basic logic: normal attacks, with the occasional goblin punch; goblin punch becomes more likely at lower HP?
-                    io.to(characters[this.fighting.main].name).emit('combat_event', {echo: `The muglin wants to use its ${this.stat.ATK} attack power on you!`, type: 'combat_msg'});
+
+                    let attackResult = strike(this, characters[this.fighting.main]);
+                    io.to(characters[this.fighting.main].name).emit('combat_event', {echo: attackResult, type: 'combat_msg'});
+                    // io.to(characters[this.fighting.main].name).emit('combat_event', {echo: `The muglin wants to use its ${this.stat.ATK} attack power on you!`, type: 'combat_msg'});
                     io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `The muglin is fighting! Scrappy!`});
 
                 } else {
@@ -1098,12 +1091,11 @@ class orchardGoblin {
                     this.fighting = {main: undefined, others: []};
                     io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin lost track of its target, glancing around warily.`});
                 }
+                this.actInterval = rando(2,4) * 1000;
                 break;
             }
         }
         
-        // Should probably change the actInterval based on current mode, WITHIN the mode logic above
-        this.actInterval = rando(3,12) * 1000;
         setTimeout(() => this.actOut(), this.actInterval);
         // HERE: assess self and situation, modify mode if necessary, and get going!
     }
@@ -2608,19 +2600,88 @@ function strike(attackingEntity, defendingEntity) {
     // Considerations: relevant stats, equilibrium, stance, changes to both on both sides
     // Call any relevant decrement methods on entities for damage/expended energy here as well, such as .ouch(amount, type)
 
+    // Can set 'move parameters' and/or 'move modifiers' at the top of this function to 'simplify' making other techniques
+
     // Model changes to EQL and stance here, as well as effects to both
     // EQL is 100-point scale, and stance defaults @300 and goes from -599 to 599 (if I recall correctly)
+    // Just modified stance to be 0 by default, rather than 'bonus high' by default :P
 
     // Let's say at MAX EQL, the strike always gives some STANCE
     // At minimum EQL, it always costs some
     // What's the EQL cost? Let's say... 30! Immediate cost.
+    // AGI boosts/mitigates the effect somewhat
+    // ... side note, gotta implement EQL REGEN (we'll say 10 points/sec, so fully depleted is a 10 sec recharge for now)
 
     // Ok! Muglin has 14 ATK, 10 STR. How does damage play out?
     // This is a super basic move, so pretty low mods is fine. 
+    // First, for this, it's ATK vs DEF, and ACC vs EVA. 
+    // We'll start by checking ACC vs EVA to determine whether the attacker hits, is partially avoided, or entirely avoided.
+    // 
 
-    // if attackingEntity.entityType === 'player' calcExp();
+    // HERE: Check if at least 30 EQL is present on attacker
+    if (attackingEntity.equilibrium < 30) return `${attackingEntity.name || attackingEntity.glance} can't attack due to being off-balance!`;
 
-    // Let's have this RETURN the string of the attack, but do all the permutations within the function itself
+    // Quick brainstorm... so, stance is -599 (stumbling, totally off-balance) to 599 (nimble, perfectly poised)
+    // Let's say at 0 stance, we're looking at 50-100% of your stats as variance
+    // At 500+ stance, 100-125
+    // At -500 stance, 0-75
+    // HERE: Modify and roll variance on all ATK/DEF/ACC/EVA for both parties, set effectiveStats for each
+    const attackerStanceNum = Math.floor(attackingEntity.stance / 10);
+    const defenderStanceNum = Math.floor(defendingEntity.stance / 10);
+    const attackerStanceModifier = rando(50 + attackerStanceNum,100 + (attackerStanceNum / 2));
+    const defenderStanceModifier = rando(50 + defenderStanceNum,100 + (defenderStanceNum / 2));
+
+    const modAttackerATK = Math.floor(attackingEntity.stat.ATK * (attackerStanceModifier / 100));
+    const modAttackerACC = Math.floor(attackingEntity.stat.ACC * (attackerStanceModifier / 100));
+    const modDefenderDEF = Math.floor(defendingEntity.stat.DEF * (defenderStanceModifier / 100));
+    const modDefenderEVA = Math.floor(defendingEntity.stat.EVA * (defenderStanceModifier / 100));
+
+    // Hm, it's definitely worth making a function for the above for future techniques, rather than having to copy-paste that
+
+
+    // Ok, so how are we going to do ACC vs EVA? Let's see....
+    // We also have the ATK vs DEF below. Well, since we have accuracy of attacks as a mod, having the ATK/DEF start at 50% doesn't make as much sense.
+    // So, we already have the modified values, and we can decide how 'accurate' the attack was, and use that result to modify the final damage figure
+    // How much 'relative' vs absolute? Probably should stick with absolute figures. ACC / EVA
+    // So 1-to-1 accuracy and evasion is 50% modifier to damage
+    // 2-to-1 accuracy 70%? 3-to-1 90%? Caps at 3.5-to-1 (100% accuracy), then adds a ton of bonus crit after that?
+    // 1-to-2 accuracy 30%? 1-to-3 10%? Basically always missing at 1-to-3.5?
+    // So, every 0.5 adds or subtracts 10% core accuracy under this model
+
+    
+    let baseAccuracy = 50;
+    let accuracyMod = modAttackerACC / modDefenderEVA;
+
+    // HERE: let's roll for a random dodge before we go further!
+
+    if (accuracyMod >= 1) accuracyMod = Math.floor(10 * ((accuracyMod - 1) / 0.5))
+    else accuracyMod = Math.floor(10 * ((modDefenderEVA / modAttackerACC - 1) / 0.5)) * -1;
+    baseAccuracy = (baseAccuracy + accuracyMod) / 100;
+    // ADD: amp crit as well for baseAccuracy > 1
+    if (baseAccuracy > 1) baseAccuracy = 1;
+    if (baseAccuracy < 0) return `${attackingEntity.name || attackingEntity.glance[0].toUpperCase() + attackingEntity.glance.slice(1)} strikes, but completely misses the target!`;
+    
+    
+
+    // HERE: ATK vs DEF
+    // Running with ATK/3 + strength/5 for base damage, reduced directly by DEF/5 + con/10
+    // Gobbo was doing all of 0-1 damage to us, so let's tweak this to be HIGH OCTANE INSANITY, damage WAY UP! :P
+    // Ok! Now we're getting hit for 10 per strike. Like, exactly, each time, so variance could be... more variable.
+    // Actually, just taking the muglin's default stance from 300 to 0 fixed this up nicely...
+    // So, having a little more variance in the higher stances might be good? We'll see.
+    let rawDamage = modAttackerATK * attackingEntity.stat.strength / 5;
+    let rawMitigation = modDefenderDEF / 3 + defendingEntity.stat.constitution / 10;
+    const totalDamage = Math.floor((rawDamage - rawMitigation) * baseAccuracy);
+
+    // HERE: Apply damage, change stance
+    // ... after testing all of the above, first :P ... we'll just do output testing for now
+
+    // HERE: Deduct cost of the maneuver
+    attackingEntity.equilibrium -= 30;
+
+    // HERE: if attackingEntity.entityType === 'player' calcExp();
+
+    return `${attackingEntity.name || attackingEntity.glance[0].toUpperCase() + attackingEntity.glance.slice(1)} strikes at ${defendingEntity.name || defendingEntity.glance} for ${totalDamage} points of damage!`;
 }
 
 function smite(attackingEntity, defendingEntity) {
