@@ -598,12 +598,15 @@ class SpawnMap {
             }
         } while (obeyingSpawnRules === false);
 
-        console.log(`The room at ${spawnLocation} looks good. Let's plop down a mob!`);
+        // console.log(`The room at ${spawnLocation} looks good. Let's plop down a mob!`);
+        // Ohhhhhh ok so let's track it back here. Make sure the entityID is working properly...
         const newMob = new classMob(spawnLocation);
         newMob.init();
-        
+        console.log(`A new mob has been created! Its ID is ${newMob.entityID}`);
         mobs[newMob.entityID] = newMob; // do I have to do a deep copy, or will this be sufficient?
-        // HERE: whoops, gotta populate their room, too...
+
+        // console.log(`The global MOBS list for this entry is now ${JSON.stringify(mobs[newMob.entityID])}.`);
+
         populateRoom(newMob);
         io.to(`${newMob.location.RPS}/${newMob.location.GPS}`).emit('room_event', {echo: newMob.spawnMessage});
         
@@ -1102,11 +1105,19 @@ class orchardGoblin {
 
     ouch(damageTaken, damageType) {
         // use this method to apply damage taken, apply injuries, and possibly amend behavior
+        this.stat.HP -= damageTaken;
+        if (this.stat.HP <= 0) this.ded();
     }
 
     ded() {
        // probably will rename :P
-       // THIS: handle conversion into no-longer-alive status, including messaging the room, adding the body to the room, removing the mob from the room 
+       // THIS: handle conversion into no-longer-alive status, including messaging the room, adding the body to the room, removing the mob from the room
+
+       // NOTE: We don't actually know if this character did the killing, so we can adjust that later to be more actually accurate
+       io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin is slain by ${characters[this.fighting.main].name}!`});
+       io.to(characters[this.fighting.main].name).emit('combat_event', {echo: `Your mighty blow has SLAIN the muglin!`, type: 'combat_msg'});
+
+       // HERE: ... they should probably cease to exist as a mob, and then exist as a corpse at some point as well
     }
 
 }
@@ -1889,7 +1900,9 @@ app.post('/character/login', (req, res, next) => {
                     const charToLoad = JSON.parse(JSON.stringify(searchResult));
                     delete charToLoad.salt;
                     delete charToLoad.hash;
-                    charToLoad.whatDo = 'travel';
+                    charToLoad.fighting = {main: undefined, others: []};
+                    charToLoad.whatDo = 'explore';
+                    if (characters[charToLoad.entityID] !== undefined) characters[charToLoad.entityID].fighting = {main: undefined, others: []};
                     const alreadyInGame = addCharacterToGame(charToLoad);
 
                     if (alreadyInGame) res.status(200).json({type: `success`, message: `Reconnecting to ${charToLoad.name}.`, payload: {character: characters[charToLoad.entityID], token: token}})
@@ -2299,6 +2312,23 @@ io.on('connection', (socket) => {
         socket.join(zaWarudo[character.location.RPS][character.location.GPS].zone);
         populateRoom(character);
         myCharacter = characters[character.entityID]; // Quick 'fix' here to change the myCharacter reference... should hopefully repair all the busted nonsense?
+        // Ideally, this will begin the equilibrium regen ticks properly
+        myCharacter.regen = () => {
+            if (myCharacter.stat.HP < myCharacter.stat.HPmax) {
+                myCharacter.stat.HP += 2;
+            }
+            if (myCharacter.stat.MP < myCharacter.stat.MPmax) {
+                myCharacter.stat.MP += 1;
+            }
+            if (myCharacter.equilibrium < 100) {
+                myCharacter.equilibrium += 20;
+                if (myCharacter.equilibrium > 100) myCharacter.equilibrium = 100;
+            }
+            setTimeout(() => {
+                myCharacter.regen();
+            }, 2000);
+        }
+        myCharacter.regen();
     });
 
     /*
@@ -2330,6 +2360,15 @@ io.on('connection', (socket) => {
                 if (finalCharacter !== '.' && finalCharacter !== '?' && finalCharacter !== '!') amendedText += '.';
                 socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} says, "${amendedText}"`});
                 socket.emit('own_action_result', {echo: `You say, "${amendedText}"`});
+                break;
+            }
+            case 'combatact': {
+                switch (actionData.attack) {
+                    case 'strike': {
+                        let strikeResult = strike(myCharacter, mobs[myCharacter.fighting.main]);
+                        io.to(myCharacter.name).emit('combat_event', {echo: strikeResult, type: 'combat_msg'});
+                    }
+                }
                 break;
             }
             case 'npcinteract': {
@@ -2594,6 +2633,7 @@ let orchardGoblinSpawn = new SpawnMap(
 );
 orchardGoblinSpawn.init();
 
+
 // THIS SECTION: basic abilities/actions
 function strike(attackingEntity, defendingEntity) {
     // THIS: the most basic attack, just whack 'em with your weapon
@@ -2673,8 +2713,10 @@ function strike(attackingEntity, defendingEntity) {
     let rawMitigation = modDefenderDEF / 3 + defendingEntity.stat.constitution / 10;
     const totalDamage = Math.floor((rawDamage - rawMitigation) * baseAccuracy);
 
-    // HERE: Apply damage, change stance
-    // ... after testing all of the above, first :P ... we'll just do output testing for now
+    // HERE: Apply damage
+    if (defendingEntity.entityType === 'mob') defendingEntity.ouch(totalDamage, 'bonk');
+    
+    // HERE: adjust stance(s)
 
     // HERE: Deduct cost of the maneuver
     attackingEntity.equilibrium -= 30;

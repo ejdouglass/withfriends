@@ -46,6 +46,9 @@ const Keyboard = () => {
                     dispatch({type: actions.PACKAGE_FROM_SERVER, payload: {echo: `You run the heck out of combat. Whew!`}});
                     return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
                 }
+                if (e.key === 'a') {
+                    return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'combatact', attack: 'strike'}});
+                }
                 break;
             }
 
