@@ -1106,16 +1106,32 @@ class orchardGoblin {
     ouch(damageTaken, damageType) {
         // use this method to apply damage taken, apply injuries, and possibly amend behavior
         this.stat.HP -= damageTaken;
-        if (this.stat.HP <= 0) this.ded();
+        if (this.stat.HP <= 0) return this.ded(damageTaken);
+
+        // Any other behavior changes can occur around here
+
+        return `dealing ${damageTaken} damage!`;
     }
 
-    ded() {
-       // probably will rename :P
+    ded(damageTaken) {
        // THIS: handle conversion into no-longer-alive status, including messaging the room, adding the body to the room, removing the mob from the room
 
        // NOTE: We don't actually know if this character did the killing, so we can adjust that later to be more actually accurate
-       io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin is slain by ${characters[this.fighting.main].name}!`});
-       io.to(characters[this.fighting.main].name).emit('combat_event', {echo: `Your mighty blow has SLAIN the muglin!`, type: 'combat_msg'});
+       io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin is struck down!`});
+       // io.to(characters[this.fighting.main].name).emit('combat_event', {echo: `Your mighty blow has SLAIN the muglin!`, type: 'combat_msg'});
+       
+       // Below: remove this entity from everybody's fighting object
+       // Right now, it's a bit flawed because it assumes a single player fighting this fella as the main only
+       // Do some filtering hijinks
+       if (characters[this.fighting.main].fighting.main === this.entityID) io.to(characters[this.fighting.main].name).emit('character_data', {type: 'fighting_update', roomData: undefined, newFightingObj: {main: '', others: [...characters[this.fighting.main].fighting.others]}});
+       if (this.fighting.others.length < 0) {
+           for (let i = 0; i < this.fighting.others.length; i++) {
+               // This iterates through every player/entity who has this muglin in their fighting.others array
+               // characters[this.fighting.others[i]]
+           }
+       }
+
+       return `dealing ${damageTaken} damage, slaying it!`;
 
        // HERE: ... they should probably cease to exist as a mob, and then exist as a corpse at some point as well
     }
@@ -2659,7 +2675,14 @@ function strike(attackingEntity, defendingEntity) {
     // 
 
     // HERE: Check if at least 30 EQL is present on attacker
-    if (attackingEntity.equilibrium < 30) return `${attackingEntity.name || attackingEntity.glance} can't attack due to being off-balance!`;
+    const attackerName = attackingEntity.name === undefined ? attackingEntity.glance : attackingEntity.name;
+    const defenderName = defendingEntity.name === undefined ? defendingEntity.glance : defendingEntity.name;
+
+    if (attackingEntity.equilibrium < 30) return `${attackerName} can't attack due to being off-balance!`;
+
+    let startString, midString, endString = '';
+    // BELOW: crashes when attempting to NAME the muglin(s), so set the defending/attacking entity's identities at the beginning and use them from there
+    startString = `${attackerName[0].toUpperCase() + attackerName.slice(1)} strikes at ${defenderName}, `;
 
     // Quick brainstorm... so, stance is -599 (stumbling, totally off-balance) to 599 (nimble, perfectly poised)
     // Let's say at 0 stance, we're looking at 50-100% of your stats as variance
@@ -2699,22 +2722,20 @@ function strike(attackingEntity, defendingEntity) {
     baseAccuracy = (baseAccuracy + accuracyMod) / 100;
     // ADD: amp crit as well for baseAccuracy > 1
     if (baseAccuracy > 1) baseAccuracy = 1;
-    if (baseAccuracy < 0) return `${attackingEntity.name || attackingEntity.glance[0].toUpperCase() + attackingEntity.glance.slice(1)} strikes, but completely misses the target!`;
+    if (baseAccuracy < 0) return `${attackerName[0].toUpperCase() + attackerName.slice(1)} strikes, but completely misses the target!`;
     
     
 
-    // HERE: ATK vs DEF
-    // Running with ATK/3 + strength/5 for base damage, reduced directly by DEF/5 + con/10
-    // Gobbo was doing all of 0-1 damage to us, so let's tweak this to be HIGH OCTANE INSANITY, damage WAY UP! :P
-    // Ok! Now we're getting hit for 10 per strike. Like, exactly, each time, so variance could be... more variable.
-    // Actually, just taking the muglin's default stance from 300 to 0 fixed this up nicely...
-    // So, having a little more variance in the higher stances might be good? We'll see.
+    // We're contesting ATK vs DEF here, modifying both by their respective guiding stat slightly.
+    // Doing just a massive multiplier on the rawDamage is probably a bit much? Well, for this super attack, anyway. We'll modify later.
     let rawDamage = modAttackerATK * attackingEntity.stat.strength / 5;
     let rawMitigation = modDefenderDEF / 3 + defendingEntity.stat.constitution / 10;
     const totalDamage = Math.floor((rawDamage - rawMitigation) * baseAccuracy);
 
     // HERE: Apply damage
-    if (defendingEntity.entityType === 'mob') defendingEntity.ouch(totalDamage, 'bonk');
+    // Thought: can have 'ouch' return a string to apply as the return down below?
+    if (defendingEntity.entityType === 'mob') midString = defendingEntity.ouch(totalDamage, 'bonk')
+    else midString = `dealing ${totalDamage} damage!`;
     
     // HERE: adjust stance(s)
 
@@ -2723,7 +2744,8 @@ function strike(attackingEntity, defendingEntity) {
 
     // HERE: if attackingEntity.entityType === 'player' calcExp();
 
-    return `${attackingEntity.name || attackingEntity.glance[0].toUpperCase() + attackingEntity.glance.slice(1)} strikes at ${defendingEntity.name || defendingEntity.glance} for ${totalDamage} points of damage!`;
+    return startString + midString + endString;
+    // return `${attackingEntity.name || attackingEntity.glance[0].toUpperCase() + attackingEntity.glance.slice(1)} strikes at ${defendingEntity.name || defendingEntity.glance} for ${totalDamage} points of damage!`;
 }
 
 function smite(attackingEntity, defendingEntity) {

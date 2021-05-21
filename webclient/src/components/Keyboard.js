@@ -497,6 +497,10 @@ const Keyboard = () => {
             });
             socketToMe.on('character_data', eventObj => {
                 // Currently testing this as a 'data sent to specific player' situation; may entirely replace 'own_action_result' below
+                if (eventObj.type === 'fighting_update') {
+                    // Playing with parsing directly in this section where applicable, skipping putting the data in state for other areas to listen to
+                    return dispatch({type: actions.UPDATE_FIGHTING, payload: eventObj.newFightingObj});
+                }
                 dispatch({type: actions.PACKAGE_FROM_SERVER, payload: eventObj});
             });
             socketToMe.on('combat_event', combatEventObj => {
