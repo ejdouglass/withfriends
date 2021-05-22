@@ -263,17 +263,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             }
 
             if (state.received?.type === 'combatinit') {
-                console.log(`Combat has begun! For whom?`);
-                // Let's figure out what we need from the server to make this effective
-                // We should receive:
-                // -- the fighting object for our character
-                // -- ideally, the fighting object for any mobs in the room (for display purposes) ... may need to update propagation of room entities for this
-                // -- 
-                // HERE: update fighting, update whatDo
-                // dispatch({type: actions.UPDATE_WHATDO, payload: 'combat'}); // note: need to add way to LEAVE combat, as well... FLEE? Victory? A few ways at first
                 dispatch({type: actions.START_COMBAT, payload: state.received.fightingObj});
-                
-                
             }
 
             if (state.received?.type === 'combat_msg') {
@@ -374,7 +364,14 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         if (state.whatDo === 'combat') return setCombatFeedback([`You ready yourself for battle!`]);
         return setCombatFeedback([]);
         
-    }, [state.whatDo])
+    }, [state.whatDo]);
+
+    useEffect(() => {
+        if (state.whatDo === 'combat' && state.fighting.main === undefined && state.fighting?.others.length === 0) {
+            console.log(`No more fighting!`);
+            return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+        }
+    }, [state.fighting]);
 
     /*
         Some FOCUS modes, which would correspond to whatDo situations (for key responses):

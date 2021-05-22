@@ -499,6 +499,9 @@ const Keyboard = () => {
                 // Currently testing this as a 'data sent to specific player' situation; may entirely replace 'own_action_result' below
                 if (eventObj.type === 'fighting_update') {
                     // Playing with parsing directly in this section where applicable, skipping putting the data in state for other areas to listen to
+                    // HERE: add dispatch to udpate room data
+                    const newLocationData = {room: eventObj.roomData, RPS: eventObj.roomData.RPS, GPS: eventObj.roomData.GPS};
+                    dispatch({type: actions.UPDATE_ROOM, payload: { updatedLocation: newLocationData }});
                     return dispatch({type: actions.UPDATE_FIGHTING, payload: eventObj.newFightingObj});
                 }
                 dispatch({type: actions.PACKAGE_FROM_SERVER, payload: eventObj});

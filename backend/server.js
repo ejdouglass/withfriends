@@ -947,7 +947,7 @@ class orchardGoblin {
         this.stance = 0;
         this.equipped = {rightHand: undefined, leftHand: undefined, head: undefined, torso: undefined, accessory1: undefined, accessory2: undefined};
         this.target = undefined;
-        this.flags = {}; // for later-- mark when they've been stolen from, or other sundry attributes we need to slap on
+        this.flags = {dead: false}; // for later-- mark when they've been stolen from, or other sundry attributes we need to slap on
         this.tagged = {}; // thinking using this for 'spotted' entities, base key is their entityID, contains also the time of tagging and tag quality/duration metric
         this.actInterval = undefined;
         this.level = 1; // hrmmm, might set this up to be a constructor variable, and then pop stats and values up from there
@@ -1024,6 +1024,7 @@ class orchardGoblin {
     }
 
     actOut() {
+        if (this.flags.dead) return;
         // basic orchard muglin behavior: they do colorful nothing, search the area, or ATTACK! ... they're aggressive, so will always attack if they see player(s)
         // HERE: define 'seenPlayers' as array of attackables... once hiding is a thing
 
@@ -1115,6 +1116,7 @@ class orchardGoblin {
 
     ded(damageTaken) {
        // THIS: handle conversion into no-longer-alive status, including messaging the room, adding the body to the room, removing the mob from the room
+       this.flags.dead = true;
 
        // NOTE: We don't actually know if this character did the killing, so we can adjust that later to be more actually accurate
        io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin is struck down!`});
@@ -1123,17 +1125,52 @@ class orchardGoblin {
        // Below: remove this entity from everybody's fighting object
        // Right now, it's a bit flawed because it assumes a single player fighting this fella as the main only
        // Do some filtering hijinks
-       if (characters[this.fighting.main].fighting.main === this.entityID) io.to(characters[this.fighting.main].name).emit('character_data', {type: 'fighting_update', roomData: undefined, newFightingObj: {main: '', others: [...characters[this.fighting.main].fighting.others]}});
-       if (this.fighting.others.length < 0) {
-           for (let i = 0; i < this.fighting.others.length; i++) {
-               // This iterates through every player/entity who has this muglin in their fighting.others array
-               // characters[this.fighting.others[i]]
-           }
+    //    if (characters[this.fighting.main].fighting.main === this.entityID) io.to(characters[this.fighting.main].name).emit('character_data', {type: 'fighting_update', roomData: undefined, newFightingObj: {main: '', others: [...characters[this.fighting.main].fighting.others]}});
+    //    if (this.fighting.others.length > 0) {
+    //        for (let i = 0; i < this.fighting.others.length; i++) {
+    //            // This iterates through every player/entity who has this muglin in their fighting.others array
+    //            // characters[this.fighting.others[i]]
+    //        }
+    //    }
+
+       // Hm. Ok, so we need to go through the entirety of this mob's fighting object, look up all characters, amend their fighting objects to delete this entity,
+       // then send those new fighting objects down to their owners.
+       // NOTE: this won't work properly unless we make absolutely sure to establish dual-directionality of the fighting object...
+       //   that is to say, any player attacking a mob must pop themselves into the mob's fighting object (main or others), and vice versa if there
+       //   is *any* combat 'relationship' between them
+
+       // Also, let's actually send the new roomData for this entity's room so the client can update the view properly
+
+       zaWarudo[this.location.RPS][this.location.GPS].mobs = zaWarudo[this.location.RPS][this.location.GPS].mobs.filter(mob => mob.id !== this.entityID);
+        // HERE: Add corpse to room?
+       
+       if (characters[this.fighting.main].fighting.main === this.entityID) {
+           characters[this.fighting.main].fighting.main = undefined;
+           io.to(characters[this.fighting.main].name).emit('character_data', {type: 'fighting_update', roomData: zaWarudo[this.location.RPS][this.location.GPS], newFightingObj: {main: undefined, others: [...characters[this.fighting.main].fighting.others]}});
+       } else {
+           characters[this.fighting.main].fighting.others = characters[this.fighting.main].fighting.others.filter(target => target !== this.entityID);
+           io.to(characters[this.fighting.main].name).emit('character_data', {type: 'fighting_update', roomData: zaWarudo[this.location.RPS][this.location.GPS], newFightingObj: {main: characters[this.fighting.main].fighting.main, others: characters[this.fighting.main].fighting.others}});
        }
 
-       return `dealing ${damageTaken} damage, slaying it!`;
+       if (this.fighting.others.length > 0) {
+           this.fighting.others.forEach(target => {
+                if (characters[target].fighting.main === this.entityID) {
+                    characters[target].fighting.main = undefined;
+                    io.to(characters[target].name).emit('character_data', {type: 'fighting_update', roomData: zaWarudo[this.location.RPS][this.location.GPS], newFightingObj: {main: undefined, others: [...characters[target].fighting.others]}});
+                } else {
+                    characters[target].fighting.others = characters[target].fighting.others.filter(mob => mob !== this.entityID);
+                    io.to(characters[target].name).emit('character_data', {type: 'fighting_update', roomData: zaWarudo[this.location.RPS][this.location.GPS], newFightingObj: {main: characters[target].fighting.main, others: characters[target].fighting.others}});
+                }
+           })
+       }
 
-       // HERE: ... they should probably cease to exist as a mob, and then exist as a corpse at some point as well
+       delete mobs[this.entityID];
+    
+
+
+
+
+       return `dealing ${damageTaken} damage, slaying it!`;
     }
 
 }
@@ -1536,7 +1573,7 @@ function populateRoom(entity) {
         glance: entity.glance || '',
         description: entity.description || `This being is rather indescribable.`,
         level: entity.level || 1,
-        fighting: entity.fighting || {main: {}, others: []},
+        fighting: entity.fighting || {main: undefined, others: []},
         HP: entity.stat.HP || 100,
         condition: [] // asleep, stunned, not-so-alive, etc.
     }
@@ -2675,10 +2712,17 @@ function strike(attackingEntity, defendingEntity) {
     // 
 
     // HERE: Check if at least 30 EQL is present on attacker
-    const attackerName = attackingEntity.name === undefined ? attackingEntity.glance : attackingEntity.name;
-    const defenderName = defendingEntity.name === undefined ? defendingEntity.glance : defendingEntity.name;
+    let attackerName;
+    if (attackingEntity.name !== undefined) attackerName = attackingEntity.name
+    else attackerName = attackingEntity.glance;
+    let defenderName;
+    if (defendingEntity.name !== undefined) defenderName = defendingEntity.name
+    else defenderName = defendingEntity.glance;
 
     if (attackingEntity.equilibrium < 30) return `${attackerName} can't attack due to being off-balance!`;
+    // HERE: calculate stance mods first before deducting EQL
+    attackingEntity.stance += (attackingEntity.equilibrium - 50);
+    attackingEntity.equilibrium -= 30;
 
     let startString, midString, endString = '';
     // BELOW: crashes when attempting to NAME the muglin(s), so set the defending/attacking entity's identities at the beginning and use them from there
@@ -2736,11 +2780,6 @@ function strike(attackingEntity, defendingEntity) {
     // Thought: can have 'ouch' return a string to apply as the return down below?
     if (defendingEntity.entityType === 'mob') midString = defendingEntity.ouch(totalDamage, 'bonk')
     else midString = `dealing ${totalDamage} damage!`;
-    
-    // HERE: adjust stance(s)
-
-    // HERE: Deduct cost of the maneuver
-    attackingEntity.equilibrium -= 30;
 
     // HERE: if attackingEntity.entityType === 'player' calcExp();
 
