@@ -119,6 +119,24 @@ const Keyboard = () => {
                             return console.log(`Time to interact with an NPC!`);
                         }
                         case 'mob': {
+                            /* 
+                                Aha! Now we have all the bits on the backend to initiate COMBAT. Let's set that up!
+                                ... just using enter is good, but what if we want to sneak and steal?
+                                ... we can use the NPC interact model above to open a menu, and have a quick key like "V" be quick-combat-mode
+                                Next step is to study how combat initiates from the muglin's perspective and enable that to start up from the client here
+
+                                io.to(characters[this.fighting.main].name).emit('character_data', {
+                                    echo: `You feel the menace of MUGLIN COMBAT!`,
+                                    type: 'combatinit',
+                                    fightingObj: characters[this.fighting.main].fighting,
+                                });      
+                                .... the above should be key to init-ing the combat from the client.
+
+                                Let's see. We need to send to backend the mob's ID, which can initiate combat in the backend, and then send the above back.
+
+                            */
+
+                            dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'combatinit', target: state.viewTarget?.id}});
                             return console.log(`Time to engage a mob! Possibly in MORTAL COMBAT!!`);
                         }
                         case 'player': {

@@ -938,7 +938,7 @@ class orchardGoblin {
             building: 0,
             medicine: 0
         };
-        this.backpack = {contents: []};
+        this.backpack = {contents: []}; // stealable goodies? ... let's say yes! We can populate some fruit in here on future iterations
         this.wallet = {gems: [], coins: [0, 0, 0, 0]}; // thinking this will be 'stealable' money/gems
         this.mode = 'idle'; // gotta define modes and such, too, like wandering, self-care (later), etc.... may want to set 'default' names for ease and later mobs
         this.injuries = {}; // haven't decided how to define these quite yet
@@ -961,6 +961,7 @@ class orchardGoblin {
         // Still not equipped with anything yet
         this.entityID = 'mob' + generateRandomID();
         let appearanceRoll = rando(1,10);
+        // ADD: corresponding fruit(s) in various states of quality related to the muglin's appearance
         switch (appearanceRoll) {
             case 1:
             case 2:
@@ -1025,6 +1026,11 @@ class orchardGoblin {
 
     actOut() {
         if (this.flags.dead) return;
+        if (this.fighting.main !== undefined) this.mode = 'combat';
+        if (this.fighting.main === undefined && this.fighting.others.length > 0) {
+            this.fighting.main = this.fighting.others[1];
+            this.fighting.others = this.fighting.others.slice(1);
+        }
         // basic orchard muglin behavior: they do colorful nothing, search the area, or ATTACK! ... they're aggressive, so will always attack if they see player(s)
         // HERE: define 'seenPlayers' as array of attackables... once hiding is a thing
 
@@ -1047,6 +1053,8 @@ class orchardGoblin {
                     else characters[this.fighting.main].fighting.others.push(this.entityID); 
                     this.mode = 'combat';
         
+                    // Hm, interesting, the 'second' muglin onwards tends to not end combat properly...
+                    // I'm thinking it's due to, when player attacks first, the code for selecting target gets a little weird?
                     console.log(`Ok! The object for the muglin is ${JSON.stringify(this.fighting)}, and the character being targeted now has a fighting obj of 
                     ${JSON.stringify(characters[this.fighting.main].fighting)}`);
 
@@ -2415,6 +2423,30 @@ io.on('connection', (socket) => {
                 socket.emit('own_action_result', {echo: `You say, "${amendedText}"`});
                 break;
             }
+            case 'combatinit': {
+                if (myCharacter.fighting.main === undefined) {
+                    myCharacter.fighting.main = actionData.target;
+                    console.log(`Targeting mob: ${actionData.target}`);
+                } else {
+                    if (myCharacter.fighting.others.find(mobID => mobID === actionData.target) === undefined) myCharacter.fighting.others.push(actionData.target);
+                }
+                console.log(`Character's new fighting obj looks like this: ${JSON.stringify(myCharacter.fighting)}`);
+
+                if (mobs[actionData.target].fighting.main === undefined) {
+                    mobs[actionData.target].fighting.main = myCharacter.entityID;
+                } else {
+                    if (mobs[actionData.target].fighting.others.find(playerID => playerID === myCharacter.entityID) === undefined) mobs[actionData.target].fighting.others.push(myCharacter.entityID);
+                }
+
+                console.log(`... and mob's fighting obj now looks like this: ${JSON.stringify(mobs[actionData.target].fighting)}`);
+
+                io.to(myCharacter.name).emit('character_data', {
+                    echo: `You move into position to attack ${mobs[actionData.target].glance}!`,
+                    type: 'combatinit',
+                    fightingObj: myCharacter.fighting,
+                });
+                break;
+            }
             case 'combatact': {
                 switch (actionData.attack) {
                     case 'strike': {
@@ -2689,6 +2721,7 @@ orchardGoblinSpawn.init();
 
 // THIS SECTION: basic abilities/actions
 function strike(attackingEntity, defendingEntity) {
+    if (defendingEntity === undefined) return `A cloud of dust picks up from nowhere, obscuring battle for a moment!`;
     // THIS: the most basic attack, just whack 'em with your weapon
     // Considerations: relevant stats, equilibrium, stance, changes to both on both sides
     // Call any relevant decrement methods on entities for damage/expended energy here as well, such as .ouch(amount, type)
@@ -2716,7 +2749,7 @@ function strike(attackingEntity, defendingEntity) {
     if (attackingEntity.name !== undefined) attackerName = attackingEntity.name
     else attackerName = attackingEntity.glance;
     let defenderName;
-    if (defendingEntity.name !== undefined) defenderName = defendingEntity.name
+    if (defendingEntity.name !== undefined && defendingEntity !== undefined) defenderName = defendingEntity.name
     else defenderName = defendingEntity.glance;
 
     if (attackingEntity.equilibrium < 30) return `${attackerName} can't attack due to being off-balance!`;
