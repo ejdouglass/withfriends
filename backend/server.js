@@ -574,8 +574,10 @@ class SpawnMap {
     }
 
     run() {
-        // ADD: checking on mobs; once they're killable, add a fxn that removes them from global mobs, converts them into their corpse-form (dark!)
-        //  RUN should check on the status of all stored IDs, count up the remaining live ones, and respond accordingly
+        // RUN should check on the status of all stored IDs, count up the remaining live ones, and respond accordingly
+        this.mobs = this.mobs.filter(mob => {
+            return mobs[mob] !== undefined;
+        });
 
         // Check spawn rules, make sure we're not at the limit before running spawn
         if (this.mobs.length < this.spawnRules.maxSpawn) {
@@ -602,7 +604,7 @@ class SpawnMap {
         // Ohhhhhh ok so let's track it back here. Make sure the entityID is working properly...
         const newMob = new classMob(spawnLocation);
         newMob.init();
-        console.log(`A new mob has been created! Its ID is ${newMob.entityID}`);
+        // console.log(`A new mob has been created! Its ID is ${newMob.entityID}`);
         mobs[newMob.entityID] = newMob; // do I have to do a deep copy, or will this be sufficient?
 
         // console.log(`The global MOBS list for this entry is now ${JSON.stringify(mobs[newMob.entityID])}.`);
@@ -614,7 +616,7 @@ class SpawnMap {
         // hmmmm ok maybe locally define, make a deep brand-new copy in global mobs list, then throw the entityID into the local mobs list
         
 
-        this.mobs.push(newMob.entityID); // just entityID, can be used for lookup against the global mobs? speaking of which:
+        this.mobs.push(newMob.entityID); // just entityID, for referencing their alive-or-dead status
         
     }
 
@@ -1077,7 +1079,7 @@ class orchardGoblin {
                         roomData: {RPS: this.location.RPS, GPS: this.location.GPS, room: zaWarudo[this.location.RPS][this.location.GPS]},
                     });
                     // Quick note on roomData above: the client stores location as separate RPS, GPS, and 'room' object data, with that last bit being the whole location obj
-                    console.log(`Probably successfully emitted room-wide data.`);
+                    
                 } else io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin mumbles to itself as it skulks from tree to 
                 tree, scanning back and forth between branches and roots.`});
                 this.actInterval = rando(3,8) * 1000;
