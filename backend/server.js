@@ -923,20 +923,20 @@ class orchardGoblin {
         this.mobType = {meta: 'humanoid', race: 'muglin'};
         this.spawnMessage = `Leaves rustle and twigs snap as ${this.glance} scrambles into view, its eyes darting from tree to tree hungrily.`;
         this.stat = {
-            seed: {HPmax: 60, MPmax: 15, strength: 10, agility: 10, constitution: 10, willpower: 10, intelligence: 10, wisdom: 10, spirit: 10},
-            strength: undefined, agility: undefined, constitution: undefined, willpower: undefined, intelligence: undefined, wisdom: undefined, charisma: undefined,
+            seed: {HPmax: 80, MPmax: 15, strength: 15, agility: 15, constitution: 15, willpower: 5, intelligence: 5, wisdom: 5, spirit: 10},
+            strength: undefined, agility: undefined, constitution: undefined, willpower: undefined, intelligence: undefined, wisdom: undefined, spirit: undefined,
             HP: undefined, HPmax: undefined, MP: undefined, MPmax: undefined,
             ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, LUK: undefined
         };
         this.skill = {
-            fighting: 5,
-            gathering: 5,
+            fighting: 10,
+            gathering: 10,
             sneaking: 0,
             traversal: 0,
             crafting: 0,
             spellcasting: 0,
             scholarship: 0,
-            sensing: 5,
+            sensing: 10,
             building: 0,
             medicine: 0
         };
@@ -996,7 +996,7 @@ class orchardGoblin {
             },
             `Muglin Fruitknife`,
             `A simplistic curved knife made of meticulously shaped stone. Its handle is wrapped in leather crusted with dried sugar.`,
-            {ATK: 8, ACC: 12, MAG: 3, FOC: 1},
+            {ATK: 12, ACC: 8, MAG: 3, FOC: 1},
             {size: 2, weight: 5, durability: 500, maxDurability: 500, materials: 'stone/2,leather/1', attributes: undefined},
             {primitive: 5},
             [],
@@ -1008,7 +1008,7 @@ class orchardGoblin {
             },
             `Muglin Rags`,
             `It's not entirely clear what sort of leather these are made from, or how it was treated. Based on the smell, it's probably better not to know.`,
-            {DEF: 6, EVA: 6, RES: 6, LUK: 6},
+            {DEF: 12, EVA: 6, RES: 3, LUK: 3},
             {size: 6, weight: 8, durability: 500, maxDurability: 500, materials: 'leather/6', attributes: undefined},
             {primitive: 5},
             [],
@@ -1016,11 +1016,7 @@ class orchardGoblin {
         )
 
         calcStats(this);
-
-        // HERE: calc derivedStats, set starting HP/MP up to max
-        // ... I actually think calcStats already handles this?
-        // this.stat.HP = this.stat.HPmax;
-        // this.stat.MP = this.stat.MPmax;
+        // console.log(`Let's look at this new muglin's stats now! They've got: ${JSON.stringify(this.stat)}`)
 
         this.actInterval = 8000;
         setTimeout(() => this.actOut(), this.actInterval);
@@ -2374,8 +2370,8 @@ io.on('connection', (socket) => {
         socket.to(roomString).emit('room_event', {echo: `${character.name} just appeared as if from nowhere! Wowee!`});
         socket.join(zaWarudo[character.location.RPS][character.location.GPS].zone);
         populateRoom(character);
-        myCharacter = characters[character.entityID]; // Quick 'fix' here to change the myCharacter reference... should hopefully repair all the busted nonsense?
-        // Ideally, this will begin the equilibrium regen ticks properly
+        myCharacter = characters[character.entityID]; 
+        // The below isn't just 'regen' per se, but for now is close enough a concept to work with
         myCharacter.regen = () => {
             if (myCharacter.stat.HP < myCharacter.stat.HPmax) {
                 myCharacter.stat.HP += 2;
@@ -2387,6 +2383,12 @@ io.on('connection', (socket) => {
                 myCharacter.equilibrium += 20;
                 if (myCharacter.equilibrium > 100) myCharacter.equilibrium = 100;
             }
+            if (myCharacter.stance > 0) {
+                myCharacter.stance -= Math.floor(myCharacter.stance / 20);
+            } else {
+                myCharacter.stance += Math.floor(Math.abs(myCharacter.stance / 20));
+            }
+            if (Math.abs(myCharacter.stance) < 5) myCharacter.stance = 0;
             setTimeout(() => {
                 myCharacter.regen();
             }, 2000);
@@ -2794,7 +2796,7 @@ function strike(attackingEntity, defendingEntity) {
     let baseAccuracy = 50;
     let accuracyMod = modAttackerACC / modDefenderEVA;
 
-    // HERE: let's roll for a random dodge before we go further!
+    // HERE: let's roll for a random dodge before we go further! Can be a function of skill difference, stat difference, and absolute values as well
 
     if (accuracyMod >= 1) accuracyMod = Math.floor(10 * ((accuracyMod - 1) / 0.5))
     else accuracyMod = Math.floor(10 * ((modDefenderEVA / modAttackerACC - 1) / 0.5)) * -1;
@@ -2807,14 +2809,17 @@ function strike(attackingEntity, defendingEntity) {
 
     // We're contesting ATK vs DEF here, modifying both by their respective guiding stat slightly.
     // Doing just a massive multiplier on the rawDamage is probably a bit much? Well, for this super attack, anyway. We'll modify later.
-    let rawDamage = modAttackerATK * attackingEntity.stat.strength / 5;
+    let rawDamage = modAttackerATK + attackingEntity.stat.strength / 5 * (1 + attackingEntity.stat.strength / 10);
     let rawMitigation = modDefenderDEF / 3 + defendingEntity.stat.constitution / 10;
     const totalDamage = Math.floor((rawDamage - rawMitigation) * baseAccuracy);
+
+    console.log(`Our attacker ${attackerName} uses their ${attackingEntity.stat.ATK} ATK and ${attackingEntity.stat.strength} strength with a stance of 
+    ${attackingEntity.stance} to do rawDamage of ${rawDamage} against a mitigation level of ${rawMitigation}. The accuracy here is ${baseAccuracy}.`);
 
     // HERE: Apply damage
     // Thought: can have 'ouch' return a string to apply as the return down below?
     if (defendingEntity.entityType === 'mob') midString = defendingEntity.ouch(totalDamage, 'bonk')
-    else midString = `dealing ${totalDamage} damage!`;
+    else midString = totalDamage === 0 ? `but glances harmlessly off ${defenderName}'s armor!` : `dealing ${totalDamage} damage!`;
 
     // HERE: if attackingEntity.entityType === 'player' calcExp();
 
@@ -2833,6 +2838,8 @@ function logSplitter(attackingEntity, defendingEntity) {
 
 function goblinPunch(attackingEntity, defendingEntity) {
     // THIS: the almighty GOBLIN PUNCH, possibly the only special maneuver the orchard muglin knows!
+
+    // Can implement this next -- extrapolate out the basics of the strike() functionality so don't have to copy-paste 99% of it
 }
 
 server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
