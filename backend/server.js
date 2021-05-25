@@ -995,8 +995,8 @@ class orchardGoblin {
                 enhancements: 0, quality: 20
             },
             `Muglin Fruitknife`,
-            `A simplistic curved knife made of meticulously shaped stone. Its handle is wrapped in leather crusted with dried sugar.`,
-            {ATK: 12, ACC: 8, MAG: 3, FOC: 1},
+            `A simplistic sickle-like knife made of meticulously shaped stone. Its handle is wrapped in leather crusted with dried sugar.`,
+            {ATK: 10, ACC: 10, MAG: 3, FOC: 1},
             {size: 2, weight: 5, durability: 500, maxDurability: 500, materials: 'stone/2,leather/1', attributes: undefined},
             {primitive: 5},
             [],
@@ -1008,7 +1008,7 @@ class orchardGoblin {
             },
             `Muglin Rags`,
             `It's not entirely clear what sort of leather these are made from, or how it was treated. Based on the smell, it's probably better not to know.`,
-            {DEF: 12, EVA: 6, RES: 3, LUK: 3},
+            {DEF: 8, EVA: 8, RES: 4, LUK: 4},
             {size: 6, weight: 8, durability: 500, maxDurability: 500, materials: 'leather/6', attributes: undefined},
             {primitive: 5},
             [],
@@ -1035,6 +1035,11 @@ class orchardGoblin {
         // HERE: the actInterval has expired, so we can increment EQL by that amount / 100
         this.equilibrium += this.actInterval / 100;
         if (this.equilibrium > 100) this.equilibrium = 100;
+
+        // Kind of a hack-y way to drift back towards 0; having a separately running internal timer would be more precise, but also more intensive, I imagine
+        if (this.stance > 0) this.stance -= Math.floor(5 * (this.actInterval / 1000));
+        if (this.stance < 0) this.stance += Math.floor(5 * (this.actInterval / 1000));
+        if (Math.abs(this.stance) < 5) this.stance = 0;
 
         switch (this.mode) {
             case 'idle': {
@@ -1084,15 +1089,25 @@ class orchardGoblin {
             case 'combat': {
                 // We can do very basic logic here for which of the all of two moves the muglin knows, but for other future mobs, maybe have a more modular combat logic
                 //  (i.e. an object and basic AI typing that can be inserted into the constructor)
+
+                if (this.stance < -200) {
+                    io.to(characters[this.fighting.main].name).emit('combat_event', {echo: `The muglin stumbles and takes a quick step backwards, trying to shore up its awkward footing.`, type: 'combat_msg'});
+                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `The muglin stumbles awkwardly, mumbling to itself as it takes a step back to get its footing back.`});
+                    this.actInterval = 4000;
+                    break;
+                }
+
                 if (this.location.GPS === characters[this.fighting.main].location.GPS) {
                     // later: amend to see if target is visible, assess muglin's current state to see what actions are possible, and update accordingly
                     // for now: attack!
                     // basic logic: normal attacks, with the occasional goblin punch; goblin punch becomes more likely at lower HP?
 
+                    
                     let attackResult = strike(this, characters[this.fighting.main]);
+                    // HM. Instead of echo-ing to a character, we could echo to a party or combat instance?
                     io.to(characters[this.fighting.main].name).emit('combat_event', {echo: attackResult, type: 'combat_msg'});
                     // io.to(characters[this.fighting.main].name).emit('combat_event', {echo: `The muglin wants to use its ${this.stat.ATK} attack power on you!`, type: 'combat_msg'});
-                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `The muglin is fighting! Scrappy!`});
+                    io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `The muglin takes a swipe at ${characters[this.fighting.main].name}!`});
 
                 } else {
                     console.log(`Muglin cannot combat. Muglin am sleepy now. Zzz.`);
@@ -2375,9 +2390,11 @@ io.on('connection', (socket) => {
         myCharacter.regen = () => {
             if (myCharacter.stat.HP < myCharacter.stat.HPmax) {
                 myCharacter.stat.HP += 2;
+                if (myCharacter.stat.HP > myCharacter.stat.HPmax) myCharacter.stat.HP = myCharacter.stat.HPmax;
             }
             if (myCharacter.stat.MP < myCharacter.stat.MPmax) {
                 myCharacter.stat.MP += 1;
+                if (myCharacter.stat.MP > myCharacter.stat.MPmax) myCharacter.stat.MP = myCharacter.stat.MPmax;
             }
             if (myCharacter.equilibrium < 100) {
                 myCharacter.equilibrium += 20;
@@ -2389,11 +2406,30 @@ io.on('connection', (socket) => {
                 myCharacter.stance += Math.floor(Math.abs(myCharacter.stance / 20));
             }
             if (Math.abs(myCharacter.stance) < 5) myCharacter.stance = 0;
+            io.to(myCharacter.name).emit('character_data', {echo: ``, type: 'stat_update', data: {
+                'HP': myCharacter.stat.HP,
+                'MP': myCharacter.stat.MP,
+                'equilibrium': myCharacter.equilibrium,
+                'stance': myCharacter.stance
+            }});
             setTimeout(() => {
                 myCharacter.regen();
             }, 2000);
         }
         myCharacter.regen();
+        myCharacter.ouch = (damageTaken, damageType) => {
+            myCharacter.stat.HP -= damageTaken;
+            io.to(myCharacter.name).emit('character_data', {echo: ``, type: 'stat_update', data: {'HP': myCharacter.stat.HP}});
+            return `dealing ${damageTaken} damage!`;
+            /*
+                this.stat.HP -= damageTaken;
+                if (this.stat.HP <= 0) return this.ded(damageTaken);
+
+                // Any other behavior changes can occur around here
+
+                return `dealing ${damageTaken} damage!`;            
+            */
+        }
     });
 
     /*
@@ -2756,9 +2792,9 @@ function strike(attackingEntity, defendingEntity) {
     if (defendingEntity.name !== undefined && defendingEntity !== undefined) defenderName = defendingEntity.name
     else defenderName = defendingEntity.glance;
 
-    if (attackingEntity.equilibrium < 30) return `${attackerName} can't attack due to being off-balance!`;
+    if (attackingEntity.equilibrium < 30) return `${attackerName[0] + attackerName.slice(1)} can't attack due to being off-balance!`;
     // HERE: calculate stance mods first before deducting EQL
-    attackingEntity.stance += (attackingEntity.equilibrium - 50);
+    if (Math.abs(attackingEntity.stance < 599)) attackingEntity.stance += (attackingEntity.equilibrium - 50);
     attackingEntity.equilibrium -= 30;
 
     let startString, midString, endString = '';
@@ -2818,8 +2854,10 @@ function strike(attackingEntity, defendingEntity) {
 
     // HERE: Apply damage
     // Thought: can have 'ouch' return a string to apply as the return down below?
-    if (defendingEntity.entityType === 'mob') midString = defendingEntity.ouch(totalDamage, 'bonk')
-    else midString = totalDamage === 0 ? `but glances harmlessly off ${defenderName}'s armor!` : `dealing ${totalDamage} damage!`;
+    // if (defendingEntity.entityType === 'mob') midString = defendingEntity.ouch(totalDamage, 'bonk');
+    // if (defendingEntity.entityType === 'player') midString = defendingEntity.ouch(totalDamage, 'bonk');
+    // else midString = totalDamage < 0 ? `but glances harmlessly off ${defenderName}'s armor!` : `dealing ${totalDamage} damage!`;
+    midString = defendingEntity.ouch(totalDamage, 'bonk');
 
     // HERE: if attackingEntity.entityType === 'player' calcExp();
 

@@ -522,6 +522,9 @@ const Keyboard = () => {
                     dispatch({type: actions.UPDATE_ROOM, payload: { updatedLocation: newLocationData }});
                     return dispatch({type: actions.UPDATE_FIGHTING, payload: eventObj.newFightingObj});
                 }
+                if (eventObj.type === 'stat_update') {
+                    return dispatch({type: actions.UPDATE_STATS, payload: eventObj.data})
+                }
                 dispatch({type: actions.PACKAGE_FROM_SERVER, payload: eventObj});
             });
             socketToMe.on('combat_event', combatEventObj => {

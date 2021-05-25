@@ -1,10 +1,17 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { actions, Context } from '../context/context';
-import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton, InventoryContainer, EquippedContainer, EquippedItem, BackpackContainer, BackpackItem, BackpackColumn, InventoryItemDetails, StatusScreenContainer, MagicContainer, StatusScreenTitleContainer, StatusScreenCharacterContainer, StatusScreenHealthContainer, StatusScreenCoreStatsContainer, StatusScreenDerivedStatsContainer, StatusScreenSkillsContainer, HealthItem, CoreStatItem, DerivedStatsRow, DerivedStatItem, SkillItem, CombatScreenContainer, CombatFeedBack } from './styled';
+import { LeftMenu, ActionButton, ChatPrompt, Fader, RightMenuLabel, EntityList, RoomName, RoomDetails, RoomImg, RoomDesc, EyeView, RightMenu, TopMenu, StructureContainer, MainScreen, RoomView, CharCard, MainViewContainer, ChatWrapper, ChatInput, ChatSubmit, CharProfileImg, CharProfileName, MyCompassView, CompassArrow, ZoneTitle, MyMapGuy, CurrentFocus, EyeSpyLine, NPCInteractionContainer, EntityGlancer, NPCInteractionOptions, NPCInteractionButton, InventoryContainer, EquippedContainer, EquippedItem, BackpackContainer, BackpackItem, BackpackColumn, InventoryItemDetails, StatusScreenContainer, MagicContainer, StatusScreenTitleContainer, StatusScreenCharacterContainer, StatusScreenHealthContainer, StatusScreenCoreStatsContainer, StatusScreenDerivedStatsContainer, StatusScreenSkillsContainer, HealthItem, CoreStatItem, DerivedStatsRow, DerivedStatItem, SkillItem, CombatScreenContainer, CombatFeedBack, CharCondition, LogoutButton, CharHPMP, CharMPContainer, CharHPContainer, CharHP, CharMP } from './styled';
 
 const MainView = () => {
     const [state, dispatch] = useContext(Context);
+    const history = useHistory();
+
+    function logout() {
+        localStorage.removeItem('withFriendsJWT');
+        dispatch({type: actions.LOGOUT_CHAR});
+        history.push('/');
+    }
 
     return (
         <MainScreen>
@@ -14,6 +21,7 @@ const MainView = () => {
             <MyMap state={state} />
             <LeftMenuBox state={state} dispatch={dispatch} />
             <RightMenuBox state={state} dispatch={dispatch} />
+            <LogoutButton onClick={logout}>Log Out</LogoutButton>
         </MainScreen>
     )
 }
@@ -566,7 +574,12 @@ const CurrentFocusBox = ({ state, dispatch }) => {
 
                 BUTTONS: 
                     -- (R)un
-                    -- ?
+                    -- 
+                
+                Hm. Ok, it's hard to see at a glance who's doing what, so let's color-code or otherwise visually distinguish enemy vs player actions.
+
+                Let's set it up so we can see the muglin's health status, as well as ours!
+                -- and our EQL and stance would be fantastic as well
 
             */
             return (
@@ -699,20 +712,22 @@ const MyChar = ({ state, dispatch }) => {
     // Hm, a little bulky. Think about what else is going in here, maybe shrink it down to mostly fixed with a little bit of vw.
     // Also, name shrinks far too much when screen size changes. Pump it up!
 
-    const history = useHistory();
-
-    function logout() {
-        localStorage.removeItem('withFriendsJWT');
-        dispatch({type: actions.LOGOUT_CHAR});
-        history.push('/');
-    }
-
     return (
         <CharCard>
             <TopMenuBox state={state} dispatch={dispatch} />
             <CharProfileImg />
-            <CharProfileName>{state.name}</CharProfileName>
-            <button style={{marginLeft: '2rem', height: '40%'}} onClick={logout}>Log Out</button>
+            <CharCondition>
+                <CharProfileName>{state.name}</CharProfileName>
+                <p>Stance: {state?.stance}</p>
+                <p>EQL: {state?.equilibrium}</p>
+            </CharCondition>
+            <CharHPMP>
+                <CharHPContainer>
+                    <CharHP HPpercent={Math.floor(state.stat.HP / state.stat.HPmax * 100)} healthColor={'green'}>{state?.stat?.HP}</CharHP>
+                    <CharMP HPpercent={Math.floor(state.stat.MP / state.stat.MPmax * 100)} manaColor={'blue'}>{state?.stat?.MP}</CharMP>
+                </CharHPContainer>
+                <CharMPContainer></CharMPContainer>
+            </CharHPMP>
             <MyCompassView>
                 <MyMapGuy />
                 <CompassArrow east navigable={state.location?.room?.exits?.e}/>

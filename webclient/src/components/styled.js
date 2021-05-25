@@ -312,6 +312,57 @@ export const CharCard = styled.div`
     border: 1px solid black;
 `;
 
+export const CharCondition = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 33%;
+`;
+
+export const CharHPMP = styled.div`
+    display: flex;
+    flex-direction: column;
+    font-size: calc(0.5rem + 0.5vw);
+    width: 33%;
+`;
+
+export const CharHPContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 100%;
+    height: 50%;
+`;
+
+export const CharHP = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: calc(0.6rem + 0.6vw);
+    color: white;
+    background-color: ${props => props.healthColor || 'green'};
+    height: 50px;
+    width: ${props => props.HPpercent + '%' || '100%'};
+`;
+
+export const CharMP = styled(CharHP)`
+    background-color: ${props => props.manaColor || 'blue'};
+    width: ${props => props.MPpercent + '%' || '100%'};
+`;
+
+export const CharMPContainer = styled(CharHPContainer)`
+`;
+
+export const EQLStance = styled.div`
+    display: flex;
+`;
+
+export const LogoutButton = styled.button`
+    position: fixed;
+    top: 0.5rem;
+    right: 0.5rem;
+    // width: 1.5vw;
+`;
+
 export const TopMenu = styled.div`
     position: absolute;
     flex-direction: row;

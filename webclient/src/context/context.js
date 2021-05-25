@@ -18,7 +18,8 @@ export const actions = {
     UPDATE_SELECTED_BAR: 'update_selected_bar',
     RESET_VIEW: 'reset_view',
     START_COMBAT: 'start_combat',
-    UPDATE_FIGHTING: 'update_fighting'
+    UPDATE_FIGHTING: 'update_fighting',
+    UPDATE_STATS: 'update_stats'
 }
 
 export const Reducer = (state, action) => {
@@ -129,6 +130,15 @@ export const Reducer = (state, action) => {
         case actions.UPDATE_FIGHTING: {
             return {...state, fighting: action.payload || {main: '', others: []}};
         }
+        case actions.UPDATE_STATS: {
+            // Let's try to receive an object that looks like: data: {HP: newnumber, MP: newnumber, strength: newnumber, ...}
+            // It can have any subset of stats to update! We'll have to loop through the action.payload.data object
+            let updatedStats = JSON.parse(JSON.stringify(state.stat));
+            for (const statKey in action.payload) {
+                updatedStats[statKey] = action.payload[statKey];
+            }
+            return {...state, stat: {...updatedStats}};
+        }
         default: {
             return state;
         }
@@ -196,6 +206,8 @@ const initialState = {
     whatDo: mode.CHARACTER_CREATION,
     actionIndex: 0,
     viewIndex: 0,
+    stance: 0,
+    equilibrium: 100,
     currentBarSelected: 'action',
     currentActionBar: ['Magic', 'Survey Area', 'Inventory'],
     alert: undefined,
