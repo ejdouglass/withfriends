@@ -17,6 +17,7 @@ const CharacterSchema = new Schema({
     equilibrium: {type: Number, default: 100},
     stance: {type: Number, default: 0},
     regenerating: {type: Boolean, default: false},
+    regen: Object, // Wouldn't allow definition as Function, so.... let's see how this flies :P
     mainHand: {type: String, default: 'right'},
     location: {
         type: Object,

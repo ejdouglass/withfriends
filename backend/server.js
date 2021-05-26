@@ -2268,7 +2268,7 @@ app.post('/character/create', (req, res, next) => {
 
     // HERE: calcStats, set HP/MP, prepare the character for 'real life' IG
     calcStats(newChar);
-    
+
     if (error) res.status(406).json({message: error});
 
     // HERE: Make sure newChar.name isn't yet taken (scan DB in characters collection)
@@ -2377,7 +2377,7 @@ io.on('connection', (socket) => {
         console.log(`${character.name} has joined the game!`);
         if (!characters[character.entityID]) {
             console.log(`Oh! Not logged in yet on the server. Beep boop, fixing.`);
-            addCharacterToGame(character);
+            addCharacterToGame(character); 
         }
         roomString = character.location.RPS.toString() + '/' + character.location.GPS;
         socket.join(roomString);
@@ -2385,46 +2385,60 @@ io.on('connection', (socket) => {
         socket.to(roomString).emit('room_event', {echo: `${character.name} just appeared as if from nowhere! Wowee!`});
         socket.join(zaWarudo[character.location.RPS][character.location.GPS].zone);
         populateRoom(character);
-        myCharacter = characters[character.entityID]; 
+        myCharacter = characters[character.entityID];
         // The below isn't just 'regen' per se, but for now is close enough a concept to work with
 
-        if (myCharacter.regen === undefined) {
-            myCharacter.regen = () => {
-                // myCharacter.regenerating = true;
-                // console.log(`Backend, ${myCharacter.name} has HP of ${myCharacter.stat.HP} currently. Regenerating to ${myCharacter.stat.HP + 2}!`);
-                if (myCharacter.stat.HP < myCharacter.stat.HPmax) {
-                    myCharacter.stat.HP += 2;
-                    if (myCharacter.stat.HP > myCharacter.stat.HPmax) myCharacter.stat.HP = myCharacter.stat.HPmax;
-                }
-                if (myCharacter.stat.MP < myCharacter.stat.MPmax) {
-                    myCharacter.stat.MP += 1;
-                    if (myCharacter.stat.MP > myCharacter.stat.MPmax) myCharacter.stat.MP = myCharacter.stat.MPmax;
-                }
-                if (myCharacter.equilibrium < 100) {
-                    myCharacter.equilibrium += 20;
-                    if (myCharacter.equilibrium > 100) myCharacter.equilibrium = 100;
-                }
-                if (myCharacter.stance > 0) {
-                    myCharacter.stance -= (10 + Math.floor(myCharacter.stance / 50));
-                } else {
-                    myCharacter.stance += 10 + Math.floor(Math.abs(myCharacter.stance / 50));
-                }
-                if (Math.abs(myCharacter.stance) <= 10) myCharacter.stance = 0;
-                io.to(myCharacter.name).emit('character_data', {echo: ``, type: 'stat_update', data: {
-                    'HP': myCharacter.stat.HP,
-                    'MP': myCharacter.stat.MP,
-                    'equilibrium': myCharacter.equilibrium,
-                    'stance': myCharacter.stance
-                }});
-                setTimeout(() => {
-                    myCharacter.regen();
-                }, 2000);
-            }
-            myCharacter.regen();
-        }
+        // Ok, so this is all a big ol' mess right now -- stutters on stale values sometimes, refreshing browser can cause multiple versions of this function running, etc.
+        // Interval has the same problem(s). Hmmm.
+        // Basically myCharacter.regen is always undefined but also not? It's weird.
         
-        // Hm, there's nothing that 'turns off' regen on disconnect and such, so this check itself doesn't work well
-        // Also, the character isn't saved during regen, so every time I save this file it resets everyone :P
+        // console.log(`Backend believes character is NOT regenerating properly and thus is re-applying init of regen function.`);
+
+        console.log(`Regeneration status of ${myCharacter.name}: ${myCharacter.regenerating}`);
+        
+        // Maybe the problem is in defining this *here*? If I define it somewhere else, will it not go crazy-crazy?
+        // Let's think it through -- every client refresh comes here, sees 'false' no matter what, and fires up this function
+        // It then becomes a self-sustaining loop that iterates more or less eternally without any way to pump the brakes so long as the server persists...
+        // Ok, we're trying to move the whooooole concept back into character creation as a permanent function that's attached to the character
+        
+        
+        myCharacter.regen = function() {
+            // this.regenerating = true;
+            // console.log(`${myCharacter.name} is regenerating!`);
+            if (myCharacter.stat.HP < myCharacter.stat.HPmax) {
+                myCharacter.stat.HP += 2;
+                if (myCharacter.stat.HP > myCharacter.stat.HPmax) myCharacter.stat.HP = myCharacter.stat.HPmax;
+            }
+            if (myCharacter.stat.MP < myCharacter.stat.MPmax) {
+                myCharacter.stat.MP += 1;
+                if (myCharacter.stat.MP > myCharacter.stat.MPmax) myCharacter.stat.MP = myCharacter.stat.MPmax;
+            }
+            if (myCharacter.equilibrium < 100) {
+                myCharacter.equilibrium += 20;
+                if (myCharacter.equilibrium > 100) myCharacter.equilibrium = 100;
+            }
+            if (myCharacter.stance > 0) {
+                myCharacter.stance -= (10 + Math.floor(myCharacter.stance / 50));
+            } else {
+                myCharacter.stance += 10 + Math.floor(Math.abs(myCharacter.stance / 50));
+            }
+            if (Math.abs(myCharacter.stance) <= 10) myCharacter.stance = 0;
+            io.to(myCharacter.name).emit('character_data', {echo: ``, type: 'stat_update', data: {
+                'HP': myCharacter.stat.HP,
+                'MP': myCharacter.stat.MP,
+                'equilibrium': myCharacter.equilibrium,
+                'stance': myCharacter.stance
+            }});
+            // setTimeout(() => {
+            //     myCharacter.regen();
+            // }, 2000);
+        }
+        myCharacter.regenLoop = setInterval(myCharacter.regen, 2000);
+    
+
+        
+        // // Hm, there's nothing that 'turns off' regen on disconnect and such, so this check itself doesn't work well
+        // // Also, the character isn't saved during regen, so every time I save this file it resets everyone :P
         myCharacter.ouch = (damageTaken, damageType) => {
             myCharacter.stat.HP -= damageTaken;
             io.to(myCharacter.name).emit('character_data', {echo: ``, type: 'stat_update', data: {'HP': myCharacter.stat.HP}});
@@ -2438,6 +2452,7 @@ io.on('connection', (socket) => {
                 return `dealing ${damageTaken} damage!`;            
             */
         }
+
     });
 
     /*
@@ -2723,6 +2738,8 @@ function removeCharacterFromGame(character) {
     // const targetLocation = characters[character.entityID].location;
     // zaWarudo[targetLocation.RPS][targetLocation.GPS]['players'].filter(playerID => playerID !== character.entityID);
     depopulateRoom(character);
+    characters[character.entityID].regenerating = false;
+    clearInterval(characters[character.entityID].regenLoop);
     if (character.name !== undefined) {
         const filter = { name: character.name };
         const update = { $set: characters[character.entityID] };
