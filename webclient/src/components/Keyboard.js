@@ -515,6 +515,7 @@ const Keyboard = () => {
             });
             socketToMe.on('character_data', eventObj => {
                 // Currently testing this as a 'data sent to specific player' situation; may entirely replace 'own_action_result' below
+                
                 if (eventObj.type === 'fighting_update') {
                     // Playing with parsing directly in this section where applicable, skipping putting the data in state for other areas to listen to
                     // HERE: add dispatch to udpate room data
@@ -522,6 +523,7 @@ const Keyboard = () => {
                     dispatch({type: actions.UPDATE_ROOM, payload: { updatedLocation: newLocationData }});
                     return dispatch({type: actions.UPDATE_FIGHTING, payload: eventObj.newFightingObj});
                 }
+
                 if (eventObj.type === 'stat_update') {
                     return dispatch({type: actions.UPDATE_STATS, payload: eventObj.data})
                 }

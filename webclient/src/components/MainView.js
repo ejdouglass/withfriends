@@ -718,8 +718,8 @@ const MyChar = ({ state, dispatch }) => {
             <CharProfileImg />
             <CharCondition>
                 <CharProfileName>{state.name}</CharProfileName>
-                <p>Stance: {state?.stance}</p>
-                <p>EQL: {state?.equilibrium}</p>
+                <div>Stance: {state?.stance}</div>
+                <div>EQL: {state?.equilibrium}</div>
             </CharCondition>
             <CharHPMP>
                 <CharHPContainer>

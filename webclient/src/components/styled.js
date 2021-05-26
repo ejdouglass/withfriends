@@ -315,15 +315,18 @@ export const CharCard = styled.div`
 export const CharCondition = styled.div`
     display: flex;
     flex-direction: column;
-    width: 33%;
+    width: 25%;
+    padding-left: calc(0.5rem + 0.5vw);
 `;
 
 export const CharHPMP = styled.div`
     display: flex;
     flex-direction: column;
     font-size: calc(0.5rem + 0.5vw);
-    width: 33%;
+    width: 25%;
 `;
+
+// export const StanceEQL = styled.div``;
 
 export const CharHPContainer = styled.div`
     display: flex;
@@ -407,10 +410,9 @@ export const CharProfileImg = styled.div`
 `;
 
 export const CharProfileName = styled.p`
-    font-size: calc(0.5rem + 0.5vw);
-    text-align: center;
-    padding-left: 1rem;
+    font-size: calc(0.6rem + 0.6vw);
     font-weight: 700;
+    margin: 0.5rem 0;
 `;
 
 export const MyCompassView = styled.div`

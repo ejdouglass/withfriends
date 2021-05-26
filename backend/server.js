@@ -2387,36 +2387,44 @@ io.on('connection', (socket) => {
         populateRoom(character);
         myCharacter = characters[character.entityID]; 
         // The below isn't just 'regen' per se, but for now is close enough a concept to work with
-        myCharacter.regen = () => {
-            if (myCharacter.stat.HP < myCharacter.stat.HPmax) {
-                myCharacter.stat.HP += 2;
-                if (myCharacter.stat.HP > myCharacter.stat.HPmax) myCharacter.stat.HP = myCharacter.stat.HPmax;
+
+        if (myCharacter.regen === undefined) {
+            myCharacter.regen = () => {
+                // myCharacter.regenerating = true;
+                // console.log(`Backend, ${myCharacter.name} has HP of ${myCharacter.stat.HP} currently. Regenerating to ${myCharacter.stat.HP + 2}!`);
+                if (myCharacter.stat.HP < myCharacter.stat.HPmax) {
+                    myCharacter.stat.HP += 2;
+                    if (myCharacter.stat.HP > myCharacter.stat.HPmax) myCharacter.stat.HP = myCharacter.stat.HPmax;
+                }
+                if (myCharacter.stat.MP < myCharacter.stat.MPmax) {
+                    myCharacter.stat.MP += 1;
+                    if (myCharacter.stat.MP > myCharacter.stat.MPmax) myCharacter.stat.MP = myCharacter.stat.MPmax;
+                }
+                if (myCharacter.equilibrium < 100) {
+                    myCharacter.equilibrium += 20;
+                    if (myCharacter.equilibrium > 100) myCharacter.equilibrium = 100;
+                }
+                if (myCharacter.stance > 0) {
+                    myCharacter.stance -= (10 + Math.floor(myCharacter.stance / 50));
+                } else {
+                    myCharacter.stance += 10 + Math.floor(Math.abs(myCharacter.stance / 50));
+                }
+                if (Math.abs(myCharacter.stance) <= 10) myCharacter.stance = 0;
+                io.to(myCharacter.name).emit('character_data', {echo: ``, type: 'stat_update', data: {
+                    'HP': myCharacter.stat.HP,
+                    'MP': myCharacter.stat.MP,
+                    'equilibrium': myCharacter.equilibrium,
+                    'stance': myCharacter.stance
+                }});
+                setTimeout(() => {
+                    myCharacter.regen();
+                }, 2000);
             }
-            if (myCharacter.stat.MP < myCharacter.stat.MPmax) {
-                myCharacter.stat.MP += 1;
-                if (myCharacter.stat.MP > myCharacter.stat.MPmax) myCharacter.stat.MP = myCharacter.stat.MPmax;
-            }
-            if (myCharacter.equilibrium < 100) {
-                myCharacter.equilibrium += 20;
-                if (myCharacter.equilibrium > 100) myCharacter.equilibrium = 100;
-            }
-            if (myCharacter.stance > 0) {
-                myCharacter.stance -= Math.floor(myCharacter.stance / 20);
-            } else {
-                myCharacter.stance += Math.floor(Math.abs(myCharacter.stance / 20));
-            }
-            if (Math.abs(myCharacter.stance) < 5) myCharacter.stance = 0;
-            io.to(myCharacter.name).emit('character_data', {echo: ``, type: 'stat_update', data: {
-                'HP': myCharacter.stat.HP,
-                'MP': myCharacter.stat.MP,
-                'equilibrium': myCharacter.equilibrium,
-                'stance': myCharacter.stance
-            }});
-            setTimeout(() => {
-                myCharacter.regen();
-            }, 2000);
+            myCharacter.regen();
         }
-        myCharacter.regen();
+        
+        // Hm, there's nothing that 'turns off' regen on disconnect and such, so this check itself doesn't work well
+        // Also, the character isn't saved during regen, so every time I save this file it resets everyone :P
         myCharacter.ouch = (damageTaken, damageType) => {
             myCharacter.stat.HP -= damageTaken;
             io.to(myCharacter.name).emit('character_data', {echo: ``, type: 'stat_update', data: {'HP': myCharacter.stat.HP}});
@@ -2860,6 +2868,22 @@ function strike(attackingEntity, defendingEntity) {
     midString = defendingEntity.ouch(totalDamage, 'bonk');
 
     // HERE: if attackingEntity.entityType === 'player' calcExp();
+    if (attackingEntity.entityType === 'player') {
+        io.to(attackingEntity.name).emit('character_data', {echo: ``, type: 'stat_update', data: {
+            'HP': attackingEntity.stat.HP,
+            'MP': attackingEntity.stat.MP,
+            'equilibrium': attackingEntity.equilibrium,
+            'stance': attackingEntity.stance
+        }});
+    }
+    if (defendingEntity.entityType === 'player') {
+        io.to(defendingEntity.name).emit('character_data', {echo: ``, type: 'stat_update', data: {
+            'HP': defendingEntity.stat.HP,
+            'MP': defendingEntity.stat.MP,
+            'equilibrium': defendingEntity.equilibrium,
+            'stance': defendingEntity.stance
+        }});
+    }
 
     return startString + midString + endString;
     // return `${attackingEntity.name || attackingEntity.glance[0].toUpperCase() + attackingEntity.glance.slice(1)} strikes at ${defendingEntity.name || defendingEntity.glance} for ${totalDamage} points of damage!`;
