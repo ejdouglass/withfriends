@@ -572,9 +572,17 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                     -- 'Target Window' will display the details of the current main fighting target
                     -- At-a-glance for the 'rest' (currently only one target is expected, muglins don't swarm)
 
-                BUTTONS: 
-                    -- (R)un
-                    -- 
+                BUTTONS, reconfigured: 
+                    -- (R)un -- try to disengage! Right now that just cancels combat (in an awkward way).
+                    -- (A)ggressive stance
+                    -- (D)odge stance
+                    -- (G)uard stance
+
+                    -- (S)trike
+
+                    ... muglins are hard when they're just as 'good' as a starter char! One-on-one combat is dicey without options.
+                    ... currently (A) does a basic STRIKE, but that can certainly change. Maybe (S)? (H) for Heavy Strike?
+                    ... well, don't need to map the entire keyboard. :P
                 
                 Hm. Ok, it's hard to see at a glance who's doing what, so let's color-code or otherwise visually distinguish enemy vs player actions.
 
@@ -718,8 +726,8 @@ const MyChar = ({ state, dispatch }) => {
             <CharProfileImg />
             <CharCondition>
                 <CharProfileName>{state.name}</CharProfileName>
-                <div>Stance: {state?.stance}</div>
                 <div>EQL: {state?.equilibrium}</div>
+                <div>Stance: {state?.stance}</div>
             </CharCondition>
             <CharHPMP>
                 <CharHPContainer>

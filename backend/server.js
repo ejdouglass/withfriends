@@ -923,7 +923,7 @@ class orchardGoblin {
         this.mobType = {meta: 'humanoid', race: 'muglin'};
         this.spawnMessage = `Leaves rustle and twigs snap as ${this.glance} scrambles into view, its eyes darting from tree to tree hungrily.`;
         this.stat = {
-            seed: {HPmax: 80, MPmax: 15, strength: 15, agility: 15, constitution: 15, willpower: 5, intelligence: 5, wisdom: 5, spirit: 10},
+            seed: {HPmax: 80, MPmax: 15, strength: 10, agility: 10, constitution: 10, willpower: 5, intelligence: 5, wisdom: 5, spirit: 10},
             strength: undefined, agility: undefined, constitution: undefined, willpower: undefined, intelligence: undefined, wisdom: undefined, spirit: undefined,
             HP: undefined, HPmax: undefined, MP: undefined, MPmax: undefined,
             ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, LUK: undefined
@@ -996,7 +996,7 @@ class orchardGoblin {
             },
             `Muglin Fruitknife`,
             `A simplistic sickle-like knife made of meticulously shaped stone. Its handle is wrapped in leather crusted with dried sugar.`,
-            {ATK: 10, ACC: 10, MAG: 3, FOC: 1},
+            {ATK: 8, ACC: 8, MAG: 5, FOC: 3},
             {size: 2, weight: 5, durability: 500, maxDurability: 500, materials: 'stone/2,leather/1', attributes: undefined},
             {primitive: 5},
             [],
@@ -1008,7 +1008,7 @@ class orchardGoblin {
             },
             `Muglin Rags`,
             `It's not entirely clear what sort of leather these are made from, or how it was treated. Based on the smell, it's probably better not to know.`,
-            {DEF: 8, EVA: 8, RES: 4, LUK: 4},
+            {DEF: 6, EVA: 6, RES: 6, LUK: 6},
             {size: 6, weight: 8, durability: 500, maxDurability: 500, materials: 'leather/6', attributes: undefined},
             {primitive: 5},
             [],
@@ -2394,35 +2394,39 @@ io.on('connection', (socket) => {
         
         // console.log(`Backend believes character is NOT regenerating properly and thus is re-applying init of regen function.`);
 
-        console.log(`Regeneration status of ${myCharacter.name}: ${myCharacter.regenerating}`);
-        
-        // Maybe the problem is in defining this *here*? If I define it somewhere else, will it not go crazy-crazy?
-        // Let's think it through -- every client refresh comes here, sees 'false' no matter what, and fires up this function
-        // It then becomes a self-sustaining loop that iterates more or less eternally without any way to pump the brakes so long as the server persists...
-        // Ok, we're trying to move the whooooole concept back into character creation as a permanent function that's attached to the character
-        
+        // console.log(`Regeneration status of ${myCharacter.name}: ${myCharacter.regenerating}`);
+        // character.regenerating is probably unnecessary now -- consider removing or reappropriating
         
         myCharacter.regen = function() {
             // this.regenerating = true;
             // console.log(`${myCharacter.name} is regenerating!`);
             if (myCharacter.stat.HP < myCharacter.stat.HPmax) {
-                myCharacter.stat.HP += 2;
+                myCharacter.stat.HP += 1;
                 if (myCharacter.stat.HP > myCharacter.stat.HPmax) myCharacter.stat.HP = myCharacter.stat.HPmax;
             }
             if (myCharacter.stat.MP < myCharacter.stat.MPmax) {
+                // Sort of a placeholder value for now... since we can't reasonably go below 1 at the moment
                 myCharacter.stat.MP += 1;
                 if (myCharacter.stat.MP > myCharacter.stat.MPmax) myCharacter.stat.MP = myCharacter.stat.MPmax;
             }
             if (myCharacter.equilibrium < 100) {
-                myCharacter.equilibrium += 20;
+                myCharacter.equilibrium += 10;
                 if (myCharacter.equilibrium > 100) myCharacter.equilibrium = 100;
             }
+            // For some odd reason it hits around 20ish and then just kinda... stops? Or doesn't display anymore? It's a little odd.
+            // Ok, so it will 'tick' at 20 and theoretically it'll be down to 10.
             if (myCharacter.stance > 0) {
-                myCharacter.stance -= (10 + Math.floor(myCharacter.stance / 50));
-            } else {
-                myCharacter.stance += 10 + Math.floor(Math.abs(myCharacter.stance / 50));
+                // console.log(`Stance is at ${myCharacter.stance} and dwindling!`);
+                myCharacter.stance -= 5;
             }
-            if (Math.abs(myCharacter.stance) <= 10) myCharacter.stance = 0;
+            if (myCharacter.stance < 0) {
+                // console.log(`Stance is ${myCharacter.stance}, now recovering!`);
+                myCharacter.stance += 5;
+            }
+            if (Math.abs(myCharacter.stance) <= 3) {
+                // console.log(`Stance is nearly neutral, back to zero!`);
+                myCharacter.stance = 0;
+            }
             io.to(myCharacter.name).emit('character_data', {echo: ``, type: 'stat_update', data: {
                 'HP': myCharacter.stat.HP,
                 'MP': myCharacter.stat.MP,
@@ -2433,7 +2437,7 @@ io.on('connection', (socket) => {
             //     myCharacter.regen();
             // }, 2000);
         }
-        myCharacter.regenLoop = setInterval(myCharacter.regen, 2000);
+        myCharacter.regenLoop = setInterval(myCharacter.regen, 1000);
     
 
         
@@ -2819,7 +2823,9 @@ function strike(attackingEntity, defendingEntity) {
 
     if (attackingEntity.equilibrium < 30) return `${attackerName[0] + attackerName.slice(1)} can't attack due to being off-balance!`;
     // HERE: calculate stance mods first before deducting EQL
-    if (Math.abs(attackingEntity.stance < 599)) attackingEntity.stance += (attackingEntity.equilibrium - 50);
+    attackingEntity.stance += (attackingEntity.equilibrium - 50);
+    if (attackingEntity.stance > 599) attackingEntity.stance = 599;
+    if (attackingEntity.stance < -599) attackingEntity.stance = -599;
     attackingEntity.equilibrium -= 30;
 
     let startString, midString, endString = '';
@@ -2870,7 +2876,7 @@ function strike(attackingEntity, defendingEntity) {
 
     // We're contesting ATK vs DEF here, modifying both by their respective guiding stat slightly.
     // Doing just a massive multiplier on the rawDamage is probably a bit much? Well, for this super attack, anyway. We'll modify later.
-    let rawDamage = modAttackerATK + attackingEntity.stat.strength / 5 * (1 + attackingEntity.stat.strength / 10);
+    let rawDamage = 5 + modAttackerATK + attackingEntity.stat.strength / 5 * (1 + attackingEntity.stat.strength / 10);
     let rawMitigation = modDefenderDEF / 3 + defendingEntity.stat.constitution / 10;
     const totalDamage = Math.floor((rawDamage - rawMitigation) * baseAccuracy);
 

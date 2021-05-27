@@ -134,12 +134,14 @@ export const Reducer = (state, action) => {
             // Let's try to receive an object that looks like: data: {HP: newnumber, MP: newnumber, strength: newnumber, ...}
             // It can have any subset of stats to update! We'll have to loop through the action.payload.data object
 
-            // Whoops! This works great for actual stats, but does NOT work for STANCE or EQUILIBRIUM, which do not live in stats. Let's see...
+            // Hm, action.payload.stance isn't registering due to value of 0 being falsy. Oh, silly JS. Let's see...
             let updatedStats = JSON.parse(JSON.stringify(state.stat));
             for (const statKey in action.payload) {
                 if (statKey !== 'equilibrium' && statKey !== 'stance') updatedStats[statKey] = action.payload[statKey];
             }
-            return {...state, stat: {...updatedStats}, equilibrium: action.payload?.equilibrium || state.equilibrium, stance: action.payload?.stance || state.stance};
+            let eqlVal = action.payload.equilibrium || state.equilibrium;
+            let stanceVal = action.payload.stance === undefined ? state.stance : action.payload.stance;
+            return {...state, stat: {...updatedStats}, equilibrium: eqlVal, stance: stanceVal};
         }
         default: {
             return state;
