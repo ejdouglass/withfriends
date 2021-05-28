@@ -195,11 +195,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
     const [localViewIndex, setLocalViewIndex] = useState(0);
     const [contextualArray, setContextualArray] = useState([]);
     const [combatFeedback, setCombatFeedback] = useState(['You ready yourself for combat!']);
-
-    // function doneFocusing() {
-    //     console.log(`Done focusing, probably`);
-    //     dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
-    // }
+    const [enemyStats, setEnemyStats] = useState([]); // might try index 0 = fighting.main, index others = others
 
     function handleInteractionSelection(interaction) {
         console.log(`You wish to ${interaction}? With ${focusObj?.name}?`);
@@ -274,6 +270,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                 dispatch({type: actions.START_COMBAT, payload: state.received.fightingObj});
             }
 
+            // Let's change this to combat data, and have it update the 'visual' for enemy health and such
             if (state.received?.type === 'combat_msg') {
                 // console.log(`You receive this data about your current battle: ${state.received?.echo}.`);
                 setCombatFeedback([...combatFeedback, state.received?.echo]);
@@ -559,18 +556,11 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                 ... with this complete, we'll be quite close to ALPHA RELEASE! Fantastic.
 
                 GUI:
-                    -- We'll start with NON full-screen, but 'obscure' the iSpy below
-                    -- Leave room for 'placement' concepts (grid v grid, or single grid)
-                    -- Main commands on the left (i.e. (R)un, which should replace core commands of exploration)
-                    -- Each enemy should display name, threat level, HP, overall status, status effects (ideally - maybe later, but consider room for it)
-                    -- Texty area to see combat feedback
-                    -- Maybe a way to look more closely at individual mobs? See their equipment, status, etc. in greater detail?
-                    
-                    -- To begin with, we need to know WHAT is attacking us! A threat list of sorts. So everything attacking us (and at-a-glance status for each).
-                    -- The entity we're targeting should be front-and center.
-                    -- Consider adding a brief flickering animation or something when they attack the player.
-                    -- 'Target Window' will display the details of the current main fighting target
-                    -- At-a-glance for the 'rest' (currently only one target is expected, muglins don't swarm)
+                    -- Left side will change to 'basic' combat commands
+                    -- Front-and-center is main fighting target's view
+                    -- iSpy is taking care of the combat messaging now, so that whole section can skedaddle
+                    -- GUI is now for 'grid' eventually, and just overview of combat situation in the meantime
+                    -- Combatscreencontainer needs to shrinky-dink to accomodate need for iSpy to be visible again
 
                 BUTTONS, reconfigured: 
                     -- (R)un -- try to disengage! Right now that just cancels combat (in an awkward way).
@@ -592,11 +582,18 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             */
             return (
                 <CombatScreenContainer>
-                    <CombatFeedBack id="combatview">
+                    <div>
+                        {state.fighting?.main && `You are fighting a fighty-foe!`}
+                        {state.fighting?.others?.length && `You are fighting a side fighty-foe!`}
+                    </div>
+                    <div>
+
+                    </div>
+                    {/* <CombatFeedBack id="combatview">
                         {combatFeedback.map((combatMessage, index) => (
                             <p key={index}>{combatMessage}</p>
                         ))}
-                    </CombatFeedBack>
+                    </CombatFeedBack> */}
                 </CombatScreenContainer>
             );
         }
@@ -609,7 +606,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
 
 const ViewBox = ({ state, dispatch }) => {
     const [talkText, setTalkText] = useState('');
-    const [iSpy, setISpy] = useState(['So a new day of adventure begins.', 'Proceed boldly!']);
+    const [iSpy, setISpy] = useState([{echo: 'So a new day of adventure begins.', type: 'general'}, {echo: 'Proceed boldly!', type: 'general'}]);
     const chatRef = useRef(null);
     // let mainViewElement;
 
@@ -631,15 +628,20 @@ const ViewBox = ({ state, dispatch }) => {
     }, [state.whatDo]);
 
     useEffect(() => {
-        // THIS: when a new string is processed through PACKAGE_FROM_SERVER, it ends up here for display. Makes sense!
+        // Amending this function -- let's set it up to receive AND parse both ECHO and TYPE
+        // Types: general, combat_msg, talk, ???
+        // Since it might be awhile before we can go back and re-attach TYPE to everything the server sends, default to attaching 'general' if no type found
         if (state.received) {
             // ADD: parse the received data, and if it's a "move to new room" situation, add an extra blank line or two to iSpy, buffer it out a bit
             let newSights = [...iSpy];
             // Added a quick type check to omit combat_msg from the main iSpy log; later might want to have *some* reflection, just not the same exact text x2
-            if (state.received.echo && state.received?.type !== 'combat_msg') {
-                let newestSight = state.received?.echo[0].toUpperCase() + state.received?.echo.slice(1);
-                newSights.push(newestSight);
-            }
+            
+            let newestSight = {
+                echo: state.received?.echo[0].toUpperCase() + state.received?.echo.slice(1),
+                type: state.received?.type || 'general'
+            };
+            newSights.push(newestSight);
+            
 
             setISpy(newSights);
             dispatch({type: actions.PACKAGE_FROM_SERVER, payload: undefined});
@@ -700,7 +702,7 @@ const ViewBox = ({ state, dispatch }) => {
                 </RoomView>
                 <EyeView id='mainview'>
                     {iSpy.map((line, index) => (
-                        <EyeSpyLine key={index}>{line}</EyeSpyLine>
+                        <EyeSpyLine key={index}>{line.echo}</EyeSpyLine>
                     ))
                     }
                 </EyeView>

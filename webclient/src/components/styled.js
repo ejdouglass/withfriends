@@ -922,8 +922,7 @@ export const CombatScreenContainer = styled(NPCInteractionContainer)`
     border: 4px solid red;
     flex-direction: column;
     background-color: white;
-    height: 400px;
-    // HM. Let's brainstorm how this one'll look. Use iSpy for all feedback and risk interference, or have a separate full combat window with feedback screen?
+    height: 200px;
 `;
 
 export const ThreatsContainer = styled.div`

@@ -2423,7 +2423,7 @@ io.on('connection', (socket) => {
                 // console.log(`Stance is ${myCharacter.stance}, now recovering!`);
                 myCharacter.stance += 5;
             }
-            if (Math.abs(myCharacter.stance) <= 3) {
+            if (Math.abs(myCharacter.stance) <= 5) {
                 // console.log(`Stance is nearly neutral, back to zero!`);
                 myCharacter.stance = 0;
             }
