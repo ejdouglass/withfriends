@@ -1052,6 +1052,7 @@ class orchardGoblin {
                     this.fighting.main = characters[`${zaWarudo[this.location.RPS][this.location.GPS].players[0].id}`].entityID; // later: fix to include seenPlayers array length, and change to seenPlayers array instead
                     // console.log(`Rawr! Now targeting: ${JSON.stringify(this.target.name)}`);
                     // This if-else below, while kind of odd to read, essentially slots this muglin into the target's fighting object in the proper spot
+                    // ... this should DEFINITELY be extrapolated out into a 'set up combat for player(s)' function
                     if (characters[this.fighting.main].fighting.main === undefined) characters[this.fighting.main].fighting.main = this.entityID
                     else characters[this.fighting.main].fighting.others.push(this.entityID); 
                     this.mode = 'combat';
@@ -1089,6 +1090,13 @@ class orchardGoblin {
             case 'combat': {
                 // We can do very basic logic here for which of the all of two moves the muglin knows, but for other future mobs, maybe have a more modular combat logic
                 //  (i.e. an object and basic AI typing that can be inserted into the constructor)
+                if (characters[this.fighting.main] === undefined) {
+                    // Helpful catch in case the player logs off or is logged off during combat
+                    this.mode = 'idle';
+                    this.target = undefined;
+                    this.fighting = {main: undefined, others: []};
+                    return io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin lost track of its target, glancing around warily.`});
+                }
 
                 if (this.stance < -200) {
                     io.to(characters[this.fighting.main].name).emit('combat_event', {echo: `The muglin stumbles and takes a quick step backwards, trying to shore up its awkward footing.`, type: 'combat_msg'});
@@ -1162,9 +1170,11 @@ class orchardGoblin {
 
        // Also, let's actually send the new roomData for this entity's room so the client can update the view properly
 
-       zaWarudo[this.location.RPS][this.location.GPS].mobs = zaWarudo[this.location.RPS][this.location.GPS].mobs.filter(mob => mob.id !== this.entityID);
+    //    zaWarudo[this.location.RPS][this.location.GPS].mobs = zaWarudo[this.location.RPS][this.location.GPS].mobs.filter(mob => mob.id !== this.entityID);
+
         // HERE: Add corpse to room?
-       
+       depopulateRoom(this);
+
        if (characters[this.fighting.main].fighting.main === this.entityID) {
            characters[this.fighting.main].fighting.main = undefined;
            io.to(characters[this.fighting.main].name).emit('character_data', {type: 'fighting_update', roomData: zaWarudo[this.location.RPS][this.location.GPS], newFightingObj: {main: undefined, others: [...characters[this.fighting.main].fighting.others]}});
@@ -1184,6 +1194,14 @@ class orchardGoblin {
                 }
            })
        }
+
+       // Hm. I'm not sure the above are 'working' properly ATM; let's try a "cover all" send to the room with new data?
+       io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {
+           echo: '',
+           note: `This entity of ID ${this.entityID} shouldn't be in this data any longer. This is a 'death note.'`,
+           type: 'entities_update',
+           roomData: zaWarudo[this.location.RPS][this.location.GPS]
+       })
 
        delete mobs[this.entityID];
     
@@ -2491,13 +2509,15 @@ io.on('connection', (socket) => {
                 break;
             }
             case 'combatinit': {
-                if (myCharacter.fighting.main === undefined) {
+                // Added a quick check in the room -- should help mitigate 'main-targeting a mob that isn't even here' issues
+                if (myCharacter.fighting.main === undefined || zaWarudo[myCharacter.location.RPS][myCharacter.location.GPS].mobs.find(aMob => aMob.entityID === myCharacter.fighting.main) === undefined) {
                     myCharacter.fighting.main = actionData.target;
                     console.log(`Targeting mob: ${actionData.target}`);
                 } else {
+                    console.log(`Targeting into others array.`);
                     if (myCharacter.fighting.others.find(mobID => mobID === actionData.target) === undefined) myCharacter.fighting.others.push(actionData.target);
                 }
-                console.log(`Character's new fighting obj looks like this: ${JSON.stringify(myCharacter.fighting)}`);
+                // console.log(`Character's new fighting obj looks like this: ${JSON.stringify(myCharacter.fighting)}`);
 
                 if (mobs[actionData.target].fighting.main === undefined) {
                     mobs[actionData.target].fighting.main = myCharacter.entityID;
@@ -2505,7 +2525,7 @@ io.on('connection', (socket) => {
                     if (mobs[actionData.target].fighting.others.find(playerID => playerID === myCharacter.entityID) === undefined) mobs[actionData.target].fighting.others.push(myCharacter.entityID);
                 }
 
-                console.log(`... and mob's fighting obj now looks like this: ${JSON.stringify(mobs[actionData.target].fighting)}`);
+                // console.log(`... and mob's fighting obj now looks like this: ${JSON.stringify(mobs[actionData.target].fighting)}`);
 
                 io.to(myCharacter.name).emit('character_data', {
                     echo: `You move into position to attack ${mobs[actionData.target].glance}!`,
@@ -2880,8 +2900,8 @@ function strike(attackingEntity, defendingEntity) {
     let rawMitigation = modDefenderDEF / 3 + defendingEntity.stat.constitution / 10;
     const totalDamage = Math.floor((rawDamage - rawMitigation) * baseAccuracy);
 
-    console.log(`Our attacker ${attackerName} uses their ${attackingEntity.stat.ATK} ATK and ${attackingEntity.stat.strength} strength with a stance of 
-    ${attackingEntity.stance} to do rawDamage of ${rawDamage} against a mitigation level of ${rawMitigation}. The accuracy here is ${baseAccuracy}.`);
+    // console.log(`Our attacker ${attackerName} uses their ${attackingEntity.stat.ATK} ATK and ${attackingEntity.stat.strength} strength with a stance of 
+    // ${attackingEntity.stance} to do rawDamage of ${rawDamage} against a mitigation level of ${rawMitigation}. The accuracy here is ${baseAccuracy}.`);
 
     // HERE: Apply damage
     // Thought: can have 'ouch' return a string to apply as the return down below?
@@ -2891,6 +2911,8 @@ function strike(attackingEntity, defendingEntity) {
     midString = defendingEntity.ouch(totalDamage, 'bonk');
 
     // HERE: if attackingEntity.entityType === 'player' calcExp();
+
+
     if (attackingEntity.entityType === 'player') {
         io.to(attackingEntity.name).emit('character_data', {echo: ``, type: 'stat_update', data: {
             'HP': attackingEntity.stat.HP,
@@ -2907,6 +2929,33 @@ function strike(attackingEntity, defendingEntity) {
             'stance': defendingEntity.stance
         }});
     }
+
+    // HERE: Send updated mob information to the room? Hmmm
+    // Actually, the above COULD work universally, right? STAT_UPDATE could be for ALL entities involved
+    // Alternatively, stat_update could continue to be player-only, and mob_update could be for mobs...
+    // Eh, it'd be good to have a 'universal, send-it-to-the-room' way for the client to know status of ALL entities in the room
+    // It's true that somewhere there are hooks I put in for basic room data for mobs to include health and such. Let's look into that real quick first...
+
+    // Ok, the below works! Sorta. I think the HP in the entity object is NOT a reference, so we need to actually update the HP on the mob...
+    // Woof. I'm going to try a completely stupid and hack-y way to 'fix' it here, just as a test...
+    // ... aaaand test is SUCCESSFUL. Neat. This causes proper updating of the entity's HP in their room array object.
+
+
+    // Ok, so if the entity being attacked went ahead and died, we do NOT send stale room data below, we're good to end the function here.
+    if (defendingEntity.flags.dead) return startString + midString + endString;
+
+
+    // This assumes the defender is alive, so the below is our hack-y way to 'update' their entry in the room (their HP and such, and later their condition)
+    depopulateRoom(defendingEntity);
+    populateRoom(defendingEntity);
+
+    // Ok, entity.stat.HP is part of the entity's stats when the room is populated, so in theeeeeory, as long as that's updating properly as a reference,
+    // we could just do a room update pass here
+    io.to(attackingEntity.location.RPS + '/' + attackingEntity.location.GPS).emit('room_event', {
+        echo: ``,
+        type: 'entities_update',
+        roomData: zaWarudo[attackingEntity.location.RPS][attackingEntity.location.GPS]
+    });
 
     return startString + midString + endString;
     // return `${attackingEntity.name || attackingEntity.glance[0].toUpperCase() + attackingEntity.glance.slice(1)} strikes at ${defendingEntity.name || defendingEntity.glance} for ${totalDamage} points of damage!`;

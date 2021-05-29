@@ -506,12 +506,23 @@ const Keyboard = () => {
                 // HERE: unpack data, adjust state via dispatch - room details, weather, time of day, etc.
             });
             socketToMe.on('room_event', roomEventObj => {
+                if (roomEventObj.type === 'entities_update') {
+                    const newLocationData = {room: roomEventObj.roomData, RPS: roomEventObj.roomData.RPS, GPS: roomEventObj.roomData.GPS};
+                    // Currently can return here, as this type is only meant to be a 'behind the scenes' data update
+                    console.log(`New room data! HOORAY! Let's look at the mobs in particular: ${JSON.stringify(newLocationData.room.mobs)}`);
+                    // AHA! So it seems that the DED is firing, and THEN the strike is firing, giving us 'ghost' mobs. Lovely.
+                    if (roomEventObj.note !== undefined) {
+                        console.log(`Additional note from backend: ${roomEventObj.note}`);
+                    }
+                    return dispatch({type: actions.UPDATE_ROOM, payload: { updatedLocation: newLocationData }});             
+                }
                 // console.log(stringy);
                 // Alright, what do we need to receive?
                 // 1) what the room currently looks like (location data) -- use the moved_dir data above as a framework for that
                 // 2) updated character data
                 // 3) the raw stringly bit(s) to let the client know what's happening -- we can parse it here into a message to pass below
                 dispatch({type: actions.PACKAGE_FROM_SERVER, payload: roomEventObj});
+                
             });
             socketToMe.on('character_data', eventObj => {
                 // Currently testing this as a 'data sent to specific player' situation; may entirely replace 'own_action_result' below

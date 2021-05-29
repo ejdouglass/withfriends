@@ -195,7 +195,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
     const [localViewIndex, setLocalViewIndex] = useState(0);
     const [contextualArray, setContextualArray] = useState([]);
     const [combatFeedback, setCombatFeedback] = useState(['You ready yourself for combat!']);
-    const [enemyStats, setEnemyStats] = useState([]); // might try index 0 = fighting.main, index others = others
+    const [enemyStats, setEnemyStats] = useState({main: undefined, others: undefined}); // matching the shenangians that is our fighting obj
 
     function handleInteractionSelection(interaction) {
         console.log(`You wish to ${interaction}? With ${focusObj?.name}?`);
@@ -365,18 +365,31 @@ const CurrentFocusBox = ({ state, dispatch }) => {
         if (combatViewElement) combatViewElement.scrollTop = combatViewElement.scrollHeight;
     }, [combatFeedback]);
 
-    useEffect(() => {
-        if (state.whatDo === 'combat') return setCombatFeedback([`You ready yourself for battle!`]);
-        return setCombatFeedback([]);
+    // useEffect(() => {
+    //     if (state.whatDo === 'combat') return setCombatFeedback([`You ready yourself for battle!`]);
+    //     return setCombatFeedback([]);
         
-    }, [state.whatDo]);
+    // }, [state.whatDo]);
 
     useEffect(() => {
         if (state.whatDo === 'combat' && state.fighting.main === undefined && state.fighting?.others.length === 0) {
-            console.log(`No more fighting!`);
+            // Resets back to explode mode by default if fighting object has just been set to be its default 'empty' condition
             return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
         }
+        // So, this fighting object is reflected from backend 'truth' currently, which is ideal...
+        // Now then, we need to have the backend serve us up some FOE STATUS (see new var enemyStats)
+        // This is definitely a moving target... hm... maybe just 'observe' with a useEffect on state.received? Let's try below
     }, [state.fighting]);
+
+    useEffect(() => {
+        // THIS: look for a specific package of enemy-status data and feed it into enemyStats obj to be consumed by the combat mode GUI
+        if (state.received?.type === 'combatinit' || state.received?.type === 'mob_data') {
+            // console.log(`COMBAT MODULE has seen you initiated combat. Neat!`);
+            // Ok! It appears the two current ways combat starts up... player-init or mob-init... both send type 'combatinit,' which will trigger this
+            // In this case, we can simply append relevant stat data to the combatinit-typed object to get initial stats...
+            // We also receive 
+        }
+    }, [state.received]);
 
     /*
         Some FOCUS modes, which would correspond to whatDo situations (for key responses):
@@ -583,11 +596,13 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             return (
                 <CombatScreenContainer>
                     <div>
-                        {state.fighting?.main && `You are fighting a fighty-foe!`}
-                        {state.fighting?.others?.length && `You are fighting a side fighty-foe!`}
+                        {state.fighting?.main && `You are fighting a main-foe! `}
+                        {state.fighting?.others?.length && `You are fighting a side-foe!`}
                     </div>
                     <div>
-
+                        {/* YOUR FOE'S HP: {state.location.room.mobs[0].HP}
+                            ... the above works! Until the mob dies, anyway. Now, how to extrapolate out into a robust, potentially multiple-target scenario?
+                        */}
                     </div>
                     {/* <CombatFeedBack id="combatview">
                         {combatFeedback.map((combatMessage, index) => (
