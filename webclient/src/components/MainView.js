@@ -600,6 +600,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                         {state.fighting?.others?.length && `You are fighting a side-foe!`}
                     </div>
                     <div>
+                        <p>Muglin's HP: {state.location?.room?.mobs[0]?.HP || 'defeated'}</p>
                         {/* YOUR FOE'S HP: {state.location.room.mobs[0].HP}
                             ... the above works! Until the mob dies, anyway. Now, how to extrapolate out into a robust, potentially multiple-target scenario?
                         */}

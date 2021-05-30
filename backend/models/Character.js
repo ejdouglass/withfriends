@@ -97,7 +97,8 @@ const CharacterSchema = new Schema({
     admin: {type: Boolean, default: false},
     actionIndex: {type: Number, default: 0},
     currentActionBar: {type: Array, default: ['Magic', 'Survey Area', 'Inventory']},
-    currentBarSelected: {type: String, default: 'action'} // action, entity, ___?
+    currentBarSelected: {type: String, default: 'action'}, // action, entity, ___?
+    actionBarActions: {type: Object, default: {explore: ['Magic', 'Hide', 'Forage', 'Stats', 'Inventory'], combat: ['(S)trike, (G)uard, (D)odge']}}
 }, { minimize: false });
 
 module.exports = mongoose.model('Character', CharacterSchema);

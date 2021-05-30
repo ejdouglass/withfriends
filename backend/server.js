@@ -2946,6 +2946,7 @@ function strike(attackingEntity, defendingEntity) {
 
 
     // This assumes the defender is alive, so the below is our hack-y way to 'update' their entry in the room (their HP and such, and later their condition)
+    // An 'updateEntity' function would probably be more reasonable here :P
     depopulateRoom(defendingEntity);
     populateRoom(defendingEntity);
 
