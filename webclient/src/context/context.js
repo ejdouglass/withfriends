@@ -71,6 +71,11 @@ export const Reducer = (state, action) => {
 
             // Update to below: the currentActionBar might change for whatDo === 'combat', so we might want to reset that here as well
             // ... but haven't decided on a good core currentActionBar content set yet, so just a note to self for now
+
+            // Adding actionBarActions as an object in the format {combat: ['ComAct1', 'ComAct2'], explore: ['ExpAct1', 'ExpAct2']}
+            // Updating whatDo is probably where we want to adjust the currentActionBar contents to any new relevant actions
+            // We can also adjust NPC interaction and shopping to follow this format as well? Gonna require some shenanigans and investigation to do it properly
+            // It's best to match mode/whatDo names in the aforementioned object for easiest transitions
             if (action.payload === 'explore') return {...state, whatDo: action.payload, viewIndex: 0, currentBarSelected: 'action'};
             return {...state, whatDo: action.payload, viewIndex: 0};
         }

@@ -56,13 +56,15 @@ const perks = {
     RIVERCROSSING:
         - Town Center
         - Weapon & Armor Shop, Apothecary, Magic Shop
-        - Forge, Alchemy Area, Church?, Bank, Healing House
-        - Trainers?
-        - Some roads
-        - A couple of guilds
+        - Weapons, Armor, Spells, Herbs, ___?
+        - Trainers? 
+        - Some roads and shape to the place, and a river that is present in some sense
     WEST FIELDS:
         - Orchard (goblins!)
-        - Farmland
+        - Farmlands
+    
+    -- Swampy Area (bog rats)
+    -- Wooded Area (trolls)
         
 */
 
@@ -257,7 +259,7 @@ let zaWarudo = {
             foraging: {},
             exits: {
                 'e': {to: '425,500,0', traversal: 'walk/0', hidden: 0},
-                'nw': {to: '375,525,0', traversal: 'walk/0', hidden: 0},
+                'sw': {to: '375,525,0', traversal: 'walk/0', hidden: 0},
                 'n': {to: '400,525,0', traversal: 'walk/0', hidden: 0}
             }            
         },
@@ -500,7 +502,7 @@ let zaWarudo = {
             fishing: undefined,
             foraging: {},
             exits: {
-                'se': {to: '400,500,0', traversal: 'walk/0', hidden: 0}
+                'ne': {to: '400,500,0', traversal: 'walk/0', hidden: 0}
             }            
         }, 
         '525,500,0': {
@@ -2808,14 +2810,21 @@ let orchardGoblinSpawn = new SpawnMap(
 orchardGoblinSpawn.init();
 
 
-// THIS SECTION: basic abilities/actions
+// THIS SECTION: basic abilities/actions/techs
+
 function strike(attackingEntity, defendingEntity) {
     if (defendingEntity === undefined) return `A cloud of dust picks up from nowhere, obscuring battle for a moment!`;
     // THIS: the most basic attack, just whack 'em with your weapon
     // Considerations: relevant stats, equilibrium, stance, changes to both on both sides
     // Call any relevant decrement methods on entities for damage/expended energy here as well, such as .ouch(amount, type)
 
+    // Later considerations: let the attackingentity parse the exertion and results of their attack as well?
+
     // Can set 'move parameters' and/or 'move modifiers' at the top of this function to 'simplify' making other techniques
+    // i.e. Have a 'default formula' used for a physical attack with various modifiers coming into play based on tech skill and tech parameters
+
+    // This works pretty well now -- next step is to break it down into its parts so we can modularize/functionalize them and apply to ANY tech down the line
+
 
     // Model changes to EQL and stance here, as well as effects to both
     // EQL is 100-point scale, and stance defaults @300 and goes from -599 to 599 (if I recall correctly)
@@ -2824,14 +2833,10 @@ function strike(attackingEntity, defendingEntity) {
     // Let's say at MAX EQL, the strike always gives some STANCE
     // At minimum EQL, it always costs some
     // What's the EQL cost? Let's say... 30! Immediate cost.
-    // AGI boosts/mitigates the effect somewhat
-    // ... side note, gotta implement EQL REGEN (we'll say 10 points/sec, so fully depleted is a 10 sec recharge for now)
+    // AGI boosts/mitigates the effect somewhat? Maybe!
 
-    // Ok! Muglin has 14 ATK, 10 STR. How does damage play out?
-    // This is a super basic move, so pretty low mods is fine. 
     // First, for this, it's ATK vs DEF, and ACC vs EVA. 
     // We'll start by checking ACC vs EVA to determine whether the attacker hits, is partially avoided, or entirely avoided.
-    // 
 
     // HERE: Check if at least 30 EQL is present on attacker
     let attackerName;
@@ -2975,7 +2980,28 @@ function goblinPunch(attackingEntity, defendingEntity) {
     // THIS: the almighty GOBLIN PUNCH, possibly the only special maneuver the orchard muglin knows!
 
     // Can implement this next -- extrapolate out the basics of the strike() functionality so don't have to copy-paste 99% of it
+
+    // Brainstorm: what is the essence of the Goblin Punch?
+    // Big hit, takes MP, has a windup that's telegraphed, set up to guard/dodge/dispel it or take a big hit that's damaging, unbalancing, and maybe debuffing
 }
+
+
+// HERE: implement some MAGIC!
+
+/*
+    Brainstorming Magic
+    Currently thinking every spell has a School, Book, and Type. Can easily rename these terms later.
+        School: the overarching family of the spell, such as Elementalism, Psychic, etc.
+        Book: the specific subfamily/category, such as Fire Magic, Telekinesis, etc.
+        Type: Restoration, Alteration, Conjuration, etc. ... maybe 'Intention' or 'Purpose'
+    
+    So let's take an example:
+    ZEPHYR - Elemental Wind Restoration
+    SUMMON MOTE - some sort of Conjuration
+
+    Then there's actually casting the thing, whereby MP is used to help harness and bind magic into its ultimate effect,
+        which can be immediate (invoked for instant effect), called into the area, placed on an entity, held and channeled for ongoing effect, etc.
+*/
 
 server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
 
