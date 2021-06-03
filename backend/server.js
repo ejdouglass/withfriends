@@ -26,7 +26,7 @@ function rando(min, max) {
 function generateRandomID() {
     let dateSeed = new Date();
     let randomSeed = Math.random().toString(36).replace('0.', '');
-    console.log(`Random Seed result: ${randomSeed}`);
+    // console.log(`Random Seed result: ${randomSeed}`);
     return dateSeed.getMonth() + '' + dateSeed.getDate() + '' + dateSeed.getHours() + '' + dateSeed.getMinutes() + '' + dateSeed.getSeconds() + '' + randomSeed;
 }
 
@@ -3001,6 +3001,35 @@ function goblinPunch(attackingEntity, defendingEntity) {
 
     Then there's actually casting the thing, whereby MP is used to help harness and bind magic into its ultimate effect,
         which can be immediate (invoked for instant effect), called into the area, placed on an entity, held and channeled for ongoing effect, etc.
+    
+    It's possible that the 'immediate' effect IS to create an ongoing effect, such as a storm, a summon that behaves in a certain way, etc...
+        -- In that case, the duration is part of the spell's casting cost.
+        -- For non-immediate variations of the same spell, it could be cast in another mode: 'held,' fixed into an object or entity (enchantment), etc. to keep it going
+        -- So long as the 'cost' of the spell's continued coherence is paid somehow, including any ongoing degradation in the patterning, all's well!
+    
+    Basing it loosely off the 'spell pattern' DR concept. Caster's innate MP isn't really generally enough to power a spell outright, so the ritual
+        of 'preparing' the spell by harnessing ambient mana and bending it all into a usable form and sparking the cast is the process.
+    
+    Note that non-trivial (non-cantrip) level spells require some specialization, earned in two ways:
+    1) Learning the appropriate Perks based on Spellcasting skill
+        1a) Each aspect of a given spell can be Perked, so for e.g. Zephyr, you can get there by being focused on Restoration, Elementalism, and/or Wind magic
+    2) Internalizing actual spells, whose combined makeup influence how easy/difficult it is to learn similar (or contrasting) magic
+
+    The takeaway is that there's benefit to choosing which spells to learn, and someone can choose to specialize in Elemental magic and get Zephyr learned,
+        or they could be a Restoration specialist and likewise pick it up that way.
+    
+    Haven't decided if it's worth the trouble at *this* stage of development to make the spells different based on the background of the caster
+        (i.e. having the elemental master's casting and/or effects differ from the healing master who otherwise hasn't a drop of elemental expertise).
+
+    I think for testing purposes, Zephyr shall temporarily be given to all players on login as a castable spell if they don't know it. Whee!
+        - Probably a good 'tester' spell -- immediate effect, held effect, can play with it a little
+    
+    What are the Intentions?
+        CONJURATION
+        ALTERATION (Restoration/Destruction/???)
+    
+    Can also just make spells and sort it out later. :P
+    
 */
 
 server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT}.`));
