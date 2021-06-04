@@ -3026,9 +3026,12 @@ function goblinPunch(attackingEntity, defendingEntity) {
     
     What are the Intentions?
         CONJURATION
-        ALTERATION (Restoration/Destruction/???)
+        ALTERATION (Restoration/Destruction/???) ... nah, too "umbrella", divide it up
     
     Can also just make spells and sort it out later. :P
+    ... rethinking, simplify:
+    -- Unlock spell possibilities with SCHOOL perks, then specialize with BOOK and/or TYPE perks
+    -- This essentially sets the SCHOOL as the topmost level; hierarchy of casting
     
 */
 
@@ -3052,6 +3055,63 @@ server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT
 
 /*
 
-Doot doot. Nothing to report at this time.
+The de-facto note-taking section of the app ATM. What's left as of 6/3/21?
+
+STORM - 'Tech Demo' Alpha
+- Ability to equip/unequip stuff
+
+
+ALPHA WORLD
+- Sketch it out on paper, translate to zaWarudo
+- Beach/sea east of town (starter mob: crabs)
+- Orchard
+- Woods
+- Offshoot rivers
+- Larger Rivercrossing w/npc's and shops
+
+
+ALPHA SPELLS
+- Basic spellcasting and learning system in place
+- Zephyr (elemental restoration) - a room effect that restores HP
+- Mote (elemental conjuration) - a caster-following entity that periodically restores MP
+- Fireblast (elemental destruction) - pure heat and fury aimed at an opponent
+
+
+ALPHA TECHS
+- Buster Cleave (physical type - power based - DEF down)
+- BIG BLOW (physical type - power based - physical finisher)
+- Reversal (physical type - speed based - 'steal' some enemy stance, effectiveness greatly heightened by poor stance vs strong stance)
+- STAGGER BLOW (phyical type - power based - disrupt/damage enemy stance)
+- Rake (physical type - speed based - RES down)
+- Dirt in Your Eye (physical type - speed based - ACC down)
+- Wing Clipper (physical type - ? based - EVA down)
+- Ritual (mental type - ? based - MAG up, duration?)
+- Purse Cutter (physical type - speed based - snatch a treasure while doing some damage, basic mug)
+
+
+ALPHA FORAGING
+- Gather materials from the area
+
+
+ALPHA CRAFTING
+- Mostly survival stuff
+- Also basic upgrades, using thematic + composed-of materials to boost gear
+
+ALPHA HIDING/STEALTH
+
+ALPHA CHAR CREATION
+- Storytelling (ideally with static backgrounds), rather than 'skill selection'
+
+ALPHA GUI
+- Everything mouse-able, same input result as keyboard input
+- Basic integrated color scheme
+- Optimized resizing (within reason)
+- Static background FE
+
+
+For later stuff:
+- Party/formations (player and mob)
+- Day/night/weather cycle(s)
+- Crafting, expanded upgrades
 
 */
