@@ -2070,8 +2070,50 @@ app.post('/character/create', (req, res, next) => {
         accessory1: {},
         accessory2: {}
     };
-    newChar.backpack = {contents1: [{glance: 'Thingamajig', description: `It appears to like to sing?`}, {glance: 'MacGuffin', description: `It's the very thing you were looking for!`}, {}, {}, {}, {}, {}, {}, {}, {}], contents2: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], contents3: null, contents4: null, size: 2, stackModifiers: {}};
+    // Test gear :P
+    newChar.backpack = {contents1: [new Item(
+        {
+            mainType: 'weapon', buildType: 'sword', subtype: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
+            enhancements: 0, quality: 100
+        },
+        'The Crystal Sword',
+        `A legendary weapon made of a single beautiful sword-shaped blade of crystal affixed to a sturdy yet ornate bejeweled hilt.`,
+        {ATK: 20, ACC: 10},
+        {size: 8, weight: 16, durability: 500, maxDurability: 500, materials: 'crystal/4,starsteel/2', attributes: undefined},
+        {legendary: 20},
+        [],
+        50000
 
+    ), new Item(
+        {
+            mainType: 'headgear', buildType: 'helm', subType: 'greathelm', skill: 'fighting/1', stat: 'constitution/1', slot: 'head',
+            enhancements: 0, quality: 80
+        },
+        'The Mask of Victory',
+        `An elaborately fashioned greathelm with a terrifying visage. Provides incredible protection while also being quite intimidating.`,
+        {DEF: 18, RES: 18},
+        {size: 6, weight: 10, durability: 500, maxDurability: 500, materials: 'starsteel/4', attributes: undefined},
+        [],
+        25000
+    ), {}, {}, {}, {}, {}, {}, {}, {}], contents2: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], contents3: null, contents4: null, size: 2, stackModifiers: {}};
+
+
+    /*
+        ITEMS look like this:
+        newChar.equipped.rightHand = new Item(
+            {
+                mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
+                enhancements: 0, quality: 20
+            },
+            `Scapping Sword`,
+            `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
+            {ATK: 12, ACC: 8, MAG: 3, FOC: 1},
+            {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2', attributes: undefined},
+            {intimidating: 5},
+            [],
+            500
+        );    
+    */
     // THIS: Take the request from the user to create a new character, validate it (inputs okay, character name not yet taken), create, and pass back
     // Don't forget to create a charToken to pass back as well! This will be saved with the character on the client to allow further logging in.
     // Like LOGIN for character above, we have to 'load' the character live into the server space, and make sure what we pass back can open a socket here
@@ -2229,7 +2271,7 @@ app.post('/character/create', (req, res, next) => {
         */
         case 'Trader': {
             newChar.equipped.body = new Item(
-                {mainType: 'armor', buildType: 'clothes', subType: 'cloth', skill: 'sensing/1', stat: 'spirit/1', slot: 'body', enhancements: 0, quality: 20},
+                {mainType: 'bodyarmor', buildType: 'clothes', subType: 'cloth', skill: 'sensing/1', stat: 'spirit/1', slot: 'body', enhancements: 0, quality: 20},
                 `Merchant Garb`,
                 `The fancy clothes of an apsiring trader.`,
                 {DEF: 12, EVA: 3, RES: 8, LUK: 1},
@@ -2243,7 +2285,7 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Scribe': {
             newChar.equipped.body = new Item(
-                {mainType: 'armor', buildType: 'robes', subType: 'cloth', skill: 'scholarship/1', stat: 'intelligence/1', slot: 'body', enhancements: 0, quality: 20},
+                {mainType: 'bodyarmor', buildType: 'robes', subType: 'cloth', skill: 'scholarship/1', stat: 'intelligence/1', slot: 'body', enhancements: 0, quality: 20},
                 `Scholar Robes`,
                 `Simple, clean, and comfortable robes with a simply adorned collar and hem with patterns indicating the wearer is a scholastic professional.`,
                 {DEF: 8, EVA: 1, RES: 12, LUK: 3},
@@ -2257,7 +2299,7 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Runner': {
             newChar.equipped.body = new Item(
-                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'traversal/1', stat: 'agility/1', slot: 'body', enhancements: 0, quality: 20},
+                {mainType: 'bodyarmor', buildType: 'gear', subType: 'leather', skill: 'traversal/1', stat: 'agility/1', slot: 'body', enhancements: 0, quality: 20},
                 `Swift Gear`,
                 `Minimalistic garb stitched together from snug but breathable cloth padded tactically here and there with pads of supple leather 
                 to ensure ease of movement while still providing some critical protection where it counts.`,
@@ -2272,7 +2314,7 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Apprentice': {
             newChar.equipped.body = new Item(
-                {mainType: 'armor', buildType: 'gear', subType: 'leather', skill: 'crafting/1', stat: 'constitution/1', slot: 'body', enhancements: 0, quality: 20},
+                {mainType: 'bodyarmor', buildType: 'gear', subType: 'leather', skill: 'crafting/1', stat: 'constitution/1', slot: 'body', enhancements: 0, quality: 20},
                 `Work Gear`,
                 `Simple but sturdy clothing of thick cloth reinforced with layers of leather at the joints and extremities.`,
                 {DEF: 12, EVA: 3, RES: 8, LUK: 1},
@@ -2764,7 +2806,7 @@ function removeCharacterFromGame(character) {
     // const targetLocation = characters[character.entityID].location;
     // zaWarudo[targetLocation.RPS][targetLocation.GPS]['players'].filter(playerID => playerID !== character.entityID);
     depopulateRoom(character);
-    characters[character.entityID].regenerating = false;
+    if (characters[character.entityID] !== undefined) characters[character.entityID].regenerating = false;
     clearInterval(characters[character.entityID].regenLoop);
     if (character.name !== undefined) {
         const filter = { name: character.name };
@@ -3057,8 +3099,12 @@ server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT
 
 The de-facto note-taking section of the app ATM. What's left as of 6/3/21?
 
-STORM - 'Tech Demo' Alpha
-- Ability to equip/unequip stuff
+[ STORM - 'Tech Demo' Alpha ]
+
+BASICS! Core functionality. We're really close to 'alpha,' so let's push and polish.
+TIMELINE: 7-11, 14-18, 21-25 (3 full weeks) + 28th and 30th (M/W). Let's aim for 'pretty much ready' by end of next week (6/11). Add core functionality:
+- Ability to buy, sell, equip/unequip stuff
+- Techs, spells, mob/entity viewing and smart responsiveness of menu
 
 
 ALPHA WORLD
@@ -3068,16 +3114,34 @@ ALPHA WORLD
 - Woods
 - Offshoot rivers
 - Larger Rivercrossing w/npc's and shops
+- Mobs: crabs, trolls, ___ ... create a little interest and variety
 
 
 ALPHA SPELLS
-- Basic spellcasting and learning system in place
+: Basic spellcasting and learning system in place (can just stick with buying spells for Alpha, implment studying/scrolls later)
 - Zephyr (elemental restoration) - a room effect that restores HP
-- Mote (elemental conjuration) - a caster-following entity that periodically restores MP
+- Elementary Elemental (elemental conjuration) - a caster-following entity that periodically restores MP
 - Fireblast (elemental destruction) - pure heat and fury aimed at an opponent
+- Stoneskin (elemental transformation) - +con, -agi, defense up, evasion down, armor up, gain some resistances
+- Brook's Babbles (elemental comprehension)
+- ??? (elemental enchantment)
+: QUICK SKETCH, other starting schools?
+- psychic (mind-reading, mind-influencing, telekinesis/mindpower-to-actual-power, illusion/sensory manipulation, fatereading)
+- spatial (teleportation, 'storage,' planar shenanigans, light manipulation)
+- divine
+- life/nature
+- primal/raw (school-less?)
 
 
-ALPHA TECHS
+ALPHA PERKS
+: How to learn? Which to have? ... maybe for now, just a special menu where learnable ones pop up and can be acquired
+
+
+ALPHA SKILLUP
+: Basic as can be, should be able to brainstorm and implement inside of an hour
+
+
+ALPHA TECHS (pick a small handful, can add more later)
 - Buster Cleave (physical type - power based - DEF down)
 - BIG BLOW (physical type - power based - physical finisher)
 - Reversal (physical type - speed based - 'steal' some enemy stance, effectiveness greatly heightened by poor stance vs strong stance)
@@ -3090,23 +3154,28 @@ ALPHA TECHS
 
 
 ALPHA FORAGING
-- Gather materials from the area
+- Gather materials from the area for fun and profit! 
+- Consider having a CRAFT+FORAGE option, take an extra step out
 
 
 ALPHA CRAFTING
 - Mostly survival stuff
 - Also basic upgrades, using thematic + composed-of materials to boost gear
 
+
 ALPHA HIDING/STEALTH
+
 
 ALPHA CHAR CREATION
 - Storytelling (ideally with static backgrounds), rather than 'skill selection'
+
 
 ALPHA GUI
 - Everything mouse-able, same input result as keyboard input
 - Basic integrated color scheme
 - Optimized resizing (within reason)
 - Static background FE
+
 
 
 For later stuff:

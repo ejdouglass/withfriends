@@ -477,7 +477,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
 
                     </BackpackContainer>
                     <InventoryItemDetails>
-                    {state?.viewTarget?.item?.description || `An ethereal whisper of an item.`}
+                        {state?.viewTarget?.item?.description || `An ethereal whisper of an item.`}
                     </InventoryItemDetails>
                 </InventoryContainer>
             )

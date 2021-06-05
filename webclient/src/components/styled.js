@@ -844,7 +844,11 @@ export const EquippedContainer = styled.div`
     flex-direction: column;
     width: 30%;
     box-sizing: border-box;
-    border: 3px solid red;
+    // border: 3px solid red;
+    border: 1px solid black;
+    border-bottom: 0;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
 `;
 
 export const EquippedItem = styled.div`
@@ -905,7 +909,8 @@ export const InventoryItemDetails = styled.div`
     font-size: (0.5rem + 0.5vw);
     width: 100%;
     height: 100px;
-    border: 3px solid orange;
+    border: 1px solid black;
+    padding: 0.5rem;
     top: 100%;
 `;
 

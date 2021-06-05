@@ -19,7 +19,8 @@ export const actions = {
     RESET_VIEW: 'reset_view',
     START_COMBAT: 'start_combat',
     UPDATE_FIGHTING: 'update_fighting',
-    UPDATE_STATS: 'update_stats'
+    UPDATE_STATS: 'update_stats',
+    UPDATE_ACTION_BAR: 'update_action_bar'
 }
 
 export const Reducer = (state, action) => {
@@ -85,6 +86,10 @@ export const Reducer = (state, action) => {
         case actions.UPDATE_VIEW_INDEX: {
             // console.log(`BEEP BOOP UPDATING VIEWINDEX TO ${action.payload}`)
             return {...state, viewIndex: action.payload || 0};
+        }
+        case actions.UPDATE_ACTION_BAR: {
+            // A couple of ways to implement this... 
+            return state;
         }
         case actions.UPDATE_VIEW_TARGET: {
             // Hm, ok, so view target can be an ACTION, an ENTITY, an OBJECT... how to structure?

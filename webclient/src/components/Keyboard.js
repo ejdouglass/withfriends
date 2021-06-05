@@ -193,9 +193,16 @@ const Keyboard = () => {
             }
 
             case 'inventory': {
-                // Having trouble with 'what's currently targeted' -- currently updating VIEW_TARGET id to include column/index in that format?
-                // Update again: using SPLIT every time is nonsense; update into new object with column and row
-                // Could also just pass in an ITEM for viewTarget that has all the item's stats and just reference that :P
+                // Let's review what's happening here so we can add 'interactions' to items (equipping, using, etc.)
+                // Obviously we need to add 'Enter' as a functional command here, which should result in... hm, let's see:
+                /*
+                    Ok! More room to breathe. Good.
+                    Should ENTER auto-equip gear? ... well, we don't have the left menu changing yet, but some commands...
+                    (E)quip - for now, automatically slots into proper field
+                    (D)rop
+                    (U)se - context-specific depending on the item (currently prefer this rather than multiple different context-specific/item-specific commands)
+                    (G)ive - maybe in a later version
+                */
                 if (e.key === 'i') return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
                 if (e.key === 'ArrowLeft') {
                     if (state.currentBarSelected === 'inventory/1') {
