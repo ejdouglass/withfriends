@@ -68,6 +68,7 @@ const Keyboard = () => {
                     dispatch({type: actions.UPDATE_VIEW_INDEX});
                     dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'inventory/1'});
                     dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'inventory', id: 0, item: {...state.backpack?.contents1[0]}}});
+                    dispatch({type: actions.UPDATE_ACTION_BAR, payload: setActionBar(state?.backpack[`contents1`][0]?.type?.mainType)}); 
                     return dispatch({type: actions.UPDATE_WHATDO, payload: 'inventory'});
                 }
                 if (e.key === 'Tab') {
@@ -109,7 +110,7 @@ const Keyboard = () => {
                 if (e.key === 'Enter') {
                     switch (state.viewTarget?.type) {
                         case 'action': {
-                            if (state.viewTarget?.id === 'magic') dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
+                            if (state.viewTarget?.id === '(m)agic') dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
                             return console.log(`I wish to take action! :-D`);
                         }
                         case 'npc': {
@@ -180,16 +181,18 @@ const Keyboard = () => {
                     // else {
                     //     return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {...state.viewTarget, action: 'npcinteraction'}})
                     // }
-                }             
+                }
+                return;           
             }
 
             case 'magic': {
                 if (e.key === 'm') return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
-                break;
+                return;
             }
 
             case 'stats': {
                 if (e.key === 't') return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+                return;
             }
 
             case 'inventory': {
@@ -198,12 +201,33 @@ const Keyboard = () => {
                 /*
                     Ok! More room to breathe. Good.
                     Should ENTER auto-equip gear? ... well, we don't have the left menu changing yet, but some commands...
-                    (E)quip - for now, automatically slots into proper field
+                    (E)quip - for now, automatically slots into proper field (main hand for weapons)
+                    (O)ffhand - for dual wielding :P (can do later, doesn't need to be a release feature)
                     (D)rop
                     (U)se - context-specific depending on the item (currently prefer this rather than multiple different context-specific/item-specific commands)
                     (G)ive - maybe in a later version
+                    (S)ort (ultimately, not a first priority)
+
+                    How to trigger it? Hm, when we know what we're selecting, we can UPDATE_ACTION_BAR with relevant commands
+                    ... then when a command is entered, update on backend and reflect to frontend
+
+                    Looks like we're using 'currentBarSelected' for equipment, inventory/1, etc.
+                    And our VIEW_TARGET has the index in 'id' and the item itself in 'item' ... that should be all we need!
+                    -- Can use these two factors to 'target' the item on the server for the intended use/effect
+                    
+                    ... ok, so when we flit about, we need an extra DISPATCH event: 'read' the item's type and UPDATE_ACTION_BAR with commands that work with it
+                    ... and then add handlers for all the interaction keys, such as (E)quip, etc.
+
+                    When selecting equipped items, can Un(E)quip :P, as well as USE
+
+
+
+                    ... guess I need to add a 'use' part of the Item class so these things can have such effects :P
+
                 */
                 if (e.key === 'i') return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+
+                // The Arrow keys below have some redundancies; can DRY it out later
                 if (e.key === 'ArrowLeft') {
                     if (state.currentBarSelected === 'inventory/1') {
                         dispatch({type: actions.UPDATE_VIEW_INDEX});
@@ -214,8 +238,10 @@ const Keyboard = () => {
                     let inventorySpot = state.currentBarSelected.split('/');
                     inventorySpot[1] = parseInt(inventorySpot[1]) - 1;
                     dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'inventory', id: state.viewIndex, item: {...state?.backpack[`contents${inventorySpot[1].toString()}`][state.viewIndex]}}});
+                    dispatch({type: actions.UPDATE_ACTION_BAR, payload: setActionBar(state?.backpack[`contents${inventorySpot[1].toString()}`][state.viewIndex]?.type?.mainType)});
                     return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: inventorySpot.join('/')});
                 }
+
                 if (e.key === 'ArrowRight') {
                     if (state.currentBarSelected === 'inventory/2' && state.backpack?.size < 3) return;
                     if (state.currentBarSelected === 'inventory/3' && state.backpack?.size < 4) return;
@@ -228,8 +254,10 @@ const Keyboard = () => {
                     let inventorySpot = state.currentBarSelected.split('/');
                     inventorySpot[1] = parseInt(inventorySpot[1]) + 1;
                     dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'inventory', id: state.viewIndex, item: {...state?.backpack[`contents${inventorySpot[1].toString()}`][state.viewIndex]}}});
+                    dispatch({type: actions.UPDATE_ACTION_BAR, payload: setActionBar(state?.backpack[`contents${inventorySpot[1].toString()}`][state.viewIndex]?.type?.mainType)});
                     return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: inventorySpot.join('/')});
                 }
+
                 if (e.key === 'ArrowUp') {
                     if (state.viewIndex === 0) return;
                     let inventoryColumn = state.currentBarSelected.split('/');
@@ -261,8 +289,16 @@ const Keyboard = () => {
                         dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex - 1, item: {...state?.equipped[equipmentTarget]}}});
                     }
                     if (state.currentBarSelected.split('/')[0] === 'inventory') dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex - 1, item: {...state?.backpack[`contents${inventoryColumn.toString()}`][state.viewIndex - 1]}}});
+                    // console.log(`VIEWTARGET IS NOW: ${JSON.stringify(state.viewTarget)}`);
+                    // The above works-ISH, the viewtarget is the PREVIOUS viewTarget (the dispatch doesn't take effect instantly)
+                    // Ok, we have inventoryColumn 1 or 2 or 3 or 4 for contents1, etc. ... and viewIndex for the index within that column
+
+                    // The fxn below returns the ARRAY of options for the item; use w/ dispatch here
+                    if (state.currentBarSelected !== 'equipment') dispatch({type: actions.UPDATE_ACTION_BAR, payload: setActionBar(state?.backpack[`contents${inventoryColumn.toString()}`][state.viewIndex - 1]?.type?.mainType)}); 
+
                     return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});
                 }
+
                 if (e.key === 'ArrowDown') {
                     if (state.currentBarSelected === 'equipment' && state.viewIndex === 5) return;
                     if (state.currentBarSelected.split('/')[0] === 'inventory' && state.viewIndex === 9) return;
@@ -295,9 +331,25 @@ const Keyboard = () => {
                         dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex + 1, item: {...state?.equipped[equipmentTarget]}}});                        
                     }
                     if (state.currentBarSelected.split('/')[0] === 'inventory') dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: state.viewTarget.type, id: state.viewIndex + 1, item: {...state?.backpack[`contents${inventoryColumn.toString()}`][state.viewIndex + 1]}}});
+                    
+                    if (state.currentBarSelected !== 'equipment') dispatch({type: actions.UPDATE_ACTION_BAR, payload: setActionBar(state?.backpack[`contents${inventoryColumn.toString()}`][state.viewIndex + 1]?.type?.mainType)});
                     return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + 1});
                 }
-                break;
+
+                if (e.key === 'e') {
+                    // Here's where it gets *slightly* tricky: send data up to server, change equipment based on equipment parameters... calcStats for new stats...
+                    // Then send down fresh character data, inclusive of the stats and any change to backpack
+                    // ... question, do we have dispatch action for updating stats? I think so!
+                    // What about equipment? And what of backpack/inventory? 
+                    // Or we can make one for all three! An 'equipment update' state changer.
+
+                    // HERE: package for server - request to EQUIP & the 'slot' of the item in question
+                    return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'equip', column: `contents${state.currentBarSelected.split('/')[1]}`, index: state.viewIndex}});
+
+                    // ... aaaand that's basically it for this section! The socket will respond to the result at the bottom.
+                }
+
+                return;
             }
 
         }
@@ -545,6 +597,11 @@ const Keyboard = () => {
                 if (eventObj.type === 'stat_update') {
                     return dispatch({type: actions.UPDATE_STATS, payload: eventObj.data})
                 }
+
+                if (eventObj.type === 'equipment_change') {
+                    // HERE: dispatch change to stat/backpack/equipped
+                    dispatch({type: actions.EQUIPMENT_CHANGE, payload: eventObj});
+                }
                 dispatch({type: actions.PACKAGE_FROM_SERVER, payload: eventObj});
             });
             socketToMe.on('combat_event', combatEventObj => {
@@ -585,6 +642,25 @@ const Keyboard = () => {
     return (
         <Container></Container>
     )
+}
+
+function setActionBar(itemType) {
+    // Now's as good a time as any! In Inventory, ITEM TYPES to parse for ACTION_BAR:
+
+    // Any other types?
+    switch (itemType) {
+        case 'weapon':
+        case 'headgear':
+        case 'bodygear':
+        case 'accessory':
+        case 'trinket': 
+        case 'tool':
+            return ['(E)quip', '(U)se', '(D)rop'];
+        case 'potion':
+        case 'scroll':
+            return ['(U)se', '(D)rop'];
+        default: return;
+    }
 }
 
 export default Keyboard;

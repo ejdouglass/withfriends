@@ -20,7 +20,8 @@ export const actions = {
     START_COMBAT: 'start_combat',
     UPDATE_FIGHTING: 'update_fighting',
     UPDATE_STATS: 'update_stats',
-    UPDATE_ACTION_BAR: 'update_action_bar'
+    UPDATE_ACTION_BAR: 'update_action_bar',
+    EQUIPMENT_CHANGE: 'equipment_change'
 }
 
 export const Reducer = (state, action) => {
@@ -77,7 +78,7 @@ export const Reducer = (state, action) => {
             // Updating whatDo is probably where we want to adjust the currentActionBar contents to any new relevant actions
             // We can also adjust NPC interaction and shopping to follow this format as well? Gonna require some shenanigans and investigation to do it properly
             // It's best to match mode/whatDo names in the aforementioned object for easiest transitions
-            if (action.payload === 'explore') return {...state, whatDo: action.payload, viewIndex: 0, currentBarSelected: 'action'};
+            if (action.payload === 'explore') return {...state, whatDo: action.payload, viewIndex: 0, currentBarSelected: 'action', currentActionBar: ['(M)agic', '(I)nventory', '(S)earch Area']};
             return {...state, whatDo: action.payload, viewIndex: 0};
         }
         case actions.UPDATE_ACTION_INDEX: {
@@ -88,8 +89,13 @@ export const Reducer = (state, action) => {
             return {...state, viewIndex: action.payload || 0};
         }
         case actions.UPDATE_ACTION_BAR: {
-            // A couple of ways to implement this... 
-            return state;
+            // A couple of ways to implement this... well, let's receive a payload that's simply an array.
+            // If no array is provided, let's assume we're just resetting to default "EXPLORE" options!
+
+            // Hm, awkwardly defaults to EXPLORE options when selecting an empty inventory slot during inventory; account for that
+            if (action.payload !== undefined) return {...state, currentActionBar: action.payload};
+            if (state?.whatDo === 'inventory') return {...state, currentActionBar: ['Exit (I)nventory']};
+            return {...state, currentActionBar: ['(M)agic', '(I)nventory', '(S)earch Area']};
         }
         case actions.UPDATE_VIEW_TARGET: {
             // Hm, ok, so view target can be an ACTION, an ENTITY, an OBJECT... how to structure?
@@ -129,6 +135,10 @@ export const Reducer = (state, action) => {
             if (action.payload.targetType === 'combat') {
                 return {...state, combatTarget: action.payload.target || {}};
             }
+        }
+        case actions.EQUIPMENT_CHANGE: {
+            // Receiving payload that is eventObj, so action.payload.stat, action.payload.equipped, and action.payload.backpack should mirror their local counterparts
+            return {...state, stat: action.payload.stat, equipped: action.payload.equipped, backpack: action.payload.backpack};
         }
         case actions.UPDATE_SELECTED_BAR: {
             return {...state, currentBarSelected: action.payload};
@@ -223,7 +233,7 @@ const initialState = {
     stance: 0,
     equilibrium: 100,
     currentBarSelected: 'action',
-    currentActionBar: ['Magic', 'Survey Area', 'Inventory'],
+    currentActionBar: ['(M)agic', '(I)nventory', '(S)earch Area'],
     alert: undefined,
     package: undefined,
     received: undefined,

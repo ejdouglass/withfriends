@@ -436,7 +436,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             // NOTE: currently this is the same 'small menu' as combat and such; will change later to be full-screen wackiness
             return (
                 <MagicContainer>
-                    BEEP BOOP
+                    You ponder casting magic. What an interesting idea!
                 </MagicContainer>
             )
         }

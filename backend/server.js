@@ -2073,7 +2073,7 @@ app.post('/character/create', (req, res, next) => {
     // Test gear :P
     newChar.backpack = {contents1: [new Item(
         {
-            mainType: 'weapon', buildType: 'sword', subtype: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
+            mainType: 'weapon', buildType: 'sword', subtype: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'rightHand', hands: 1,
             enhancements: 0, quality: 100
         },
         'The Crystal Sword',
@@ -2196,7 +2196,7 @@ app.post('/character/create', (req, res, next) => {
         case 'Mercenary': {
             newChar.equipped.rightHand = new Item(
                 {
-                    mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
+                    mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'rightHand', hands: 1,
                     enhancements: 0, quality: 20
                 },
                 `Scapping Sword`,
@@ -2222,7 +2222,7 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Hedgewizard': {
             newChar.equipped.rightHand = new Item(
-                {mainType: 'weapon', buildType: 'staff', subType: 'wizard', range: 'melee', skill: 'casting/1', stat: 'willpower/1', slot: 'hands', hands: 3, enhancements: 0, quality: 20},
+                {mainType: 'weapon', buildType: 'staff', subType: 'wizard', range: 'melee', skill: 'casting/1', stat: 'willpower/1', slot: 'rightHand', hands: 3, enhancements: 0, quality: 20},
                 `Hedging Staff`,
                 `Longer than the average person is tall, this staff has been meticulously carved to be almost entirely smooth and uniform in its wood finish. It 
                 is topped with a simple copper fitting that houses a small sphere of topaz, presumably for amplifying magical intent and spellcasting focus.`,
@@ -2237,7 +2237,7 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Thief': {
             newChar.equipped.rightHand = new Item(
-                {mainType: 'weapon', buildType: 'dagger', subType: 'stabbing', range: 'melee', skill: 'sneaking/1', stat: 'agility/1', slot: 'hands', hands: 1, enhancements: 0, quality: 20},
+                {mainType: 'weapon', buildType: 'dagger', subType: 'stabbing', range: 'melee', skill: 'sneaking/1', stat: 'agility/1', slot: 'rightHand', hands: 1, enhancements: 0, quality: 20},
                 `Snatcher's Dagger`,
                 `It has a simple, just-long-enough grip below an elegantly long blade with two slender but razor-sharp edges. Its overall profile is very 
                 minimalistic, making it very easy to conceal.`,
@@ -2587,6 +2587,32 @@ io.on('connection', (socket) => {
                 }
                 break;
             }
+            case 'equip': {
+                // Receiving: actionData.column in the form of contents1, contents2, etc. as well as an actionData.index within that section
+                
+                // Works EXCEPT when trying to 'swap' into a slot with nothing equipped. Whoops!
+                const itemToEquip = myCharacter.backpack[actionData.column][actionData.index];
+                const equipToSlot = itemToEquip.type.slot;
+                // Using parse+stringify to create new instances rather than references -- just in case. Not sure if necessary at this stage.
+                if (myCharacter.equipped[equipToSlot]) myCharacter.backpack[actionData.column][actionData.index] = JSON.parse(JSON.stringify(myCharacter.equipped[equipToSlot]))
+                else myCharacter.backpack[actionData.column][actionData.index] = {};
+                myCharacter.equipped[equipToSlot] = JSON.parse(JSON.stringify(itemToEquip));
+
+                calcStats(myCharacter);
+
+                // HERE: craft a 'unique' echo based on the item equipped and its slot, and possibly other factors of the item equipped
+                
+                // HERE: send back down updated stats, equipment, backpack, and ECHO for what just happened
+                let equipResult = {
+                    type: 'equipment_change',
+                    echo: `You equip ${itemToEquip.glance}!`,
+                    stat: {...myCharacter.stat},
+                    backpack: {...myCharacter.backpack},
+                    equipped: {...myCharacter.equipped}
+                };
+                io.to(myCharacter.name).emit('character_data', equipResult);
+                break;
+            }
             case 'npcinteract': {
                 // receiving actionData.target of entity's ID, pass back useful information here for the npcinteract client to work with
 
@@ -2806,8 +2832,10 @@ function removeCharacterFromGame(character) {
     // const targetLocation = characters[character.entityID].location;
     // zaWarudo[targetLocation.RPS][targetLocation.GPS]['players'].filter(playerID => playerID !== character.entityID);
     depopulateRoom(character);
-    if (characters[character.entityID] !== undefined) characters[character.entityID].regenerating = false;
-    clearInterval(characters[character.entityID].regenLoop);
+    if (characters[character.entityID] !== undefined) {
+        characters[character.entityID].regenerating = false;
+        clearInterval(characters[character.entityID].regenLoop);
+    }
     if (character.name !== undefined) {
         const filter = { name: character.name };
         const update = { $set: characters[character.entityID] };
@@ -2856,6 +2884,9 @@ orchardGoblinSpawn.init();
 
 function strike(attackingEntity, defendingEntity) {
     if (defendingEntity === undefined) return `A cloud of dust picks up from nowhere, obscuring battle for a moment!`;
+
+    // Final Alpha Rejigger! ... raw stats, and how do skills factor in? This will be an imporant part of skilling up!
+
     // THIS: the most basic attack, just whack 'em with your weapon
     // Considerations: relevant stats, equilibrium, stance, changes to both on both sides
     // Call any relevant decrement methods on entities for damage/expended energy here as well, such as .ouch(amount, type)
@@ -3102,9 +3133,20 @@ The de-facto note-taking section of the app ATM. What's left as of 6/3/21?
 [ STORM - 'Tech Demo' Alpha ]
 
 BASICS! Core functionality. We're really close to 'alpha,' so let's push and polish.
-TIMELINE: 7-11, 14-18, 21-25 (3 full weeks) + 28th and 30th (M/W). Let's aim for 'pretty much ready' by end of next week (6/11). Add core functionality:
-- Ability to buy, sell, equip/unequip stuff
-- Techs, spells, mob/entity viewing and smart responsiveness of menu
+TIMELINE: 7-11, 14-18, 21-25 (3 full weeks) + 28th and 30th (M/W). Let's aim for 'pretty much ready' by end of next week (6/11). 
+
+It is now the FINAL FULL WEEK FOR ALPHA. Let's go!
+Add core functionality:
+- Ability to buy, sell, equip/unequip, and drop stuff
+- Some techs, spells, mob/entity viewing and smart responsiveness of menu
+- World expansion (just a skosh) - mostly vendors, useful information NPCs, and some more mobs
+- Basic skill up
+- Basic perk learning (from NPC's?)
+- Basic learning of spells
+- Hiding, sneaking, foraging, crafting
+
+Improvements to UX:
+- Add a 'save' function to this server that pushes to the DB with some regularity, such as when equipping new gear
 
 
 ALPHA WORLD
