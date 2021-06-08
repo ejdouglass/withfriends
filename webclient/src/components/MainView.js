@@ -433,7 +433,8 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             )
         }
         case 'magic': {
-            // NOTE: currently this is the same 'small menu' as combat and such; will change later to be full-screen wackiness
+            // NOTE: needs to be updated to full-screen shenanigans
+            // Also need to figure out out-of-combat vs in-combat magic, magic while hiding, etc.
             return (
                 <MagicContainer>
                     You ponder casting magic. What an interesting idea!
@@ -451,7 +452,7 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                         <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 3}>Body: {state.equipped?.body?.glance || '(Nothing)'}</EquippedItem>
                         <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 4}>Accessory: {state.equipped?.accessory1?.glance || '(Nothing)'}</EquippedItem>
                         <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 5}>Accessory: {state.equipped?.accessory2?.glance || '(Nothing)'}</EquippedItem>
-                        <EquippedItem>Money: {`${state?.wallet?.coins[0] + state?.wallet?.coins[1] * 100 + state?.wallet?.coins[2] * 10000 + state?.wallet?.coins[3] * 1000000} (${state?.wallet?.coins[0]}c, ${state?.wallet?.coins[1]}s, ${state?.wallet?.coins[2]}g, ${state?.wallet?.coins[3]}p)`}</EquippedItem>
+                        <EquippedItem>Money: {state?.wallet?.crystals || 'none :('}</EquippedItem>
                     </EquippedContainer>
                     <BackpackContainer>
                         <BackpackColumn>

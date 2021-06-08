@@ -78,7 +78,7 @@ export const Reducer = (state, action) => {
             // Updating whatDo is probably where we want to adjust the currentActionBar contents to any new relevant actions
             // We can also adjust NPC interaction and shopping to follow this format as well? Gonna require some shenanigans and investigation to do it properly
             // It's best to match mode/whatDo names in the aforementioned object for easiest transitions
-            if (action.payload === 'explore') return {...state, whatDo: action.payload, viewIndex: 0, currentBarSelected: 'action', currentActionBar: ['(M)agic', '(I)nventory', '(S)earch Area']};
+            if (action.payload === 'explore') return {...state, whatDo: action.payload, viewIndex: 0, currentBarSelected: 'action', currentActionBar: ['(M)agic', '(I)nventory', '(S)earch Area', 'S(t)ats']};
             return {...state, whatDo: action.payload, viewIndex: 0};
         }
         case actions.UPDATE_ACTION_INDEX: {
@@ -95,7 +95,7 @@ export const Reducer = (state, action) => {
             // Hm, awkwardly defaults to EXPLORE options when selecting an empty inventory slot during inventory; account for that
             if (action.payload !== undefined) return {...state, currentActionBar: action.payload};
             if (state?.whatDo === 'inventory') return {...state, currentActionBar: ['Exit (I)nventory']};
-            return {...state, currentActionBar: ['(M)agic', '(I)nventory', '(S)earch Area']};
+            return {...state, currentActionBar: ['(M)agic', '(I)nventory', '(S)earch Area', 'S(t)ats']};
         }
         case actions.UPDATE_VIEW_TARGET: {
             // Hm, ok, so view target can be an ACTION, an ENTITY, an OBJECT... how to structure?
@@ -233,7 +233,7 @@ const initialState = {
     stance: 0,
     equilibrium: 100,
     currentBarSelected: 'action',
-    currentActionBar: ['(M)agic', '(I)nventory', '(S)earch Area'],
+    currentActionBar: ['(M)agic', '(I)nventory', '(S)earch Area', 'S(t)ats'],
     alert: undefined,
     package: undefined,
     received: undefined,

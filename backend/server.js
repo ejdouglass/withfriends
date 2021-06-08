@@ -1149,8 +1149,8 @@ class orchardGoblin {
        // THIS: handle conversion into no-longer-alive status, including messaging the room, adding the body to the room, removing the mob from the room
        this.flags.dead = true;
 
-       // NOTE: We don't actually know if this character did the killing, so we can adjust that later to be more actually accurate
-       io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin is struck down!`});
+       // NOTE: Commented out the below io.to due to the fact the 'slaying it' is handled elsewhere and AFTER this part, so they die before they die. :P
+       // io.to(this.location.RPS + '/' + this.location.GPS).emit('room_event', {echo: `An orchard muglin is struck down!`});
        // io.to(characters[this.fighting.main].name).emit('combat_event', {echo: `Your mighty blow has SLAIN the muglin!`, type: 'combat_msg'});
        
        // Below: remove this entity from everybody's fighting object
@@ -1416,7 +1416,7 @@ function calcStats(entity) {
         500
     );
     */
-    if (entity.equipped.rightHand) {
+    if (entity.equipped.rightHand !== undefined && entity.equipped.rightHand.type !== undefined) {
         // do we need to check if mainType is weapon here? ... maybe?... let's say yes, always a weapon, tools checked automatically for tool-tasks
         // so, apply the .stat to the character, modified by the factor of skill.split('/')[0] by that [1]
         let skillModArray = entity.equipped.rightHand.type.skill.split('/');
@@ -1436,7 +1436,7 @@ function calcStats(entity) {
         // HERE: barehand calculations
     }
 
-    if (entity.equipped.leftHand) {
+    if (entity.equipped.leftHand !== undefined && entity.equipped.leftHand.type !== undefined) {
         // console.log(`Something found in the left hand?`);
         // possibility of mainType here: weapon, shield
 
@@ -1476,7 +1476,7 @@ function calcStats(entity) {
     } else {
         // HERE: barehand calculations
     }
-    if (entity.equipped.head) {
+    if (entity.equipped.head !== undefined && entity.equipped.head.type !== undefined) {
         let skillModArray = entity.equipped.head.type.skill.split('/');
         let skillMod = eSkill[skillModArray[0]] * skillModArray[1] / 100;
         let statModArray = entity.equipped.head.type.stat.split('/');
@@ -1497,7 +1497,7 @@ function calcStats(entity) {
         // HERE: barehead calculations :P
     }
 
-    if (entity.equipped.body) {
+    if (entity.equipped.body !== undefined && entity.equipped.body.type !== undefined) {
         let skillModArray = entity.equipped.body.type.skill.split('/');
         let skillMod = eSkill[skillModArray[0]] * skillModArray[1] / 100;
         let statModArray = entity.equipped.body.type.stat.split('/');
@@ -1514,14 +1514,14 @@ function calcStats(entity) {
         // ohhhh myyyyyy
     }
 
-    if (entity.equipped.accessory1) {
+    if (entity.equipped.accessory1 !== undefined && entity.equipped.accessory1.type !== undefined) {
         // Idle thought: it prooooobably makes sense just to loop through the accessory and slap any found stats onto the entity :P
         for (const statToBoost in entity.equipped.accessory1.stat) {
             eStat[statToBoost] += entity.equipped.accessory1.stat[statToBoost];
         }
     }
 
-    if (entity.equipped.accessory2) {
+    if (entity.equipped.accessory2 !== undefined && entity.equipped.accessory2.type !== undefined) {
         for (const statToBoost in entity.equipped.accessory2.stat) {
             eStat[statToBoost] += entity.equipped.accessory2.stat[statToBoost];
         }
@@ -2590,8 +2590,63 @@ io.on('connection', (socket) => {
             case 'equip': {
                 // Receiving: actionData.column in the form of contents1, contents2, etc. as well as an actionData.index within that section
                 
-                // Works EXCEPT when trying to 'swap' into a slot with nothing equipped. Whoops!
+                // For now just a quick 'unequip' sub-section in this case
+                if (actionData.column === 'equipment') {
+                    // Use findFirstOpenInventorySlot(myCharacter) to get ['contentsX', index] of first backpack slot available for use or [-1, -1] if pack's full
+
+                    const slotToFill = findFirstOpenInventorySlot(myCharacter);
+                    if (slotToFill[0] === -1) {
+                        return io.to(myCharacter.name).emit('character_data', {echo: `You can't unequip that until you free up some inventory space.`});
+                    }
+                    let equipmentSlot;
+                    switch (actionData.index) {
+                        case 0: {
+                            equipmentSlot = 'rightHand';
+                            break;
+                        }
+                        case 1: {
+                            equipmentSlot = 'leftHand';
+                            break;
+                        }
+                        case 2: {
+                            equipmentSlot = 'head';
+                            break;
+                        }
+                        case 3: {
+                            equipmentSlot = 'body';
+                            break;
+                        }
+                        case 4: {
+                            equipmentSlot = 'accessory1';
+                            break;
+                        }
+                        case 5: {
+                            equipmentSlot = 'accessory2';
+                            break;
+                        }
+                    }
+                    console.log(`It appears a character wants to unequip their ${equipmentSlot}?`);
+                    let unequippedItemName = myCharacter.equipped[equipmentSlot].glance;
+                    myCharacter.backpack[slotToFill[0]][slotToFill[1]] = JSON.parse(JSON.stringify(myCharacter.equipped[equipmentSlot]));
+                    myCharacter.equipped[equipmentSlot] = {};
+                    calcStats(myCharacter);
+
+                    let equipResult = {
+                        type: 'equipment_change',
+                        echo: `You unequip ${unequippedItemName}.`,
+                        stat: {...myCharacter.stat},
+                        backpack: {...myCharacter.backpack},
+                        equipped: {...myCharacter.equipped}
+                    };
+                    io.to(myCharacter.name).emit('character_data', equipResult);
+                    return;
+                }
+
                 const itemToEquip = myCharacter.backpack[actionData.column][actionData.index];
+                if (itemToEquip.type === undefined) {
+                    console.log(`Attempting to equip a nonexistent item? For shame!`);
+                    break;
+                }
                 const equipToSlot = itemToEquip.type.slot;
                 // Using parse+stringify to create new instances rather than references -- just in case. Not sure if necessary at this stage.
                 if (myCharacter.equipped[equipToSlot]) myCharacter.backpack[actionData.column][actionData.index] = JSON.parse(JSON.stringify(myCharacter.equipped[equipToSlot]))
@@ -3058,6 +3113,26 @@ function goblinPunch(attackingEntity, defendingEntity) {
     // Big hit, takes MP, has a windup that's telegraphed, set up to guard/dodge/dispel it or take a big hit that's damaging, unbalancing, and maybe debuffing
 }
 
+function findFirstOpenInventorySlot(character) {
+    let firstOpenInventoryIndex;
+    firstOpenInventoryIndex = character.backpack.contents1.findIndex(itemSlot => itemSlot.type === undefined);
+    if (firstOpenInventoryIndex !== -1) return ['contents1', firstOpenInventoryIndex];
+    firstOpenInventoryIndex = character.backpack.contents2.findIndex(itemSlot => itemSlot.type === undefined);
+    if (firstOpenInventoryIndex !== -1) return ['contents2', firstOpenInventoryIndex];
+    if (character.backpack.size >= 3) {
+        firstOpenInventoryIndex = character.backpack.contents3.findIndex(itemSlot => itemSlot.type === undefined);
+        if (firstOpenInventoryIndex !== -1) return ['contents3', firstOpenInventoryIndex];
+    }
+    if (character.backpack.size >= 4) {
+        firstOpenInventoryIndex = character.backpack.contents4.findIndex(itemSlot => itemSlot.type === undefined);
+        if (firstOpenInventoryIndex !== -1) return ['contents4', firstOpenInventoryIndex];
+    }
+    return [-1, -1];
+    // HM: Just realized that items WILL be set to stack in some cases; in that case we'll want to pass in the item,
+    //  and then find the first applicable stack to slot into based on any applicable backpack.stackModifiers.thatItemType
+    //  ... good concept for later, when we have stackable items! :P
+}
+
 
 // HERE: implement some MAGIC!
 
@@ -3126,6 +3201,10 @@ server.listen(PORT, () => console.log(`With Friends server active on Port ${PORT
 // }, 10000);
 
 
+
+
+
+
 /*
 
 The de-facto note-taking section of the app ATM. What's left as of 6/3/21?
@@ -3137,13 +3216,22 @@ TIMELINE: 7-11, 14-18, 21-25 (3 full weeks) + 28th and 30th (M/W). Let's aim for
 
 It is now the FINAL FULL WEEK FOR ALPHA. Let's go!
 Add core functionality:
-- Ability to buy, sell, equip/unequip, and drop stuff
-- Some techs, spells, mob/entity viewing and smart responsiveness of menu
 - World expansion (just a skosh) - mostly vendors, useful information NPCs, and some more mobs
-- Basic skill up
-- Basic perk learning (from NPC's?)
+- Combat refactor: defense/resistance scaling, dodging, skill factor/influence, module-izing strike() so can more easily build out other attacks
+- Death refactor: injury-based rather than straight HP-based?
+- Ability to buy, sell, and drop stuff
+- S(k)ills page (techs, abilities, etc. that can be used from the menu or hotkey'd)
+- Tech bar (abilities, techs, spells hotkey'd)
+- Interactables such as gates/portals scoot to the 'Also Here' right-bar
+- Some techs, spells, mob/entity detailed viewing and smart responsiveness of menu
+- Basic skill up, basic tech-up, basic spell-up (maybe?)
+- Basic learning of techs (equipment for now, maybe NPC's for a cost; players later)
+- Basic perk learning (from NPC's?) - from having sufficient skill, and maybe <type>skill as well
 - Basic learning of spells
 - Hiding, sneaking, foraging, crafting
+- Mobs drop stuff (super basic for now -- you kill, you get swag, monster goes poof)
+- Player death handling
+- Injuries (basic)
 
 Improvements to UX:
 - Add a 'save' function to this server that pushes to the DB with some regularity, such as when equipping new gear
@@ -3151,12 +3239,19 @@ Improvements to UX:
 
 ALPHA WORLD
 - Sketch it out on paper, translate to zaWarudo
-- Beach/sea east of town (starter mob: crabs)
+- Beach/sea east of town
 - Orchard
 - Woods
 - Offshoot rivers
 - Larger Rivercrossing w/npc's and shops
-- Mobs: crabs, trolls, ___ ... create a little interest and variety
+ > SHOP: Spells
+ > SHOP: Weapons
+ > SHOP: Armor
+- Moar mobs 
+ > moblin shaman: caster w/array of magic-based attacks, loot table includes chance at magical goodies
+ > crabs: beach/sea east of town, tiered, stupidly high DEF but low accuracy and low RES, good magic-centric area
+ > trolls: first 'boss/elite' type mob, forest, tough, regen quickly unless ticked down with fire, fast and vicious, turns into wood when defeated
+ > bograt: first 'swarm' type mob, aggressive and ultimately designed to be provoked/directed and AoE'd ideally, rarely carry cool trinkets
 
 
 ALPHA SPELLS
@@ -3167,16 +3262,24 @@ ALPHA SPELLS
 - Stoneskin (elemental transformation) - +con, -agi, defense up, evasion down, armor up, gain some resistances
 - Brook's Babbles (elemental comprehension)
 - ??? (elemental enchantment)
+
+- Magical Shell (primal protection) - simple straight DEF/RES boost to self
+- Energetic Bolt (primal destruction) - pew pew target's HP away with a 'punch' of semi-raw magical force
+- Restorative Jolt (primal restoration) - inefficient, costly, exhausting, but effective at restoring HP and curbing the most critical injuries
+- Sparkling Mote (primal conjuration) - a bizarre entity that acts apparently chaotically
+- Mimetic Mind (primal comprehension) - boost scholarship (at the cost of something perhaps?)
+
 : QUICK SKETCH, other starting schools?
 - psychic (mind-reading, mind-influencing, telekinesis/mindpower-to-actual-power, illusion/sensory manipulation, fatereading)
 - spatial (teleportation, 'storage,' planar shenanigans, light manipulation)
-- divine
+- divine (blessing, restoring, lifebringing?)
 - life/nature
-- primal/raw (school-less?)
+: CASTING! How to implement casting? Basic is best for now... right? But I'd like to have the option to 'prepare/modify/cast'... ultimately or now?
 
 
 ALPHA PERKS
 : How to learn? Which to have? ... maybe for now, just a special menu where learnable ones pop up and can be acquired
+- basic rule: every 2 'spent' skillpoints required yields +1 stat point (generally; some exception for perks that are JUST to boost stats)
 
 
 ALPHA SKILLUP
@@ -3193,6 +3296,7 @@ ALPHA TECHS (pick a small handful, can add more later)
 - Wing Clipper (physical type - ? based - EVA down)
 - Ritual (mental type - ? based - MAG up, duration?)
 - Purse Cutter (physical type - speed based - snatch a treasure while doing some damage, basic mug)
+: WEAPONTYPES: sword, dagger, hammer, staff, axe, 
 
 
 ALPHA FORAGING
@@ -3220,7 +3324,7 @@ ALPHA GUI
 
 
 
-For later stuff:
+For later:
 - Party/formations (player and mob)
 - Day/night/weather cycle(s)
 - Crafting, expanded upgrades

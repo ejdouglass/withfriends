@@ -50,7 +50,7 @@ const CharacterSchema = new Schema({
     },
     wallet: {type: Object, default: {
         gems: [],
-        coins: [50, 2, 0, 0] // copper, silver, gold, platinum, y'know -- the usual, scales @ 100x per tier (for now)
+        crystals: 250
     }}, // sure, why not :P
     equipped: {
         type: Object,
@@ -96,7 +96,7 @@ const CharacterSchema = new Schema({
     },
     admin: {type: Boolean, default: false},
     actionIndex: {type: Number, default: 0},
-    currentActionBar: {type: Array, default: ['Magic', 'Survey Area', 'Inventory']},
+    currentActionBar: {type: Array, default: ['(M)agic', '(I)nventory', '(S)earch Area', 'S(t)ats']},
     currentBarSelected: {type: String, default: 'action'}, // action, entity, ___?
     actionBarActions: {type: Object, default: {explore: ['Magic', 'Hide', 'Forage', 'Stats', 'Inventory'], combat: ['(S)trike, (G)uard, (D)odge']}}
 }, { minimize: false });

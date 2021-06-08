@@ -337,16 +337,12 @@ const Keyboard = () => {
                 }
 
                 if (e.key === 'e') {
-                    // Here's where it gets *slightly* tricky: send data up to server, change equipment based on equipment parameters... calcStats for new stats...
-                    // Then send down fresh character data, inclusive of the stats and any change to backpack
-                    // ... question, do we have dispatch action for updating stats? I think so!
-                    // What about equipment? And what of backpack/inventory? 
-                    // Or we can make one for all three! An 'equipment update' state changer.
-
-                    // HERE: package for server - request to EQUIP & the 'slot' of the item in question
-                    return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'equip', column: `contents${state.currentBarSelected.split('/')[1]}`, index: state.viewIndex}});
-
-                    // ... aaaand that's basically it for this section! The socket will respond to the result at the bottom.
+                    // Ok! The below works great for equipping from backpack.
+                    // ... we still need to add something to handle UN-equipping stuff. :P
+                    // Shouldn't be hard; just add handling so the below doesn't crash when currentBarSelected === equipment, 
+                    //  then extra server handling for when column is equipment
+                    if (state.currentBarSelected === 'equipment') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'equip', column: 'equipment', index: state.viewIndex}});                    
+                    if (state.backpack[`contents${state.currentBarSelected.split('/')[1]}`][state.viewIndex]) return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'equip', column: `contents${state.currentBarSelected.split('/')[1]}`, index: state.viewIndex}});
                 }
 
                 return;
@@ -655,6 +651,7 @@ function setActionBar(itemType) {
         case 'accessory':
         case 'trinket': 
         case 'tool':
+        case 'shield':
             return ['(E)quip', '(U)se', '(D)rop'];
         case 'potion':
         case 'scroll':
