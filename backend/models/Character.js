@@ -95,6 +95,7 @@ const CharacterSchema = new Schema({
         default: {}
     },
     admin: {type: Boolean, default: false},
+    hidden: {type: Number, default: 0},
     actionIndex: {type: Number, default: 0},
     currentActionBar: {type: Array, default: ['(M)agic', '(I)nventory', '(S)earch Area', 'S(t)ats']},
     currentBarSelected: {type: String, default: 'action'}, // action, entity, ___?

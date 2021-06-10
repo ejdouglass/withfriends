@@ -942,6 +942,7 @@ class orchardGoblin {
             building: 0,
             medicine: 0
         };
+        this.hidden = 0;
         this.backpack = {contents: []}; // stealable goodies? ... let's say yes! We can populate some fruit in here on future iterations
         this.wallet = {gems: [], coins: [0, 0, 0, 0]}; // thinking this will be 'stealable' money/gems
         this.mode = 'idle'; // gotta define modes and such, too, like wandering, self-care (later), etc.... may want to set 'default' names for ease and later mobs
@@ -2733,9 +2734,36 @@ io.on('connection', (socket) => {
                 break;
             }
             case 'hide': {
-                socket.emit('own_action_result', {echo: `You attempt to hide, but can't quite seem to figure out how yet. How embarrassing.`});
-                socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} attempts to hide, but can't seem to figure out how.`});
-                break;
+                // time to attempt to HIDE!
+                // let's add a 'hidden' attribute to entities... a moment...
+                // ok, good enough for now... what happens here?
+                // eventually, taking the room into consideration makes sense, but for now, basic-basic:
+                // oh, we can call a hideMe function! Looks at everything then makes the entity hidden to the correct level.
+                // After that we can pass it back down to the client to parse.
+                function hideMe(hider) {
+                    // Ok! Let's see. Sneaking skill for sure, obviously.
+                    // Agility mod? Intelligence? Wisdom? 
+                    // For now we can keep it basic. Later, considering the type of gear you're wearing and looking for mods is reasonable.
+                    // Ok, so there's a range... 
+                    // Consider/modify STANCE? Sure!
+                    // EQL out of 100 modifies, uses all EQL by default
+                    // Let's suppose there are a bunch of hiding places available, and INT/WIS help favor the upper range of possible hiding results
+                    // And then 'how well you are hidden' is mostly based off sneaking skill and agility.
+                    // Sure! Let's go with that for now.
+
+                    let EQLmod = hider.equilibrium / 100;
+                    let hideMin = Math.floor(hider.skill.sneaking / (4 - (hider.stat.intelligence / 100 + hider.stat.wisdom / 100)));
+                    let hideMax = Math.floor(hider.skill.sneaking * (1 + (hider.stat.agility / 100)));
+                    let hideValue = Math.floor(rando(hideMin, hideMax) * EQLmod);
+                    console.log(`The hider achieved a hide value of ${hideValue}!`);
+                    hider.hidden = hideValue;
+                }
+                hideMe(myCharacter);
+                socket.to(myCharacter.name).emit('character_data', {echo: `You hide with a value of ${myCharacter.hidden}! And are now hidden! Sneaky...`});
+                break;                
+                // socket.emit('own_action_result', {echo: `You attempt to hide, but can't quite seem to figure out how yet. How embarrassing.`});
+                // socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} attempts to hide, but can't seem to figure out how.`});
+                // break;
             }
             case 'search': {
                 socket.emit('own_action_result', {echo: `You search the area, but nobody can hide yet, sooooo.`});
@@ -2941,6 +2969,19 @@ function strike(attackingEntity, defendingEntity) {
     if (defendingEntity === undefined) return `A cloud of dust picks up from nowhere, obscuring battle for a moment!`;
 
     // Final Alpha Rejigger! ... raw stats, and how do skills factor in? This will be an imporant part of skilling up!
+    // MODULAR PARTS OF STRIKE (and other attacks)
+
+    // Rejiggering attack, accuracy, skill, defense, evasion, etc.
+    // DEFENSE - flat % reduction + flat damage reduction
+    // ATTACK POWER - the 'default' power of a physical swing
+    // ACCURACY - 
+
+    // So how should gear look now, and related concepts of combat?
+    /*
+        SPECIFIC TECH: base accuracy, base power mod, base damage type
+    
+    */
+
 
     // THIS: the most basic attack, just whack 'em with your weapon
     // Considerations: relevant stats, equilibrium, stance, changes to both on both sides
@@ -3241,12 +3282,14 @@ ALPHA WORLD
 - Sketch it out on paper, translate to zaWarudo
 - Beach/sea east of town
 - Orchard
+- Fields/farms
+- Northern Trade Route, Western Trade Route
 - Woods
 - Offshoot rivers
 - Larger Rivercrossing w/npc's and shops
- > SHOP: Spells
- > SHOP: Weapons
- > SHOP: Armor
+ > SHOP: Spells (primal)
+ > SHOP: Weapons (basic tier, 2nd tier, fancy tier)
+ > SHOP: Armor (basic tier, 2nd tier, fancy tier)
 - Moar mobs 
  > moblin shaman: caster w/array of magic-based attacks, loot table includes chance at magical goodies
  > crabs: beach/sea east of town, tiered, stupidly high DEF but low accuracy and low RES, good magic-centric area
@@ -3296,7 +3339,7 @@ ALPHA TECHS (pick a small handful, can add more later)
 - Wing Clipper (physical type - ? based - EVA down)
 - Ritual (mental type - ? based - MAG up, duration?)
 - Purse Cutter (physical type - speed based - snatch a treasure while doing some damage, basic mug)
-: WEAPONTYPES: sword, dagger, hammer, staff, axe, 
+: WEAPONTYPES: sword, dagger, hammer, staff, axe, polearm, 
 
 
 ALPHA FORAGING
