@@ -21,7 +21,8 @@ export const actions = {
     UPDATE_FIGHTING: 'update_fighting',
     UPDATE_STATS: 'update_stats',
     UPDATE_ACTION_BAR: 'update_action_bar',
-    EQUIPMENT_CHANGE: 'equipment_change'
+    EQUIPMENT_CHANGE: 'equipment_change',
+    UPDATE_HIDING: 'update_hiding'
 }
 
 export const Reducer = (state, action) => {
@@ -125,6 +126,10 @@ export const Reducer = (state, action) => {
                 return {...state, received: action.payload, location: action.payload.roomData};
             }
             return {...state, received: action.payload};
+        }
+        case actions.UPDATE_HIDING: {
+            // Basic for now, but can tweak it later based on more variables from character_data of type hide_result
+            return {...state, hidden: action.payload};
         }
         case actions.TARGET_ENTITY: {
             // receive an object with entityID, type, glance, name
@@ -234,6 +239,7 @@ const initialState = {
     equilibrium: 100,
     currentBarSelected: 'action',
     currentActionBar: ['(M)agic', '(I)nventory', '(S)earch Area', 'S(t)ats'],
+    hidden: 0,
     alert: undefined,
     package: undefined,
     received: undefined,

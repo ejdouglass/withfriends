@@ -2733,6 +2733,11 @@ io.on('connection', (socket) => {
                 socket.emit('own_action_result', {echo: `You forage around the area for a moment, but realize you have no idea what you're doing.`});
                 break;
             }
+            case 'move': {
+                // Go ahead and scoot player-move logic here to be conistent
+                // Can also add 'sneaking' and other logic as well while we're at it!
+                break;
+            }
             case 'hide': {
                 // time to attempt to HIDE!
                 // let's add a 'hidden' attribute to entities... a moment...
@@ -2740,30 +2745,36 @@ io.on('connection', (socket) => {
                 // eventually, taking the room into consideration makes sense, but for now, basic-basic:
                 // oh, we can call a hideMe function! Looks at everything then makes the entity hidden to the correct level.
                 // After that we can pass it back down to the client to parse.
-                function hideMe(hider) {
-                    // Ok! Let's see. Sneaking skill for sure, obviously.
-                    // Agility mod? Intelligence? Wisdom? 
-                    // For now we can keep it basic. Later, considering the type of gear you're wearing and looking for mods is reasonable.
-                    // Ok, so there's a range... 
-                    // Consider/modify STANCE? Sure!
-                    // EQL out of 100 modifies, uses all EQL by default
-                    // Let's suppose there are a bunch of hiding places available, and INT/WIS help favor the upper range of possible hiding results
-                    // And then 'how well you are hidden' is mostly based off sneaking skill and agility.
-                    // Sure! Let's go with that for now.
 
-                    let EQLmod = hider.equilibrium / 100;
-                    let hideMin = Math.floor(hider.skill.sneaking / (4 - (hider.stat.intelligence / 100 + hider.stat.wisdom / 100)));
-                    let hideMax = Math.floor(hider.skill.sneaking * (1 + (hider.stat.agility / 100)));
-                    let hideValue = Math.floor(rando(hideMin, hideMax) * EQLmod);
-                    console.log(`The hider achieved a hide value of ${hideValue}!`);
-                    hider.hidden = hideValue;
+                let oldHideValue = myCharacter.hidden;
+                let didIHide = hideMe(myCharacter);
+                console.log(`Psst: old hide value was ${oldHideValue} and new value is ${myCharacter.hidden}`);
+                let hideEcho = oldHideValue ? `You surreptitiously attempt to reposition yourself into a better hiding spot, ` : `You quickly and quietly search for a hiding spot, `;
+                if (oldHideValue) hideEcho += myCharacter.hidden > oldHideValue ? `and manage to find a more concealed position for yourself.` : `but don't quite manage to figure out a better way to position yourself.`
+                else hideEcho += didIHide ? `and manage to find a concealed position to hide yourself in.` : `but don't have enough sense of equilibrium to pull it off.`;
+                if (!didIHide) hideEcho = `Your equilibrium is too off-balance to allow you to gauge your surroundings for hiding.`;
+                let hideResult = {
+                    type: 'hide_result',
+                    echo: hideEcho,
+                    hidden: myCharacter.hidden
                 }
-                hideMe(myCharacter);
-                socket.to(myCharacter.name).emit('character_data', {echo: `You hide with a value of ${myCharacter.hidden}! And are now hidden! Sneaky...`});
+                io.to(myCharacter.name).emit('character_data', hideResult);
+                
+                // HERE: echo to room
                 break;                
                 // socket.emit('own_action_result', {echo: `You attempt to hide, but can't quite seem to figure out how yet. How embarrassing.`});
                 // socket.to(roomString).emit('room_event', {echo: `${myCharacter.name} attempts to hide, but can't seem to figure out how.`});
                 // break;
+            }
+            case 'unhide': {
+                myCharacter.hidden = 0;
+                let hideResult = {
+                    type: 'hide_result',
+                    echo: `You step out of your hiding spot and into plain view.`,
+                    hidden: 0
+                }
+                io.to(myCharacter.name).emit('character_data', hideResult);
+                break;
             }
             case 'search': {
                 socket.emit('own_action_result', {echo: `You search the area, but nobody can hide yet, sooooo.`});
@@ -3172,6 +3183,29 @@ function findFirstOpenInventorySlot(character) {
     // HM: Just realized that items WILL be set to stack in some cases; in that case we'll want to pass in the item,
     //  and then find the first applicable stack to slot into based on any applicable backpack.stackModifiers.thatItemType
     //  ... good concept for later, when we have stackable items! :P
+}
+
+function hideMe(hider) {
+    // AGI boosts sneaking skill. INT and WIS help boost the lower floor of the skill up, reflecting selecting from a better pool of hiding places.
+    // However, I didn't account for having a sneaking skill of 0. :P My 'mercenary' character can't hide at all! Whoops!
+    // Should probably set a minimum EQL req to prevent 'infinite re-hiding' that I'm doing now :P
+
+    
+
+    if (hider.equilibrium < 50) return false;
+    let EQLmod = hider.equilibrium / 100;
+    let hideMin = hider.hidden > 0 ? hider.hidden : (Math.floor(hider.skill.sneaking / (4 - (hider.stat.intelligence / 100 + hider.stat.wisdom / 100))) + Math.floor(hider.stat.agility / 10));
+    let hideMax = Math.floor(hider.skill.sneaking * (1 + (hider.stat.agility / 100))) + Math.floor(hider.stat.agility / 5);
+    if (hideMin > hideMax) hideMax = hideMin;
+    // Used to ADD 1 here, but let players stack to infinite hiding by re-hiding a lot :P
+    // Now if hideValue is 0 due to low skill or whatever else, the character gets a 'pity' hide value, hidden-but-really-super-barely.
+    // Future iterations could have a 'hiding fail' but still grant some exp so the user can just 'figure it out' through trial and error.
+    let hideValue = Math.floor(rando(hideMin, hideMax) * EQLmod) || 1;
+    // console.log(`The hider achieved a hide value of ${hideValue}!`);
+    hider.hidden = hideValue;
+    hider.equilibrium = 0;
+    return true;
+    // SOMEWHERE AROUND HERE: skillup/skillexp calc
 }
 
 

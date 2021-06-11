@@ -747,6 +747,7 @@ const MyChar = ({ state, dispatch }) => {
                 <CharProfileName>{state.name}</CharProfileName>
                 <div>EQL: {state?.equilibrium}</div>
                 <div>Stance: {state?.stance}</div>
+                <div>{state?.hidden > 0 ? 'HIDDEN' : ''}</div>
             </CharCondition>
             <CharHPMP>
                 <CharHPContainer>

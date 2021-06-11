@@ -59,6 +59,7 @@ const Keyboard = () => {
                     return socketToMe.emit('movedir', mover); 
                 }
                 if (e.key === 'h') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'hide'}});
+                if (e.key === 'u') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'unhide'}});
                 if (e.key === 'f') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'forage'}});
                 if (e.key === 's') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'search'}});
                 if (e.key === 'm') return dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
@@ -592,6 +593,10 @@ const Keyboard = () => {
 
                 if (eventObj.type === 'stat_update') {
                     return dispatch({type: actions.UPDATE_STATS, payload: eventObj.data})
+                }
+
+                if (eventObj.type === 'hide_result') {
+                    dispatch({type: actions.UPDATE_HIDING, payload: eventObj.hidden});
                 }
 
                 if (eventObj.type === 'equipment_change') {
