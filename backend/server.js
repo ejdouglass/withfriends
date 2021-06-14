@@ -2163,6 +2163,7 @@ app.post('/character/create', (req, res, next) => {
     // parseBackground(newChar.background.second, newChar);
     // parseBackground(newChar.background.third, newChar);
     newChar.stat = {};
+    // Room here for differentiated stat seeds based on character creation choices
     newChar.stat.seed = {HPmax: 100, MPmax: 15, strength: 10, agility: 10, constitution: 10, willpower: 10, intelligence: 10, wisdom: 10, spirit: 10};
     newChar.skill = {
         fighting: 0,
@@ -2177,6 +2178,7 @@ app.post('/character/create', (req, res, next) => {
         medicine: 0
     };
     newChar.equipped = {rightHand: undefined, leftHand: undefined, head: undefined, body: undefined, accessory: undefined, trinket: undefined};
+    newChar.effectiveSkill = {};
 
     switch (newChar.background.first) {
         case 'Gatherer': {
@@ -3241,16 +3243,32 @@ function hideMe(hider) {
     */
 
     let EQLmod = hider.equilibrium / 100;
-    let hideMin = hider.hidden > 0 ? hider.hidden : (Math.floor(hider.skill.sneaking / (4 - (hider.stat.intelligence / 100 + hider.stat.wisdom / 100))) + Math.floor(hider.stat.agility / 10));
-    let hideMax = Math.floor(hider.skill.sneaking * (1 + (hider.stat.agility / 100))) + Math.floor(hider.stat.agility / 5);
+    let hideMin = hider.hidden > 0 ? hider.hidden : Math.floor(hider.effectiveSkill.hiding / 4);
+    let hideMax = hider.effectiveSkill.hiding;
     if (hideMin > hideMax) hideMax = hideMin;
     // Used to ADD 1 here, but let players stack to infinite hiding by re-hiding a lot :P
     // Now if hideValue is 0 due to low skill or whatever else, the character gets a 'pity' hide value, hidden-but-really-super-barely.
     // Future iterations could have a 'hiding fail' but still grant some exp so the user can just 'figure it out' through trial and error.
     let hideValue = Math.floor(rando(hideMin, hideMax) * EQLmod) || 1;
-    hider.hidden = hideValue;
-    hider.equilibrium = 0;
-    return true;
+
+    // We'll calc the xp gain here, regardless of actual hiding success
+    // Hm, how to set up successRate, knowing it's the primary determinant of exp gain? 
+    let hideSuccessRate = hideValue - hideDifficulty;
+    
+    skillUp(hider, 'sneaking', hideSuccessRate, 'hiding');
+
+    // We'll call hideValue the 'success' rating base -- how well your hide attempt went by default
+    // We can do multiple iterations to determine final hiding value vs 'pass/fail,' but for now:
+    if (hideValue > hideDifficulty) {
+        hider.hidden = hideValue - hideDifficulty;
+        hider.equilibrium = 0;
+        return true;
+    } else {
+        return false;
+    }
+
+
+
 }
 
 function skillUp(entity, skillName, successRate, actionType) {
@@ -3265,15 +3283,33 @@ function skillUp(entity, skillName, successRate, actionType) {
 
     // Ok, let's do that then. Let's for now assume any entity that can skill up is a player -- but that'd be cool to change down the line.
     let expGain;
-    // successRate should give best expGain on barely succeed or barely fail
-    // successRate of >= 100 is total success, nailed it
-    // successRate of <= -100 is absolute failure, useless effort at best
-    // So 0 represents... a conundrum? Let's assume 0 is a 'scraping by success' and boost it to 1 :P
-    // Can define further in a little bit here, but let's award 100 exp at +- 10 successRate, and scale back from there until 1 exp @ +- 95, nothing past 95
+    // Barely succeed, barely fail = best exp
+    // So, in testing HIDING exp training, definitely falling into the 'spam hiding to rank up' trap that's... boring and repetitive, if effective
+    // Maybe have EXPbonus for acts that are 'rarer' or slower? Or expMod? Hm. So sneaking wildly around would be faster but teach less.
+    successRate = Math.abs(successRate);
+    // The below is slow and clunky and can definitely be optimized.
+    if (successRate <= 10) expGain = 100;
+    if (successRate <= 25 && successRate > 10) expGain = 75;
+    if (successRate <= 50 && successRate > 25) expGain = 50;
+    if (successRate <= 75 && successRate > 50) expGain = 25;
+    if (successRate <= 95 && successRate > 75) expGain = 10;
+    if (successRate > 95) expGain = 1;
 
     if (entity.skill[skillName] < 10) {
-        
+        // We might have to bound with && here if we don't right returning code so we don't hit every single range on the way up
+        entity.skillProgress[skillName].general += expGain;
+
+        // 'Quick and dirty' for now -- more nuance will make sense later, when each skill has its own specific actionTypes and such to check on
+        if (entity.skillProgress[skillName].general > (entity.skill[skillName] + 1) * 1000) {
+            io.to(entity.name).emit('character_data', {echo: `You've gained a new rank in ${skillName}!`});
+            entity.skill[skillName] += 1;
+            entity.skillProgress[skillName] = {general: 0};
+        }
     }
+    if (entity.skill[skillName] >= 10 && entity.skill[skillName] < 20) {
+        // Caps at 20 for now :P
+    }
+
 
     /*
         OK! Low skills scale up easily. 

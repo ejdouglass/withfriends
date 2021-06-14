@@ -93,7 +93,7 @@ const CharacterSchema = new Schema({
         building: {general: 0},
         medicine: {general: 0}
     }},
-    effectiveSkill: {type: Object},
+    effectiveSkill: {type: Object, default: {}},
     flags: {type: Object, default: {}},
     spellcast: Object, // Anchor
     spells: {type: Array, default: []},
