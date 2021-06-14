@@ -24,9 +24,6 @@ const CharacterSchema = new Schema({
         default: {RPS: 0, GPS: '500,500,0'}
     },
     level: {type: Number, default: 1},
-    experience: {type: Object, default: {
-        exp: 0
-    }},
     stat: {
         type: Object, 
         required: true,
@@ -59,14 +56,14 @@ const CharacterSchema = new Schema({
             leftHand: undefined,
             head: undefined,
             body: undefined,
-            accessory1: undefined,
-            accessory2: undefined
+            accessory: undefined,
+            trinket: undefined
         }
     },
     buffs: Array,
     debuffs: Array, // hm, thinking of just having an 'effects' object instead... with keys such as atkUP, atkDOWN, poison, etc.
     effects: Array, // probably will just go with this
-    modifiers: Object, // pondering implementation
+    mod: Object, // pondering implementation
     position: {type: String, default: 'standing'},
     fighting: {type: Object, default: {main: undefined, others: []}},
     skill: {
@@ -84,7 +81,21 @@ const CharacterSchema = new Schema({
             medicine: 0
         }
     },
+    skillProgress: {type: Object, default: {
+        fighting: {general: 0},
+        gathering: {general: 0},
+        sneaking: {general: 0},
+        traversal: {general: 0},
+        crafting: {general: 0},
+        spellcasting: {general: 0},
+        scholarship: {general: 0},
+        sensing: {general: 0},
+        building: {general: 0},
+        medicine: {general: 0}
+    }},
+    effectiveSkill: {type: Object},
     flags: {type: Object, default: {}},
+    spellcast: Object, // Anchor
     spells: {type: Array, default: []},
     techs: {type: Array, default: []},
     abilities: {type: Array, default: []},

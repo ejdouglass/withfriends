@@ -212,8 +212,8 @@ const initialState = {
         leftHand: {},
         head: {},
         torso: {},
-        accessory1: {},
-        accessory2: {}
+        accessory: {},
+        trinket: {}
     },
     position: 'standing',
     healthStatus: 'fine',

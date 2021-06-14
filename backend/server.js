@@ -942,6 +942,7 @@ class orchardGoblin {
             building: 0,
             medicine: 0
         };
+        this.effectiveSkill = {};
         this.hidden = 0;
         this.backpack = {contents: []}; // stealable goodies? ... let's say yes! We can populate some fruit in here on future iterations
         this.wallet = {gems: [], coins: [0, 0, 0, 0]}; // thinking this will be 'stealable' money/gems
@@ -950,7 +951,7 @@ class orchardGoblin {
         this.modifiers = {};
         this.equilibrium = 100;
         this.stance = 0;
-        this.equipped = {rightHand: undefined, leftHand: undefined, head: undefined, torso: undefined, accessory1: undefined, accessory2: undefined};
+        this.equipped = {rightHand: undefined, leftHand: undefined, head: undefined, torso: undefined, accessory: undefined, trinket: undefined};
         this.target = undefined;
         this.flags = {dead: false}; // for later-- mark when they've been stolen from, or other sundry attributes we need to slap on
         this.tagged = {}; // thinking using this for 'spotted' entities, base key is their entityID, contains also the time of tagging and tag quality/duration metric
@@ -1375,6 +1376,8 @@ function calcStats(entity) {
 
     const eStat = entity.stat;
     const eSkill = entity.skill;
+    const eFSkill = entity.effectiveSkill;
+
     // FIRST SECTION: 'base' substats
     entity.stat.HPmax = entity.stat.seed.HPmax;
     // Might have to set HP and MP, too, around here
@@ -1399,6 +1402,35 @@ function calcStats(entity) {
     eStat.EVA = 5;
     eStat.FOC = 5;
     eStat.LUK = 5;
+
+    /*
+            Effective skill time!
+            More specific than skills. Let's define some conceptually than programmatically...
+            ... hm, having some trouble settling on specificity degree; hiding/stalking feels right, but 'attacking' 'defending' seem far too general
+            ... but then breaking down per weapon might be too granular, might as well have 'foresthiding' vs 'cityhiding' then... hm.
+            ... eh, we're only testing hiding/stalking for now, so. Away we go!
+
+            SNEAKING: hiding, stalking, stealing
+            TRAVERSAL: climbing, swimming, 
+            FIGHTING: attacking, defending, 
+            GATHERING: foraging, skinning, lumberjacking, 
+            CRAFTING: carving, smithing, engineering?, building, 
+            SPELLCASTING: artificing, targeting, channeling,  
+            SCHOLARSHIP: teaching, learning, tomelore, 
+            SENSING: searching, appraising, trading, 
+            BUILDING: ???
+            MEDICINE: healing, 
+            ... starting to think BUILDING can scoot into CRAFTING? ok, yeah, let's do that
+    */
+
+    // Lots of room to rejigger here
+    eFSkill.hiding = Math.floor(eSkill.sneaking * (1 + (eStat.agility / 100)));
+    eFSkill.stalking = Math.floor(eSkill.sneaking * (1 + (eStat.agility / 100)));
+    eFSkill.stealing = Math.floor(eSkill.sneaking);
+    eFSkill.climbing = Math.floor(eSkill.traversal);
+    eFSkill.swimming = Math.floor(eSkill.traversal);
+
+    // HERE: Iterate through perks to add stats, fSkills
 
     // SECOND SECTION: equipment mods -- refer to comments section above for how those are modeled
     // Ok, I've decided the currently proposed model is not currently ideal. Let's simplify!
@@ -1515,16 +1547,16 @@ function calcStats(entity) {
         // ohhhh myyyyyy
     }
 
-    if (entity.equipped.accessory1 !== undefined && entity.equipped.accessory1.type !== undefined) {
+    if (entity.equipped.accessory !== undefined && entity.equipped.accessory.type !== undefined) {
         // Idle thought: it prooooobably makes sense just to loop through the accessory and slap any found stats onto the entity :P
-        for (const statToBoost in entity.equipped.accessory1.stat) {
-            eStat[statToBoost] += entity.equipped.accessory1.stat[statToBoost];
+        for (const statToBoost in entity.equipped.accessory.stat) {
+            eStat[statToBoost] += entity.equipped.accessory.stat[statToBoost];
         }
     }
 
-    if (entity.equipped.accessory2 !== undefined && entity.equipped.accessory2.type !== undefined) {
-        for (const statToBoost in entity.equipped.accessory2.stat) {
-            eStat[statToBoost] += entity.equipped.accessory2.stat[statToBoost];
+    if (entity.equipped.trinket !== undefined && entity.equipped.trinket.type !== undefined) {
+        for (const statToBoost in entity.equipped.trinket.stat) {
+            eStat[statToBoost] += entity.equipped.trinket.stat[statToBoost];
         }
     }
 
@@ -2068,8 +2100,8 @@ app.post('/character/create', (req, res, next) => {
         leftHand: {},
         head: {},
         body: {},
-        accessory1: {},
-        accessory2: {}
+        accessory: {},
+        trinket: {}
     };
     // Test gear :P
     newChar.backpack = {contents1: [new Item(
@@ -2144,7 +2176,7 @@ app.post('/character/create', (req, res, next) => {
         building: 0,
         medicine: 0
     };
-    newChar.equipped = {rightHand: undefined, leftHand: undefined, head: undefined, body: undefined, accessory1: undefined, accessory2: undefined};
+    newChar.equipped = {rightHand: undefined, leftHand: undefined, head: undefined, body: undefined, accessory: undefined, trinket: undefined};
 
     switch (newChar.background.first) {
         case 'Gatherer': {
@@ -2618,11 +2650,11 @@ io.on('connection', (socket) => {
                             break;
                         }
                         case 4: {
-                            equipmentSlot = 'accessory1';
+                            equipmentSlot = 'accessory';
                             break;
                         }
                         case 5: {
-                            equipmentSlot = 'accessory2';
+                            equipmentSlot = 'trinket';
                             break;
                         }
                     }
@@ -3190,9 +3222,24 @@ function hideMe(hider) {
     // However, I didn't account for having a sneaking skill of 0. :P My 'mercenary' character can't hide at all! Whoops!
     // Should probably set a minimum EQL req to prevent 'infinite re-hiding' that I'm doing now :P
 
-    
+    // ADD: more nuanced messaging scaffolding -- let players know how 'good' their hiding spot is relative to their skill/potential hiding to avoid wasting hide attempts
+    // ADD: call to skillUp fxn (this hideMe fxn *should* contest and determine difficulty of hiding, so ultimately we'll call it here, not in myCharacter axns)
 
     if (hider.equilibrium < 50) return false;
+
+    let hideDifficulty = 0;
+
+    /*
+        HERE: ramp up hideDifficulty based on various factors...
+        -- the effective 'sensing' ability of all players, mobs, and npcs in the room (roll against each, maybe bonus xp for total number, main xp vs highest)
+        -- note that the effective sensing ability will be highest for any entity that's actively fighting the hider, and even moreso if hider is their fighting.main
+        -- side note for myself: let's have calcStats (or similar) yield an 'effective' skill for everything
+
+        Hm. I like adding effective skill calculation. Hopping to Character.js model real quick...
+        ... going with effectiveSkill for now, an amalgam of skill, stat, any relevant gear mods, any relevant perk mods
+        ... calcStats has its work cut out for it! But once done, this function can take a rest with a simpler hideMin and hideMax
+    */
+
     let EQLmod = hider.equilibrium / 100;
     let hideMin = hider.hidden > 0 ? hider.hidden : (Math.floor(hider.skill.sneaking / (4 - (hider.stat.intelligence / 100 + hider.stat.wisdom / 100))) + Math.floor(hider.stat.agility / 10));
     let hideMax = Math.floor(hider.skill.sneaking * (1 + (hider.stat.agility / 100))) + Math.floor(hider.stat.agility / 5);
@@ -3201,11 +3248,61 @@ function hideMe(hider) {
     // Now if hideValue is 0 due to low skill or whatever else, the character gets a 'pity' hide value, hidden-but-really-super-barely.
     // Future iterations could have a 'hiding fail' but still grant some exp so the user can just 'figure it out' through trial and error.
     let hideValue = Math.floor(rando(hideMin, hideMax) * EQLmod) || 1;
-    // console.log(`The hider achieved a hide value of ${hideValue}!`);
     hider.hidden = hideValue;
     hider.equilibrium = 0;
     return true;
-    // SOMEWHERE AROUND HERE: skillup/skillexp calc
+}
+
+function skillUp(entity, skillName, successRate, actionType) {
+    // HERE WE GO! Let's gain skills, sirs and madams!
+    // I'd like this to be pretty nuanced and 'involved' later on for big numbers, like 10, 20, 30... and maybe adding more requirements to higher skill levels, etc.
+    // For now! Just skill it up.
+
+    // How should we compose this? Pass in skill and difficulty and just return the skill gain?
+    // Alternatively, can pass in the entire entity and modify them directly.
+
+    // Advantage of #2 is that we can handle higher skills having nuanced requirements, as well as reference other parts of the entity's stuff.
+
+    // Ok, let's do that then. Let's for now assume any entity that can skill up is a player -- but that'd be cool to change down the line.
+    let expGain;
+    // successRate should give best expGain on barely succeed or barely fail
+    // successRate of >= 100 is total success, nailed it
+    // successRate of <= -100 is absolute failure, useless effort at best
+    // So 0 represents... a conundrum? Let's assume 0 is a 'scraping by success' and boost it to 1 :P
+    // Can define further in a little bit here, but let's award 100 exp at +- 10 successRate, and scale back from there until 1 exp @ +- 95, nothing past 95
+
+    if (entity.skill[skillName] < 10) {
+        
+    }
+
+    /*
+        OK! Low skills scale up easily. 
+        We'll need to make a new variable for all this. Object, likely, call it skillProgress? Sure!
+        So something like myGuy.skillProgress.sneaking.general, and only look at that for now, and look at sub-stuff later.
+        General exp is specified so we can do stuff like myGuy.skillProgress.sneaking.hiding later (for example, specifics may change).
+
+        Generally, actions in the 'sweet spot' can award ~100 exp.
+        ... too easy, 1 exp, and eventually none. Whoa!
+        ... too hard, same thing. We'll call 100 exp ideal.
+
+        Hm, maybe the params should be entity, skill, actionType, and successRate? Hm...
+
+        Let's walk it out. Character hides at 0 skill. Difficulty of uncontested hiding is determined during the hiding itself, right? 
+        So during the hiding function, we will know the difficulty, and the successRate upon doing the thing.
+        ... if we have a standard scale for relative success, that could help us determine the 'sweet spot' mentioned above.
+
+        Back to the example. Newbie hides. Skill is 0, no observers, skill at 0 has no special reqs so we ignore actionType and add to general only.
+        -- We'll presume a 'learning how to hide' difficulty in the initial skillcheck to make it favorable for new sneakers
+
+        At ~100 exp a pop ideally, let's make sub-10 ranks really pretty quick! For simplicity, we'll use MATHEMATICS.
+        -- Calculate on next rank (i.e. if at rank 0 calculate to rank 1)
+        -- Let's say 1000 exp to do 0 --> 1
+        -- So 2000 to 2, then? 
+        -- Eh, straightforward, it's fine for the First 10.
+        -- Let's add skillups for first 10!
+
+        And now extrapolating... when do we call this fxn? Any time we're using a skill to do a thing. That's a manual interpretation as we build here.
+    */
 }
 
 
