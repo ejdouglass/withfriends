@@ -22,7 +22,8 @@ export const actions = {
     UPDATE_STATS: 'update_stats',
     UPDATE_ACTION_BAR: 'update_action_bar',
     EQUIPMENT_CHANGE: 'equipment_change',
-    UPDATE_HIDING: 'update_hiding'
+    UPDATE_HIDING: 'update_hiding',
+    UPDATE_SKILL_RANKS: 'update_skill_ranks'
 }
 
 export const Reducer = (state, action) => {
@@ -144,6 +145,9 @@ export const Reducer = (state, action) => {
         case actions.EQUIPMENT_CHANGE: {
             // Receiving payload that is eventObj, so action.payload.stat, action.payload.equipped, and action.payload.backpack should mirror their local counterparts
             return {...state, stat: action.payload.stat, equipped: action.payload.equipped, backpack: action.payload.backpack};
+        }
+        case actions.UPDATE_SKILL_RANKS: {
+            return {...state, skill: {...action.payload}};
         }
         case actions.UPDATE_SELECTED_BAR: {
             return {...state, currentBarSelected: action.payload};

@@ -2132,7 +2132,7 @@ app.post('/character/create', (req, res, next) => {
 
 
     /*
-        ITEMS look like this:
+        NEW WEAPON SHENANIGANS
         newChar.equipped.rightHand = new Item(
             {
                 mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
@@ -3011,6 +3011,7 @@ orchardGoblinSpawn.init();
 // THIS SECTION: basic abilities/actions/techs
 
 function strike(attackingEntity, defendingEntity) {
+    // NOTE: probably can 'fix' the below by checking the fighting.others and scoot any entity in there into the primo spot
     if (defendingEntity === undefined) return `A cloud of dust picks up from nowhere, obscuring battle for a moment!`;
 
     // Final Alpha Rejigger! ... raw stats, and how do skills factor in? This will be an imporant part of skilling up!
@@ -3023,7 +3024,8 @@ function strike(attackingEntity, defendingEntity) {
 
     // So how should gear look now, and related concepts of combat?
     /*
-        SPECIFIC TECH: base accuracy, base power mod, base damage type
+        SPECIFIC TECH: base accuracy, base power mod, base attack type (swing, thrust, etc.)
+        - should work in tandem with weapon stats to produce damage
     
     */
 
@@ -3271,43 +3273,50 @@ function hideMe(hider) {
 
 }
 
-function skillUp(entity, skillName, successRate, actionType) {
-    // HERE WE GO! Let's gain skills, sirs and madams!
-    // I'd like this to be pretty nuanced and 'involved' later on for big numbers, like 10, 20, 30... and maybe adding more requirements to higher skill levels, etc.
-    // For now! Just skill it up.
+function skillUp(entity, skillName, successRate, baseEXP, actionType) {
+    
+    if (!baseEXP) baseEXP = 100;
+    let expGain, expMod;
+    let feedbackMessage;
+ 
+    // Should consider expMod; also consider the 'difficulty vs skill check roll' relationship and how it translates to this fxn
 
-    // How should we compose this? Pass in skill and difficulty and just return the skill gain?
-    // Alternatively, can pass in the entire entity and modify them directly.
-
-    // Advantage of #2 is that we can handle higher skills having nuanced requirements, as well as reference other parts of the entity's stuff.
-
-    // Ok, let's do that then. Let's for now assume any entity that can skill up is a player -- but that'd be cool to change down the line.
-    let expGain;
-    // Barely succeed, barely fail = best exp
-    // So, in testing HIDING exp training, definitely falling into the 'spam hiding to rank up' trap that's... boring and repetitive, if effective
-    // Maybe have EXPbonus for acts that are 'rarer' or slower? Or expMod? Hm. So sneaking wildly around would be faster but teach less.
     successRate = Math.abs(successRate);
     // The below is slow and clunky and can definitely be optimized.
-    if (successRate <= 10) expGain = 100;
-    if (successRate <= 25 && successRate > 10) expGain = 75;
-    if (successRate <= 50 && successRate > 25) expGain = 50;
-    if (successRate <= 75 && successRate > 50) expGain = 25;
-    if (successRate <= 95 && successRate > 75) expGain = 10;
-    if (successRate > 95) expGain = 1;
+    if (successRate <= 10) expMod = 1;
+    if (successRate <= 25 && successRate > 10) expMod = .75;
+    if (successRate <= 50 && successRate > 25) expMod = .50;
+    if (successRate <= 75 && successRate > 50) expMod = .25;
+    if (successRate <= 95 && successRate > 75) expMod = .10;
+    if (successRate > 95) expMod = .01;
+
+    // Big boost for testing purposes :P 
+    expGain = 100000;
 
     if (entity.skill[skillName] < 10) {
         // We might have to bound with && here if we don't right returning code so we don't hit every single range on the way up
         entity.skillProgress[skillName].general += expGain;
 
         // 'Quick and dirty' for now -- more nuance will make sense later, when each skill has its own specific actionTypes and such to check on
-        if (entity.skillProgress[skillName].general > (entity.skill[skillName] + 1) * 1000) {
-            io.to(entity.name).emit('character_data', {echo: `You've gained a new rank in ${skillName}!`});
+        if (entity.skillProgress[skillName].general >= (entity.skill[skillName] + 1) * 1000) {
+            feedbackMessage = `You've gained a new rank in ${skillName}!`
             entity.skill[skillName] += 1;
+            calcStats(entity);
             entity.skillProgress[skillName] = {general: 0};
         }
+        io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
     }
     if (entity.skill[skillName] >= 10 && entity.skill[skillName] < 20) {
         // Caps at 20 for now :P
+        entity.skillProgress[skillName].general += expGain;
+        if (entity.skillProgress[skillName].general >= (entity.skill[skillName] + 1) * 2500) {
+            feedbackMessage = `You've gained a new rank in ${skillName}!`
+            entity.skill[skillName] += 1;
+            calcStats(entity);
+            entity.skillProgress[skillName] = {general: 0};
+        }
+        io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
+
     }
 
 

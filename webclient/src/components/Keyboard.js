@@ -591,6 +591,10 @@ const Keyboard = () => {
                     return dispatch({type: actions.UPDATE_FIGHTING, payload: eventObj.newFightingObj});
                 }
 
+                if (eventObj.type === 'skill_up') {
+                    dispatch({type: actions.UPDATE_SKILL_RANKS, payload: eventObj.skill});
+                }
+
                 if (eventObj.type === 'stat_update') {
                     return dispatch({type: actions.UPDATE_STATS, payload: eventObj.data})
                 }
