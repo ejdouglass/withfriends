@@ -41,7 +41,7 @@ const LeftMenuBox = ({ state, dispatch }) => {
     return (
         <LeftMenu>
             {state.currentActionBar.map((actButton, index) => (
-                <ActionButton key={index} viewed={(state.currentBarSelected === 'action' && index === state.viewIndex) ? true : false} selected={state.whatDo === actButton.toLowerCase() ? true : false} onClick={() => handleActionSelection(actButton)}>{actButton}</ActionButton>
+                <ActionButton key={index} viewed={(state.whatDo === 'explore' && index === state.viewIndex) ? true : false} selected={state.whatDo === actButton.toLowerCase() ? true : false} onClick={() => handleActionSelection(actButton)}>{actButton}</ActionButton>
             ))}
         </LeftMenu>
     );
@@ -437,7 +437,10 @@ const CurrentFocusBox = ({ state, dispatch }) => {
             // Also need to figure out out-of-combat vs in-combat magic, magic while hiding, etc.
             return (
                 <MagicContainer>
-                    You ponder casting magic. What an interesting idea!
+                    {state.spells.length > 0 ? 'Your spells:' : `You don't know any magic!`}
+                    {state.spells.map((spell, index) => (
+                        <div style={{padding: '10px', margin: '10px', border: state.viewIndex === index ? '2px solid red' : '1px solid black', width: '20%'}} key={index}>{spell.name}</div>
+                    ))}
                 </MagicContainer>
             )
         }

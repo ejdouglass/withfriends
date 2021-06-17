@@ -641,16 +641,21 @@ let Rivercrossing = new Zone('Town of Rivercrossing');
 let WestOfRivercrossing = new Zone('West of Rivercrossing');
 
 // Hm... add an 'iconImgSrc' attribute?
+// Add TRAIT and MOD
+// TRAIT: 
+// MOD: {effectiveSkillBoost: {...}, statBoost: {...}, ...anyOtherVar (i.e. fireBoost)}
 class Item {
-    constructor(type, glance, description, stat, build, effects, techs, value) {
-        this.type = type; // objectified - item type and subtypes, if applicable
+    constructor(type, glance, description, stat, mod, build, trait, techs, value, iconImgSrc) {
+        this.type = type; // objectified - item type and subtypes, as applicable
         this.glance = glance;
         this.description = description;
         this.stat = stat; // objectified - derivedStats in the format of atk: 'agi/50'
+        this.mod = mod;
         this.build = build; // objectified - size, weight, durability, materials, maybe level/quality/etc.
-        this.effects = effects; // object with stuff like physicalDamageBonus, injuryBonus, etc.
+        this.trait = trait; // object with stuff like physicalDamageBonus, injuryBonus, etc.
         this.techs = techs;
         this.value = value; // ideally derived from materials as well as skill/difficulty in its creation modified by overall concept of rarity, buuuut whatever for now
+        this.iconImgSrc = iconImgSrc || 'genericItem.png';
         this.itemID = generateRandomID();
     }
 }
@@ -995,12 +1000,13 @@ class orchardGoblin {
         // HERE: generate equipment
         this.equipped.rightHand = new Item(
             {
-                mainType: 'weapon', buildType: 'dagger', subType: 'curved', range: 'melee', skill: 'gathering/1', stat: 'agility/1', slot: 'hands', hands: 1,
+                mainType: 'weapon', buildType: 'dagger', subType: 'curved', range: 'melee', skill: 'gathering', stat: 'agility', slot: 'hands', hands: 1,
                 enhancements: 0, quality: 20
             },
             `Muglin Fruitknife`,
             `A simplistic sickle-like knife made of meticulously shaped stone. Its handle is wrapped in leather crusted with dried sugar.`,
             {ATK: 8, ACC: 8, MAG: 5, FOC: 3},
+            {statBonus: {}, effectiveSkillBonus: {}, thrustDamage: 0.8, thrustDamageType: 'piercing', swingDamage: 1, swingDamageType: 'slashing'},
             {size: 2, weight: 5, durability: 500, maxDurability: 500, materials: 'stone/2,leather/1', attributes: undefined},
             {primitive: 5},
             [],
@@ -1008,11 +1014,15 @@ class orchardGoblin {
         );
         this.equipped.body = new Item(
             {
-                mainType: 'armor', buildType: 'clothes', subType: 'leather', skill: 'gathering/1', stat: 'agility/1', slot: 'body', enhancements: 0, quality: 20
+                mainType: 'armor', buildType: 'clothes', subType: 'leather', skill: 'gathering', stat: 'agility', slot: 'body', enhancements: 0, quality: 20
             },
             `Muglin Rags`,
             `It's not entirely clear what sort of leather these are made from, or how it was treated. Based on the smell, it's probably better not to know.`,
             {DEF: 6, EVA: 6, RES: 6, LUK: 6},
+            {
+                statBonus: {}, effectiveSkillBonus: {}, piercingProtection: 1, slashingProtection: 1, crushingProtection: 1,
+                burningProtection: 1, freezingProtection: 1, shockingProtection: 1
+            },
             {size: 6, weight: 8, durability: 500, maxDurability: 500, materials: 'leather/6', attributes: undefined},
             {primitive: 5},
             [],
@@ -1231,132 +1241,35 @@ function calcStats(entity) {
         -- status change
         -- ???
 
+        ... need various 'versions' of this, ideally, to handle different scenarios
+        ... sometimes we don't need to check literally everything :P
 
-            ... I do like the idea of a main 'skill' and 'stat' for each weapon, along with 2~3 'speciality' perks (like +backstab, skinning, etc.) and a tech attached
+        ADJUSTMENTS OCCURRING BECAUSE OF SKILL:
+        -- Stat boosts: QUALITY * (SKILL / (500 - quality)) base is fine for now, let's roll
+        -- These apply to HAND, BODY, and TRINKET slot equipment that has 'stat' obj
+        -- Amend Class Item to have Trait, Mod objs (Mod obj to have sub-objs to facilitate boosting a wide variety of different areas in iterable ways)
 
-            ... so, for now, maybe just rescale one "class" starter weapon, and just have 'Dekanax' be that class until further notice as we test
+        AND OF COURSE THE INFLUENCE OF STATS:
+        -- Mostly minor boosts to the raw ATK/ACC/MAG/FOC of a weapon in the character sheet. Extra minor boost for weapon's 'primary' stat.
+        -- Stats play a much bigger role in determining effects in the fxn body of specific techniques.
+        -- Techs can also rely on non-fighting skills for part or all of their effect (sneaking technique of throwing dust in foe's eyes for example)
 
-            Let's remodel how weapons/armor work.
-            Simplify weapon... if it's a weapon, it raises ATK and/or MAG by some basic value, which itself is amplified by skill.
-                -- reconfig the bonus from stats
-            Example:
-            Scrapping Sword - 15 base atk, fighting skill, strength stat, 'heft' (extra raw bonus damage from str)
-            Thief Knife - 10 atk, 5 acc, sneaking, 'precision' (something-something crit rate/dmg)
-                -- 'heft,' 'precision' are creation/crafting elements attached to the 'build' of the item, and calculate its base stats on creation
-                -- listed in its build, not necessarily 'live' attributes
-
-            @latest - items (weapons in particular)
-
-            add:
-                improvement potential (varname undecided, points spent/points available for customization)
-
-            core stats for all weapons:
-                damType (new: damage mod for moves & injury purposes)
-                ATK, ACC, MAG, FOC - scale off main skill for that weapon
-                (for scaling, we'll assume [skill + stat]% bonus... so 10 str and 10 fighting on a str-fighting weapon is 20% total boost to flat stats)
-                
-
-
-            body (armor)
-            - primary source of defensive stats, protective qualities, protection techs
-                DEF, EVA, RES, LUK - scale off main skill for that armor
-
-
-            head
-            - "fills in the gaps" depending on type of headgear (helmet enhances core defense, circlet, twist headband, etc.)
-                can provide boosts to just about anything, which (as above) scale off the main skill for that piece of equipment
-
-
-            accessories
-            - generally, flat stats and flat effect gear (achieved through having no 'skill' attached to them)
-
-
-
-            other qualities? -- 'killer' effects, injury parameters
-
-            WEAPON EXAMPLE:
-                newChar.equipped.rightHand = new Item(
-                {
-                    mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
-                    enhancements: 0, quality: 20
-                },
-                `Scapping Sword`,
-                `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
-                {ATK: 15, ACC: 5, MAG: 5, FOC: 5},
-                {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2', attributes: 'heft'},
-                {physicalDamageBonus: 6},
-                [],
-                500
-            );   
-
-            FROM CLASS:
-            class Item {
-                constructor(type, glance, description, stat, build, effects, techs, value) {
-                    this.type = type; // objectified - item type and subtypes, if applicable
-                    this.glance = glance;
-                    this.description = description;
-                    this.stat = stat; // objectified - derivedStats in the format of atk: 'agi/50'
-                    this.build = build; // objectified - size, weight, durability, materials, maybe level/quality/etc.
-                    this.effects = effects; // object with stuff like physicalDamageBonus, injuryBonus, etc.
-                    this.techs = techs;
-                    this.value = value; // ideally derived from materials as well as skill/difficulty in its creation modified by overall concept of rarity, buuuut whatever for now
-                    this.itemID = generateRandomID();
-                }
-            }
-
-        Finally, STATS TO CALC:
-        strength: 15, agility: 15, constitution: 15, willpower: 15, intelligence: 15, wisdom: 15, spirit: 15, 
-        HP: undefined, HPmax: undefined, MP: undefined, MPmax: undefined, 
-        ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, LUK: undefined
-
-        Miiiiight have to improve the creation process and add at least basic perks to test this properly, buuuuut...
-        ... we can definitely add skills, equipment, and base stats
-        ... 
-
-        Stuff to consider:
-        -- perks: array of objects, iterate over to get totals (will define perks to have explicit and predictable stat boosts)
-        -- skills: skills directly impact especially 'secondary' stats like ATK, etc.
-        -- equipment: currently nothing is slated to provide 'flat' boosts, but rather have dependent boosts (that scale with relevant skill)
-        -- effects
-
-        Just made a "modifiers" object for character (will go and apply to other entities shortly if I like the name enough)
-            -- modifiers to skills, rolls, etc. (stuff like swordDamage, skinningWhatever, so on -- choose keys carefully for quick access across any requesting purpose)
-
-        Hm, effects is currently an object; pondering...
-        ... does it make more sense to turn it into an array to iterate over? An array of objects?
-        ... hm, what about stuff like poison? Bleeding? Want to be able to show that on the HUD.
-        ... eh, can just collect effectTypes while iterating and slap 'em up there
-
-        Here's our skill list: 
-            fighting: 5
-            gathering: 5
-            sneaking: 0
-            traversal: 0
-            crafting: 0
-            spellcasting: 0
-            scholarship: 0
-            sensing: 5
-            building: 0
-            medicine: 0
-            Each skill raises a stat? Hm. By some modifier? 1-to-1 seems a lot to start with. Or not!
-            ... or we can just have the skills be skills, and have bonuses come from perks and just let the skills dicate their own areas.
-
-
-        ... ok. Now, let's think how (core) STATS influence (again point for point to begin with) stats...
-        ... we can weight stats 'higher' and have each stat add 10 points. DONE :P (Just make sure the splits are balanced)
-        ... this means that the total addition from stats should be +10 for each cumulatively
-
-        strength: 10
-        agility: 10
-        constitution: 10
-        willpower: 10
-        intelligence: 10
-        wisdom: 10
-        spirit: 10
-        ... eh, just have them calculated in different rolls. 
-        
-
-        ... gotta have a better concept for how MP is defined in this concept :P Right now it's just kind of "physical energy" which is skewing away from mental stats.
+        THEORIZING ON DEFENSE
+        -- % based as well as flat reduction
+        -- Now that we are working to be able to differentiate between damage types, having differentiated modifiers for damType makes some sense as well...
+        -- piercing, slashing, crushing ; burning, freezing, shocking ; ___
+        -- Ok, let's determine a scale and go with it. We can adjust later, after ALPHA. 
+        -- OK! Rapid scaling in the beginning, slows down later: 
+            -> 1/1 until 5% (5 DEF)
+            -> 2/1 until 10% (15 DEF)
+            -> 3/1 until 15% (30 DEF)
+            -> 4/1 until 20% (50 DEF)
+            -> 5/1 until 25% (75 DEF)
+            -> 6/1 until 30% (105 DEF)
+            -> 7/1 until 35% (140 DEF)
+            -> 8/1 until 40% (180 DEF)
+            ... and so on. I'm sure we can math it out into a % DEF fxn for ourselves.
+        -- Additionally, damage threshold rises by 1 for every 10 DEF. So at 180 DEF there'd be an absolute reduction in damage by 18, then 40% off that remainder. SOLID.    
 
     */
 
@@ -1366,13 +1279,6 @@ function calcStats(entity) {
     // Deciding on stat rolls now. Here we go!
 
     // HERE: calc base stats boosted from perks (currently unavailable due to lack of perks :P)
-
-    // Will likely add accelerating modifiers so that 1-to-1 skills can be upgraded later, but this is just a note for that in the future
-
-    // Since we're going for a partially 'relative' situation (ATK vs DEF ratio, etc.), it makes sense to seed the stats -- starting with 10 across the board for now
-    // Stats should always be at least 1, so they'll always be non-zero, but an extra boost should help round out "low number" issues a bit
-    // Don't forget to factor in modifiers (from effects, etc.)
-    // For MPmax, might 'decelerate' its growth by applying an MPmodifier variable attached to the entity later (to the non-seed portion)
 
     const eStat = entity.stat;
     const eSkill = entity.skill;
@@ -1432,131 +1338,91 @@ function calcStats(entity) {
 
     // HERE: Iterate through perks to add stats, fSkills
 
-    // SECOND SECTION: equipment mods -- refer to comments section above for how those are modeled
-    // Ok, I've decided the currently proposed model is not currently ideal. Let's simplify!
-    /*
-    newChar.equipped.rightHand = new Item(
-        {
-            mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
-            enhancements: 0, quality: 20
-        },
-        `Scapping Sword`,
-        `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
-        {ATK: 15, ACC: 5, MAG: 5, FOC: 5},
-        {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2', attributes: 'heft'},
-        {physicalDamageBonus: 6},
-        [],
-        500
-    );
-    */
+
+    // Node-specific silliness seems to be the reason I have to check BOTH of these variables below for everything
     if (entity.equipped.rightHand !== undefined && entity.equipped.rightHand.type !== undefined) {
-        // do we need to check if mainType is weapon here? ... maybe?... let's say yes, always a weapon, tools checked automatically for tool-tasks
-        // so, apply the .stat to the character, modified by the factor of skill.split('/')[0] by that [1]
-        let skillModArray = entity.equipped.rightHand.type.skill.split('/');
-        let skillMod = eSkill[skillModArray[0]] * skillModArray[1] / 100;
-        let statModArray = entity.equipped.rightHand.type.stat.split('/');
-        let statMod = eStat[statModArray[0]] * statModArray[1] / 100;
-        let totalMod = 1 + skillMod + statMod;
-        // CHANGE: let's turn all of the below into object-iterating for loops
+        // stat boosts: QUALITY * (SKILL / (500 - quality)) base is fine for now, let's roll
+        let totalMod = entity.equipped.rightHand.type.quality * (entity.skill[entity.equipped.rightHand.type.skill] / (500 - entity.equipped.rightHand.type.quality));
         for (const statToBoost in entity.equipped.rightHand.stat) {
-            eStat[statToBoost] += entity.equipped.rightHand.stat[statToBoost] * totalMod;
+            eStat[statToBoost] += Math.floor(entity.equipped.rightHand.stat[statToBoost] * (1 + (entity.skill.fighting / 100)) + totalMod);
         }
-        // eStat.ATK += entity.equipped.rightHand.stat.ATK * totalMod;
-        // eStat.ACC += entity.equipped.rightHand.stat.ACC * totalMod;
-        // eStat.MAG += entity.equipped.rightHand.stat.MAG * totalMod;
-        // eStat.FOC += entity.equipped.rightHand.stat.FOC * totalMod;
+        for (const statToAdd in entity.equipped.body.mod.statBonus) {
+            eStat[statToAdd] += entity.equipped.body.mod.statBonus[statToAdd];
+        }
     } else {
-        // HERE: barehand calculations
+        // HERE: barehand calculations... which are total nonsense right now, because SAITAMA :P (or Claw Troll, to a lesser degree)
+        eStat.ATK = 9999;
+        eStat.ACC = 9999;
     }
 
     if (entity.equipped.leftHand !== undefined && entity.equipped.leftHand.type !== undefined) {
         // console.log(`Something found in the left hand?`);
         // possibility of mainType here: weapon, shield
 
-        // for (const statToBoost in entity.equipped.leftHand.stat) {
-        //     eStat[statToBoost] += entity.equipped.leftHand.stat[statToBoost] * totalMod;
-        // }
+
         if (entity.equipped.leftHand.type.mainType === 'weapon') {
             // Dualwield modifier comes into play here... which currently doesn't exist, so we're faking it for now :P
-            let skillModArray = entity.equipped.leftHand.type.skill.split('/');
-            let skillMod = eSkill[skillModArray[0]] * skillModArray[1] / 100;
-            let statModArray = entity.equipped.leftHand.type.stat.split('/');
-            let statMod = eStat[statModArray[0]] * statModArray[1] / 100;
-            let totalMod = 1 + skillMod + statMod;
+            let totalMod = entity.equipped.leftHand.type.quality * (entity.skill[entity.equipped.leftHand.type.skill] / (500 - entity.equipped.leftHand.type.quality));
             for (const statToBoost in entity.equipped.leftHand.stat) {
-                eStat[statToBoost] += entity.equipped.leftHand.stat[statToBoost] * totalMod  * (entity.modifiers.dualWieldMastery || 0.3);
+                eStat[statToBoost] += Math.floor(entity.equipped.leftHand.stat[statToBoost] * (1 + (entity.skill.fighting / 100)) + totalMod);
             }
-            // eStat.ATK += (entity.equipped.leftHand.stat.ATK * totalMod) * (entity.modifiers.dualWieldMastery || 0.3);
-            // eStat.ACC += (entity.equipped.leftHand.stat.ACC * totalMod) * (entity.modifiers.dualWieldMastery || 0.3);
-            // eStat.MAG += (entity.equipped.leftHand.stat.MAG * totalMod) * (entity.modifiers.dualWieldMastery || 0.3);
-            // eStat.FOC += (entity.equipped.leftHand.stat.FOC * totalMod) * (entity.modifiers.dualWieldMastery || 0.3);
+            for (const statToAdd in entity.equipped.body.mod.statBonus) {
+                eStat[statToAdd] += entity.equipped.body.mod.statBonus[statToAdd];
+            }
         }
         if (entity.equipped.leftHand.type.mainType === 'shield') {
             // Shield mastery is probably worth considering at some point, but for now, same logic as weapons, different stat spread
-            let skillModArray = entity.equipped.leftHand.type.skill.split('/');
-            let skillMod = eSkill[skillModArray[0]] * skillModArray[1] / 100;
-            let statModArray = entity.equipped.leftHand.type.stat.split('/');
-            let statMod = eStat[statModArray[0]] * statModArray[1] / 100;
-            let totalMod = 1 + skillMod + statMod;
+            // Might also have some extra goodies for shields here
+            let totalMod = entity.equipped.leftHand.type.quality * (entity.skill[entity.equipped.leftHand.type.skill] / (500 - entity.equipped.leftHand.type.quality));
             for (const statToBoost in entity.equipped.leftHand.stat) {
-                eStat[statToBoost] += entity.equipped.leftHand.stat[statToBoost] * totalMod;
+                eStat[statToBoost] += Math.floor(entity.equipped.leftHand.stat[statToBoost] * (1 + (entity.skill.fighting / 100)) + totalMod);
             }
-            // eStat.DEF += entity.equipped.leftHand.stat.DEF * totalMod;
-            // eStat.EVA += entity.equipped.leftHand.stat.EVA * totalMod;
-            // eStat.RES += entity.equipped.leftHand.stat.RES * totalMod;
-            // eStat.LUK += entity.equipped.leftHand.stat.LUK * totalMod;
+            for (const statToAdd in entity.equipped.body.mod.statBonus) {
+                eStat[statToAdd] += entity.equipped.body.mod.statBonus[statToAdd];
+            }
         }
     } else {
         // HERE: barehand calculations
     }
     if (entity.equipped.head !== undefined && entity.equipped.head.type !== undefined) {
-        let skillModArray = entity.equipped.head.type.skill.split('/');
-        let skillMod = eSkill[skillModArray[0]] * skillModArray[1] / 100;
-        let statModArray = entity.equipped.head.type.stat.split('/');
-        let statMod = eStat[statModArray[0]] * statModArray[1] / 100;
-        let totalMod = 1 + skillMod + statMod;
+        let totalMod = entity.equipped.head.type.quality * (entity.skill[entity.equipped.head.type.skill] / (500 - entity.equipped.head.type.quality));
         for (const statToBoost in entity.equipped.head.stat) {
-            eStat[statToBoost] += entity.equipped.head.stat[statToBoost] * totalMod;
+            eStat[statToBoost] += Math.floor(entity.equipped.head.stat[statToBoost] * (1 + (entity.skill.fighting / 100)) + totalMod);
         }
-        // eStat.ATK += entity.equipped.head.stat.ATK * totalMod;
-        // eStat.ACC += entity.equipped.head.stat.ACC * totalMod;
-        // eStat.MAG += entity.equipped.head.stat.MAG * totalMod;
-        // eStat.FOC += entity.equipped.head.stat.FOC * totalMod;
-        // eStat.DEF += entity.equipped.head.stat.DEF * totalMod;
-        // eStat.EVA += entity.equipped.head.stat.EVA * totalMod;
-        // eStat.RES += entity.equipped.head.stat.RES * totalMod;
-        // eStat.LUK += entity.equipped.head.stat.LUK * totalMod;
+        for (const statToAdd in entity.equipped.head.mod.statBonus) {
+            eStat[statToAdd] += entity.equipped.head.mod.statBonus[statToAdd];
+        }
+
     } else {
         // HERE: barehead calculations :P
     }
 
     if (entity.equipped.body !== undefined && entity.equipped.body.type !== undefined) {
-        let skillModArray = entity.equipped.body.type.skill.split('/');
-        let skillMod = eSkill[skillModArray[0]] * skillModArray[1] / 100;
-        let statModArray = entity.equipped.body.type.stat.split('/');
-        let statMod = eStat[statModArray[0]] * statModArray[1] / 100;
-        let totalMod = 1 + skillMod + statMod;
+        let totalMod = entity.equipped.body.type.quality * (entity.skill[entity.equipped.body.type.skill] / (500 - entity.equipped.body.type.quality));
         for (const statToBoost in entity.equipped.body.stat) {
-            eStat[statToBoost] += entity.equipped.body.stat[statToBoost] * totalMod;
+            eStat[statToBoost] += Math.floor(entity.equipped.body.stat[statToBoost] * (1 + (entity.skill.fighting / 100)) + totalMod);
         }
-        // eStat.DEF += entity.equipped.body.stat.DEF * totalMod;
-        // eStat.EVA += entity.equipped.body.stat.EVA * totalMod;
-        // eStat.RES += entity.equipped.body.stat.RES * totalMod;
-        // eStat.LUK += entity.equipped.body.stat.LUK * totalMod;
+        for (const statToAdd in entity.equipped.body.mod.statBonus) {
+            eStat[statToAdd] += entity.equipped.body.mod.statBonus[statToAdd];
+        }
     } else {
         // ohhhh myyyyyy
     }
 
     if (entity.equipped.accessory !== undefined && entity.equipped.accessory.type !== undefined) {
         // Idle thought: it prooooobably makes sense just to loop through the accessory and slap any found stats onto the entity :P
-        for (const statToBoost in entity.equipped.accessory.stat) {
-            eStat[statToBoost] += entity.equipped.accessory.stat[statToBoost];
+        for (const statToAdd in entity.equipped.accessory.mod.statBonus) {
+            eStat[statToAdd] += entity.equipped.accessory.mod.statBonus[statToAdd];
         }
     }
 
     if (entity.equipped.trinket !== undefined && entity.equipped.trinket.type !== undefined) {
+        let totalMod = entity.equipped.trinket.type.quality * (entity.skill[entity.equipped.trinket.type.skill] / (500 - entity.equipped.trinket.type.quality));
         for (const statToBoost in entity.equipped.trinket.stat) {
-            eStat[statToBoost] += entity.equipped.trinket.stat[statToBoost];
+            eStat[statToBoost] += Math.floor(entity.equipped.trinket.stat[statToBoost] * (1 + (entity.skill.fighting / 100)) + totalMod);
+        }
+        for (const statToAdd in entity.equipped.trinket.mod.statBonus) {
+            eStat[statToAdd] += entity.equipped.trinket.mod.statBonus[statToAdd];
         }
     }
 
@@ -2104,14 +1970,19 @@ app.post('/character/create', (req, res, next) => {
         trinket: {}
     };
     // Test gear :P
+    /*
+        constructor(type, glance, description, stat, mod, build, trait, techs, value, iconImgSrc)
+        ... let's remove the /1 from skill and stat, 
+    */
     newChar.backpack = {contents1: [new Item(
         {
-            mainType: 'weapon', buildType: 'sword', subtype: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'rightHand', hands: 1,
+            mainType: 'weapon', buildType: 'sword', subtype: 'straight blade', range: 'melee', skill: 'fighting', stat: 'strength', slot: 'rightHand', hands: 1,
             enhancements: 0, quality: 100
         },
         'The Crystal Sword',
         `A legendary weapon made of a single beautiful sword-shaped blade of crystal affixed to a sturdy yet ornate bejeweled hilt.`,
         {ATK: 20, ACC: 10},
+        {statBonus: {}, effectiveSkillBonus: {}, thrustDamage: 0.8, thrustDamageType: 'piercing', swingDamage: 1, swingDamageType: 'slashing'},
         {size: 8, weight: 16, durability: 500, maxDurability: 500, materials: 'crystal/4,starsteel/2', attributes: undefined},
         {legendary: 20},
         [],
@@ -2119,20 +1990,75 @@ app.post('/character/create', (req, res, next) => {
 
     ), new Item(
         {
-            mainType: 'headgear', buildType: 'helm', subType: 'greathelm', skill: 'fighting/1', stat: 'constitution/1', slot: 'head',
+            mainType: 'headgear', buildType: 'helm', subType: 'greathelm', skill: 'fighting', stat: 'constitution', slot: 'head',
             enhancements: 0, quality: 80
         },
-        'The Mask of Victory',
-        `An elaborately fashioned greathelm with a terrifying visage. Provides incredible protection while also being quite intimidating.`,
-        {DEF: 18, RES: 18},
+        'Grotesque War Mask',
+        `An elaborately fashioned mask and full helm with a terrifying visage. Provides impressive protection while also being quite intimidating.`,
+        {}, // no scaling stats on headgear by default
+        {statBonus: {ATK: 20, ACC: 20, DEF: 20, RES: 20}},
         {size: 6, weight: 10, durability: 500, maxDurability: 500, materials: 'starsteel/4', attributes: undefined},
+        {intimidating: 30},
         [],
         25000
-    ), {}, {}, {}, {}, {}, {}, {}, {}], contents2: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], contents3: null, contents4: null, size: 2, stackModifiers: {}};
+    ), new Item(
+        {
+            mainType: 'armor', buildType: 'heavy armor', subType: 'plate', skill: 'fighting', stat: 'constitution', slot: 'body',
+            enhancements: 0, quality: 100
+        },
+        `Crystal Plate Mail`,
+        `What exquisite armor! It's very shiny. And a little transparent, so hopefully you're not too shy.`,
+        {DEF: 20, RES: 20, HPmax: 50},
+        {
+            statBonus: {DEF: 20, RES: 20}, effectiveSkillBonus: {}, piercingProtection: 1, slashingProtection: 1, crushingProtection: 1,
+            burningProtection: 1, freezingProtection: 1, shockingProtection: 1
+        },
+        {size: 12, weight: 150, durability: 500, maxDurability: 500, materials: 'crystal/8,starsteel/4', attributes: undefined},
+        [],
+        50000
+    ), {}, {}, {}, {}, {}, {}, {}], contents2: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], contents3: null, contents4: null, size: 2, stackModifiers: {}};
 
 
     /*
-        NEW WEAPON SHENANIGANS
+        ... I like all this nonsense, buuuut is it really necessary for Alpha? NEWP
+
+        Back to basic RPG numbers! The ones we've been using. Those numbers.
+        -- Weapon tend to have ATK/ACC/MAG/FOC in some spread
+        -- Need to add a new factor: swing damage and thrust damage (piercing, slashing, crushing)
+            -> Type of damage done by each, and modifier (as a ratio of attack power, already determined by the weapon)
+        -- Base ATK of a weapon represents the culmination of its raw striking power, including its heft and quality of its striking surface(s)
+        -- Base ACC of a weapon represents its overall balance and elegance, so we can extrapolate from there
+            -> A high ACC on a weapon can imply better AGI scaling? 
+        -- Base MAG of a weapon represents how forcefully magical energy can be channeled through it as a focus, boosting raw output
+        -- Base FOC of a weapon represents how well magical force flows elegantly and precisely through it as a focus, aiding in magical deftness
+        
+        Big concern right now is how to appropriately 'scale' gear so it's pretty similar at low skill and more differentiated at high skill.
+
+        Fighting vs fighting is the main concern (well, its relevant derivatives). This determines skill gain.
+        -- Mob/opponent bonuses to stats, subskills, etc. will need to scale reasonably in order to avoid scenarios of appropriately challenging mobs awarding no exp.
+        -- Should be ok for the limited scope of Alpha, regardless
+
+        -- WEAPON: main source of physical/magical prowess
+        -- OFFHAND: for dual wielding eventually, or SHIELD: lovely defensive stats
+        -- HEAD: in this context, main booster, providing diverse flat statsm & % bonuses, etc. rather than skill-scaling stats
+        -- BODY: main 'armor' piece, mainly for HPmax/DEF/RES, scales with skill
+        -- ACCESSORY: boost whatchu wanna boost
+        -- TRINKET: samesies?
+        ... hm, should probably differentiate accessory vs trinket a little more
+        TRINKET I'm thinking ring, pendant, etc.
+        ACCESSORY is more along the lines of a cloak, a sash, boots, etc.
+        ... now to determine how they're FUNCTIONALLY different :P
+
+        Anyway!
+        SPREAD OF WEAPON STATS VIA QUALITY:
+        -- A 'basic spread' of expected stats should exist regardless, and depend on the format of the weapon...
+        -- But basically, having two primary stats starting around 10/5 makes sense enough to me for now
+        -- These 'base' numbers gradually scale with quality... at low skill low difference, so maybe just +quality%, ezpz
+
+
+
+
+
         newChar.equipped.rightHand = new Item(
             {
                 mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'hands', hands: 1,
@@ -2145,7 +2071,8 @@ app.post('/character/create', (req, res, next) => {
             {intimidating: 5},
             [],
             500
-        );    
+        );
+
     */
     // THIS: Take the request from the user to create a new character, validate it (inputs okay, character name not yet taken), create, and pass back
     // Don't forget to create a charToken to pass back as well! This will be saved with the character on the client to allow further logging in.
@@ -2159,11 +2086,9 @@ app.post('/character/create', (req, res, next) => {
     if (newChar.password.length < 4) error+= `The password should be at least four characters long. `;
     if (newChar.password !== newChar.password.split(' ').join('')) error += `No spaces allowed in the password. `;
 
-    // parseBackground(newChar.background.first, newChar);
-    // parseBackground(newChar.background.second, newChar);
-    // parseBackground(newChar.background.third, newChar);
     newChar.stat = {};
     // Room here for differentiated stat seeds based on character creation choices
+    // Can add seed stats based on choices
     newChar.stat.seed = {HPmax: 100, MPmax: 15, strength: 10, agility: 10, constitution: 10, willpower: 10, intelligence: 10, wisdom: 10, spirit: 10};
     newChar.skill = {
         fighting: 0,
@@ -2231,12 +2156,13 @@ app.post('/character/create', (req, res, next) => {
         case 'Mercenary': {
             newChar.equipped.rightHand = new Item(
                 {
-                    mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting/1', stat: 'strength/1', slot: 'rightHand', hands: 1,
+                    mainType: 'weapon', buildType: 'sword', subType: 'straight', range: 'melee', skill: 'fighting', stat: 'strength', slot: 'rightHand', hands: 1,
                     enhancements: 0, quality: 20
                 },
                 `Scapping Sword`,
                 `Though not quite as hefty as a broadsword, this blade nevertheless features a thick cross-section suited to slashing, cleaving, or even crushing.`,
                 {ATK: 12, ACC: 8, MAG: 3, FOC: 1},
+                {statBonus: {}, effectiveSkillBonus: {}, thrustDamage: 0.8, thrustDamageType: 'piercing', swingDamage: 1, swingDamageType: 'slashing'},
                 {size: 6, weight: 22, durability: 500, maxDurability: 500, materials: 'iron/3,wood/2', attributes: undefined},
                 {intimidating: 5},
                 [],
@@ -2257,11 +2183,12 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Hedgewizard': {
             newChar.equipped.rightHand = new Item(
-                {mainType: 'weapon', buildType: 'staff', subType: 'wizard', range: 'melee', skill: 'casting/1', stat: 'willpower/1', slot: 'rightHand', hands: 3, enhancements: 0, quality: 20},
+                {mainType: 'weapon', buildType: 'staff', subType: 'wizard', range: 'melee', skill: 'casting', stat: 'willpower', slot: 'rightHand', hands: 3, enhancements: 0, quality: 20},
                 `Hedging Staff`,
                 `Longer than the average person is tall, this staff has been meticulously carved to be almost entirely smooth and uniform in its wood finish. It 
                 is topped with a simple copper fitting that houses a small sphere of topaz, presumably for amplifying magical intent and spellcasting focus.`,
                 {ATK: 3, ACC: 1, MAG: 12, FOC: 8},
+                {statBonus: {}, effectiveSkillBonus: {}, thrustDamage: 0.8, thrustDamageType: 'crushing', swingDamage: 1, swingDamageType: 'crushing'},
                 {size: 5, weight: 3, durability: 500, maxDurability: 500, materials: 'copper/1,wood/4,topaz/1', attributes: undefined},
                 {wizardly: 5},
                 [],
@@ -2272,11 +2199,12 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Thief': {
             newChar.equipped.rightHand = new Item(
-                {mainType: 'weapon', buildType: 'dagger', subType: 'stabbing', range: 'melee', skill: 'sneaking/1', stat: 'agility/1', slot: 'rightHand', hands: 1, enhancements: 0, quality: 20},
+                {mainType: 'weapon', buildType: 'dagger', subType: 'stabbing', range: 'melee', skill: 'sneaking', stat: 'agility', slot: 'rightHand', hands: 1, enhancements: 0, quality: 20},
                 `Snatcher's Dagger`,
                 `It has a simple, just-long-enough grip below an elegantly long blade with two slender but razor-sharp edges. Its overall profile is very 
                 minimalistic, making it very easy to conceal.`,
                 {ATK: 8, ACC: 12, MAG: 2, FOC: 2},
+                {statBonus: {}, effectiveSkillBonus: {}, thrustDamage: 1, thrustDamageType: 'piercing', swingDamage: 1, swingDamageType: 'slashing'},
                 {size: 2, weight: 4, durability: 500, maxDurability: 500, materials: 'iron/2,wood/1', attributes: undefined},
                 {stealthy: 5},
                 [],
@@ -2306,7 +2234,7 @@ app.post('/character/create', (req, res, next) => {
         */
         case 'Trader': {
             newChar.equipped.body = new Item(
-                {mainType: 'bodyarmor', buildType: 'clothes', subType: 'cloth', skill: 'sensing/1', stat: 'spirit/1', slot: 'body', enhancements: 0, quality: 20},
+                {mainType: 'bodyarmor', buildType: 'clothes', subType: 'cloth', skill: 'sensing', stat: 'spirit', slot: 'body', enhancements: 0, quality: 20},
                 `Merchant Garb`,
                 `The fancy clothes of an apsiring trader.`,
                 {DEF: 12, EVA: 3, RES: 8, LUK: 1},
@@ -2320,7 +2248,7 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Scribe': {
             newChar.equipped.body = new Item(
-                {mainType: 'bodyarmor', buildType: 'robes', subType: 'cloth', skill: 'scholarship/1', stat: 'intelligence/1', slot: 'body', enhancements: 0, quality: 20},
+                {mainType: 'bodyarmor', buildType: 'robes', subType: 'cloth', skill: 'scholarship', stat: 'intelligence', slot: 'body', enhancements: 0, quality: 20},
                 `Scholar Robes`,
                 `Simple, clean, and comfortable robes with a simply adorned collar and hem with patterns indicating the wearer is a scholastic professional.`,
                 {DEF: 8, EVA: 1, RES: 12, LUK: 3},
@@ -2334,7 +2262,7 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Runner': {
             newChar.equipped.body = new Item(
-                {mainType: 'bodyarmor', buildType: 'gear', subType: 'leather', skill: 'traversal/1', stat: 'agility/1', slot: 'body', enhancements: 0, quality: 20},
+                {mainType: 'bodyarmor', buildType: 'gear', subType: 'leather', skill: 'traversal', stat: 'agility', slot: 'body', enhancements: 0, quality: 20},
                 `Swift Gear`,
                 `Minimalistic garb stitched together from snug but breathable cloth padded tactically here and there with pads of supple leather 
                 to ensure ease of movement while still providing some critical protection where it counts.`,
@@ -2349,7 +2277,7 @@ app.post('/character/create', (req, res, next) => {
         }
         case 'Apprentice': {
             newChar.equipped.body = new Item(
-                {mainType: 'bodyarmor', buildType: 'gear', subType: 'leather', skill: 'crafting/1', stat: 'constitution/1', slot: 'body', enhancements: 0, quality: 20},
+                {mainType: 'bodyarmor', buildType: 'gear', subType: 'leather', skill: 'crafting', stat: 'constitution', slot: 'body', enhancements: 0, quality: 20},
                 `Work Gear`,
                 `Simple but sturdy clothing of thick cloth reinforced with layers of leather at the joints and extremities.`,
                 {DEF: 12, EVA: 3, RES: 8, LUK: 1},
@@ -2530,13 +2458,19 @@ io.on('connection', (socket) => {
                 'equilibrium': myCharacter.equilibrium,
                 'stance': myCharacter.stance
             }});
-            // setTimeout(() => {
-            //     myCharacter.regen();
-            // }, 2000);
         }
         myCharacter.regenLoop = setInterval(myCharacter.regen, 1000);
     
+        if (myCharacter.spells.length === 0) {
+            // Let's ADD the SPARKLES spell! ... let's make it exist first. :P
+            myCharacter.spells.push(spellsList.sparkles);
+            io.to(myCharacter.name).emit('character_data', {echo: `Your mind SPARKLES with magical knowledge! Wow!`, type: 'spells_update', spellsList: [...myCharacter.spells]})
+        }
 
+        if (myCharacter.spells.length === 1) {
+            myCharacter.spells.push(spellsList.fullHeal);
+            io.to(myCharacter.name).emit('character_data', {echo: `You have learned an Omega-Level healing spell. Cool!`, type: 'spells_update', spellsList: [...myCharacter.spells]})
+        }
         
         // // Hm, there's nothing that 'turns off' regen on disconnect and such, so this check itself doesn't work well
         // // Also, the character isn't saved during regen, so every time I save this file it resets everyone :P
@@ -3017,18 +2951,16 @@ function strike(attackingEntity, defendingEntity) {
     // Final Alpha Rejigger! ... raw stats, and how do skills factor in? This will be an imporant part of skilling up!
     // MODULAR PARTS OF STRIKE (and other attacks)
 
-    // Rejiggering attack, accuracy, skill, defense, evasion, etc.
-    // DEFENSE - flat % reduction + flat damage reduction
-    // ATTACK POWER - the 'default' power of a physical swing
-    // ACCURACY - 
+    // Also we're dealing NaN damage to each other now. Whoopsie-doodle. :P
 
-    // So how should gear look now, and related concepts of combat?
     /*
-        SPECIFIC TECH: base accuracy, base power mod, base attack type (swing, thrust, etc.)
-        - should work in tandem with weapon stats to produce damage
-    
+        OK! This is our most basic physical attack. What do we want to (re)define real quick?
+        -- STANCE and its effect(s) (a modular concept - different techs rely on and modify stance differently for attack, but stance's effect on defense should be fairly
+            universal)
+        -- The basic accuracy of the maneuver (can be modified by STANCE substantially above)
+        -- The basic power of the maneuver (this is where STATS come into play most substantially... same with ACC above)
+        -- Generally a move should be either stance-boosting or stance-consuming
     */
-
 
     // THIS: the most basic attack, just whack 'em with your weapon
     // Considerations: relevant stats, equilibrium, stance, changes to both on both sides
@@ -3087,6 +3019,8 @@ function strike(attackingEntity, defendingEntity) {
     const modAttackerACC = Math.floor(attackingEntity.stat.ACC * (attackerStanceModifier / 100));
     const modDefenderDEF = Math.floor(defendingEntity.stat.DEF * (defenderStanceModifier / 100));
     const modDefenderEVA = Math.floor(defendingEntity.stat.EVA * (defenderStanceModifier / 100));
+
+    console.log(`AttackerStanceNum: ${attackerStanceNum}, defender's: ${defenderStanceNum}, modAttackerATK: ${modAttackerATK}, ACC: ${modAttackerACC}`);
 
     // Hm, it's definitely worth making a function for the above for future techniques, rather than having to copy-paste that
 
@@ -3348,6 +3282,30 @@ function skillUp(entity, skillName, successRate, baseEXP, actionType) {
 
         And now extrapolating... when do we call this fxn? Any time we're using a skill to do a thing. That's a manual interpretation as we build here.
     */
+}
+
+let perksList = {
+    fighting: {},
+    gathering: {},
+    sneaking: {},
+    traversal: {},
+    crafting: {},
+    spellcasting: {},
+    scholarship: {},
+    sensing: {},
+    medicine: {},
+}
+
+// We'll start with anon fxns, see how it goes
+// ... or is each spell an object? Hmm...
+// Ok, going with the object concept for now. Let's whirl!
+let spellsList = {
+    sparkles: {
+        name: 'Sparkle Splash!'
+    },
+    fullHeal: {
+        name: 'HealMeAll'
+    }
 }
 
 

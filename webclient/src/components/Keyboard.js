@@ -62,8 +62,16 @@ const Keyboard = () => {
                 if (e.key === 'u') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'unhide'}});
                 if (e.key === 'f') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'forage'}});
                 if (e.key === 's') return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'search'}});
-                if (e.key === 'm') return dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
+                
+                if (e.key === 'm') {
+                    dispatch({type: actions.UPDATE_VIEW_INDEX});
+                    // HERE: update the currentActionBar with magic-y things
+                    return dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
+                }
+                
+                
                 if (e.key === 't') return dispatch({type: actions.UPDATE_WHATDO, payload: 'stats'});
+                
                 if (e.key === 'i') {
                     // Update viewIndex, currentBarSelected, and viewTarget:
                     dispatch({type: actions.UPDATE_VIEW_INDEX});
@@ -188,6 +196,15 @@ const Keyboard = () => {
 
             case 'magic': {
                 if (e.key === 'm') return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+                if (e.key === 'ArrowDown') {
+                    if (state.viewIndex < state.spells.length - 1) return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + 1});
+                    return;
+                }
+                if (e.key === 'ArrowUp') {
+                    if (state.viewIndex > 0) return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});
+                    return;
+                }
+
                 return;
             }
 
@@ -593,6 +610,10 @@ const Keyboard = () => {
 
                 if (eventObj.type === 'skill_up') {
                     dispatch({type: actions.UPDATE_SKILL_RANKS, payload: eventObj.skill});
+                }
+
+                if (eventObj.type === 'spells_update') {
+                    dispatch({type: actions.UPDATE_SPELLS, payload: eventObj.spellsList});
                 }
 
                 if (eventObj.type === 'stat_update') {

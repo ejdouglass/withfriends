@@ -23,7 +23,8 @@ export const actions = {
     UPDATE_ACTION_BAR: 'update_action_bar',
     EQUIPMENT_CHANGE: 'equipment_change',
     UPDATE_HIDING: 'update_hiding',
-    UPDATE_SKILL_RANKS: 'update_skill_ranks'
+    UPDATE_SKILL_RANKS: 'update_skill_ranks',
+    UPDATE_SPELLS: 'update_spells'
 }
 
 export const Reducer = (state, action) => {
@@ -117,6 +118,9 @@ export const Reducer = (state, action) => {
         }
         case actions.UPDATE_TARGET: {
             return {...state, target: action.payload};
+        }
+        case actions.UPDATE_SPELLS: {
+            return {...state, spells: [...action.payload]};
         }
         case actions.PACKAGE_FOR_SERVER: {
             return {...state, package: action.payload};
