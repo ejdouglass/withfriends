@@ -3284,6 +3284,25 @@ function skillUp(entity, skillName, successRate, baseEXP, actionType) {
     */
 }
 
+/*
+    PERKPONDER
+    [Anatomy of a Perk]
+    -- Name
+    -- Cost
+    -- Description
+    -- Stat boost(s)
+    -- Effective skill bonuses
+    -- Unlock(s)
+
+    [Perk Ideas]
+    FIGHTING
+    -- 
+    GATHERING
+    -- Herbalist, 10, 
+    SNEAKING
+    -- 
+    
+*/
 let perksList = {
     fighting: {},
     gathering: {},
@@ -3299,13 +3318,29 @@ let perksList = {
 // We'll start with anon fxns, see how it goes
 // ... or is each spell an object? Hmm...
 // Ok, going with the object concept for now. Let's whirl!
+// If embedding the 'cast' functionality into this object feels a little wiggy, another idea is to have a reference to the spell here,
+//  enough to construct the details on the frontend, then send the request to the backend, which would interpret that and call the castSparkles fxn, for example
+// ... that makes sense to me, despite the inherent slowness of having to set up the search, since I'd have to prune the fxn off the spell for the client anyway
+// If we want to avoid having to do a search through all spells, we can play with eval() potentially?
+/*
+    ANATOMY OF A SPELL
+    -- Name
+    -- School
+    -- Intention
+*/
 let spellsList = {
     sparkles: {
-        name: 'Sparkle Splash!'
+        name: 'Sparkle Splash!',
+        id: 'sparkles'
     },
     fullHeal: {
-        name: 'HealMeAll'
+        name: 'HealMeAll',
+        id: 'fullHeal'
     }
+}
+
+function castSparkles(caster, target, spellDetails) {
+    // 
 }
 
 

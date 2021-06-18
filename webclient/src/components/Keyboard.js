@@ -65,13 +65,14 @@ const Keyboard = () => {
                 
                 if (e.key === 'm') {
                     dispatch({type: actions.UPDATE_VIEW_INDEX});
-                    // HERE: update the currentActionBar with magic-y things
+                    dispatch({type: actions.UPDATE_ACTION_BAR, payload: ['(I)nvoked Cast', '(P)repared Cast', '(R)itual Cast']});
+                    dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'spell', id: state.spells[0].name}});
                     return dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
                 }
                 
                 
                 if (e.key === 't') return dispatch({type: actions.UPDATE_WHATDO, payload: 'stats'});
-                
+
                 if (e.key === 'i') {
                     // Update viewIndex, currentBarSelected, and viewTarget:
                     dispatch({type: actions.UPDATE_VIEW_INDEX});
@@ -196,13 +197,32 @@ const Keyboard = () => {
 
             case 'magic': {
                 if (e.key === 'm') return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+
                 if (e.key === 'ArrowDown') {
-                    if (state.viewIndex < state.spells.length - 1) return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + 1});
+                    if (state.viewIndex < state.spells.length - 1) {
+                        dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'spell', id: state.spells[state.viewIndex + 1].name}});
+                        return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + 1});
+                    }
                     return;
                 }
                 if (e.key === 'ArrowUp') {
-                    if (state.viewIndex > 0) return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});
+                    if (state.viewIndex > 0) {
+                        dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'spell', id: state.spells[state.viewIndex - 1].name}});
+                        return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});
+                    }
                     return;
+                }
+
+                if (e.key === 'i') {
+                    return console.log(`You QUICKLY cast ${state.viewTarget.id}!`);
+                }
+
+                if (e.key === 'p') {
+                    return console.log(`You wish to cast the spell known as ${state.spells[state.viewIndex].name}. Kafwoosh!`);
+                }
+
+                if (e.key === 'r') {
+                    return console.log(`Strap in, we're going to ritually cast ${state.viewTarget.id}.`);
                 }
 
                 return;
