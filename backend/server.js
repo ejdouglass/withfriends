@@ -2637,6 +2637,10 @@ io.on('connection', (socket) => {
                 io.to(myCharacter.name).emit('character_data', equipResult);
                 break;
             }
+            case 'spellcast': {
+                io.to(myCharacter.name).emit('character_data', {echo: `You consider casting the ${actionData.spell} spell. You probably know how?`});
+                break;
+            }
             case 'npcinteract': {
                 // receiving actionData.target of entity's ID, pass back useful information here for the npcinteract client to work with
 
@@ -3324,9 +3328,13 @@ let perksList = {
 // If we want to avoid having to do a search through all spells, we can play with eval() potentially?
 /*
     ANATOMY OF A SPELL
-    -- Name
+    -- Names
     -- School
+    -- Subschool
     -- Intention
+    -- Casting Cost
+    -- Casting Time
+    -- Target(s)
 */
 let spellsList = {
     sparkles: {
@@ -3339,8 +3347,8 @@ let spellsList = {
     }
 }
 
-function castSparkles(caster, target, spellDetails) {
-    // 
+function castSparkles(caster, target, castParams) {
+    // Makes glowy sparkles in the room. Totally pointless. :P
 }
 
 

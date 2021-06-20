@@ -65,7 +65,7 @@ const Keyboard = () => {
                 
                 if (e.key === 'm') {
                     dispatch({type: actions.UPDATE_VIEW_INDEX});
-                    dispatch({type: actions.UPDATE_ACTION_BAR, payload: ['(I)nvoked Cast', '(P)repared Cast', '(R)itual Cast']});
+                    dispatch({type: actions.UPDATE_ACTION_BAR, payload: ['(C)ast', '(P)repare']});
                     dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'spell', id: state.spells[0].name}});
                     return dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
                 }
@@ -213,16 +213,15 @@ const Keyboard = () => {
                     return;
                 }
 
-                if (e.key === 'i') {
-                    return console.log(`You QUICKLY cast ${state.viewTarget.id}!`);
+                if (e.key === 'c') {
+                    // HERE: default cast, simplest mechanics
+                    dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'spellcast', spell: state.spells[state.viewIndex].name}});
+                    return;
                 }
 
                 if (e.key === 'p') {
-                    return console.log(`You wish to cast the spell known as ${state.spells[state.viewIndex].name}. Kafwoosh!`);
-                }
-
-                if (e.key === 'r') {
-                    return console.log(`Strap in, we're going to ritually cast ${state.viewTarget.id}.`);
+                    // Intent: open up the spellcasting menu
+                    return;
                 }
 
                 return;
