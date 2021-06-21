@@ -657,7 +657,7 @@ const ViewBox = ({ state, dispatch }) => {
             // Added a quick type check to omit combat_msg from the main iSpy log; later might want to have *some* reflection, just not the same exact text x2
             
             let newestSight = {
-                echo: state.received?.echo[0].toUpperCase() + state.received?.echo.slice(1),
+                echo: state.received?.echo[0]?.toUpperCase() + state.received?.echo.slice(1),
                 type: state.received?.type || 'general'
             };
             newSights.push(newestSight);
@@ -748,8 +748,8 @@ const MyChar = ({ state, dispatch }) => {
             <CharProfileImg />
             <CharCondition>
                 <CharProfileName>{state.name}</CharProfileName>
-                <div>EQL: {state?.equilibrium}</div>
-                <div>Stance: {state?.stance}</div>
+                <div>EQL: {state?.equilibrium === 0 ? '0' : state.equilibrium}</div>
+                <div>Stance: {Math.floor(state?.stance / 100)}</div>
                 <div>{state?.hidden > 0 ? 'HIDDEN' : ''}</div>
             </CharCondition>
             <CharHPMP>

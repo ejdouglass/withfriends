@@ -1346,8 +1346,8 @@ function calcStats(entity) {
         for (const statToBoost in entity.equipped.rightHand.stat) {
             eStat[statToBoost] += Math.floor(entity.equipped.rightHand.stat[statToBoost] * (1 + (entity.skill.fighting / 100)) + totalMod);
         }
-        for (const statToAdd in entity.equipped.body.mod.statBonus) {
-            eStat[statToAdd] += entity.equipped.body.mod.statBonus[statToAdd];
+        for (const statToAdd in entity.equipped.rightHand.mod.statBonus) {
+            eStat[statToAdd] += entity.equipped.rightHand.mod.statBonus[statToAdd];
         }
     } else {
         // HERE: barehand calculations... which are total nonsense right now, because SAITAMA :P (or Claw Troll, to a lesser degree)
@@ -1431,6 +1431,9 @@ function calcStats(entity) {
     for (let nebulousStat in entity.stat) {
         if (nebulousStat !== 'seed') entity.stat[nebulousStat] = Math.floor(entity.stat[nebulousStat]);
     }
+
+    if (entity.stat.HP > entity.stat.HPmax) entity.stat.HP = entity.stat.HPmax;
+    if (entity.stat.MP > entity.stat.MPmax) entity.stat.MP = entity.stat.MPmax;
 
     // ... and I *think* that pretty much covers a proper stat setting session from scratch for now? Let's test it out!
     // ... right after I mod up the original character/create initial weapons to function properly with this new concept
@@ -2595,6 +2598,7 @@ io.on('connection', (socket) => {
                         }
                     }
                     console.log(`It appears a character wants to unequip their ${equipmentSlot}?`);
+                    if (myCharacter.equipped[equipmentSlot].glance === undefined) return;
                     let unequippedItemName = myCharacter.equipped[equipmentSlot].glance;
                     myCharacter.backpack[slotToFill[0]][slotToFill[1]] = JSON.parse(JSON.stringify(myCharacter.equipped[equipmentSlot]));
                     myCharacter.equipped[equipmentSlot] = {};
@@ -2638,7 +2642,17 @@ io.on('connection', (socket) => {
                 break;
             }
             case 'spellcast': {
-                io.to(myCharacter.name).emit('character_data', {echo: `You consider casting the ${actionData.spell} spell. You probably know how?`});
+                // io.to(myCharacter.name).emit('character_data', {echo: `You consider casting the ${actionData.spell} spell. You probably know how?`});
+                switch (actionData.spell) {
+                    case 'sparkles': {
+                        break;
+                    }  
+                    case 'fullHeal': {
+                        const castResult = castHealMeAll(myCharacter, actionData.spellParams);
+                        io.to(myCharacter.name).emit('character_data', {type: 'stat_update', data: {HP: myCharacter.HP, MP: myCharacter.MP, equilibrium: myCharacter.equilibrium}, echo: castResult});                        
+                        break;
+                    }
+                }
                 break;
             }
             case 'npcinteract': {
@@ -3024,7 +3038,7 @@ function strike(attackingEntity, defendingEntity) {
     const modDefenderDEF = Math.floor(defendingEntity.stat.DEF * (defenderStanceModifier / 100));
     const modDefenderEVA = Math.floor(defendingEntity.stat.EVA * (defenderStanceModifier / 100));
 
-    console.log(`AttackerStanceNum: ${attackerStanceNum}, defender's: ${defenderStanceNum}, modAttackerATK: ${modAttackerATK}, ACC: ${modAttackerACC}`);
+    // console.log(`AttackerStanceNum: ${attackerStanceNum}, defender's: ${defenderStanceNum}, modAttackerATK: ${modAttackerATK}, ACC: ${modAttackerACC}`);
 
     // Hm, it's definitely worth making a function for the above for future techniques, rather than having to copy-paste that
 
@@ -3332,8 +3346,9 @@ let perksList = {
     -- School
     -- Subschool
     -- Intention
-    -- Casting Cost
-    -- Casting Time
+    -- CastMP
+    -- CastTime (in sec)
+    -- CastEQL
     -- Target(s)
 */
 let spellsList = {
@@ -3349,6 +3364,34 @@ let spellsList = {
 
 function castSparkles(caster, target, castParams) {
     // Makes glowy sparkles in the room. Totally pointless. :P
+}
+
+function castHealMeAll(caster, castParams) {
+    // Set default cast params
+    const defaultParams = {castMP: 15, castTime: 5, castEQL: 100};
+    if (castParams === 'default') castParams = {...defaultParams};
+
+    if (caster.equilibrium < castParams.castEQL) return `You can't gather your focus enough to cast this spell without a greater sense of equilibrium.`;
+    if (caster.stat.MP < castParams.castMP) return `You attempt to weave the spell into existence, but your lack of MP causes it to fray into oblivion as you begin.`;
+
+    caster.equilibrium = 0;
+    setTimeout(() => {
+        // Just a test fxn, but in 'real' cast functions, we'd have additional checks here
+        // At bare minimum, we'd cancel or change this effect if we tried to cast another spell or our MP dipped too much to cast it properly
+        // ... or if we died or otherwise weren't capable of finishing this spell anymore
+        caster.stat.HP = caster.stat.HPmax;
+        caster.stat.MP = 0;
+        io.to(caster.name).emit('character_data', {
+            type: 'stat_update',
+            data: {
+                'HP': caster.stat.HP,
+                'MP': caster.stat.MP
+            },
+            echo: `You complete your spell and channel all of your magical energy radiantly through your body, instantly healing all injury! How refreshing!`
+        });
+    }, castParams.castTime * 1000);
+    return `You begin chanting the words of the HealMeAll spell, focusing on weaving its effects through your body.`;
+
 }
 
 

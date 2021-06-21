@@ -215,12 +215,12 @@ const Keyboard = () => {
 
                 if (e.key === 'c') {
                     // HERE: default cast, simplest mechanics
-                    dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'spellcast', spell: state.spells[state.viewIndex].name}});
+                    dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'spellcast', spell: state.spells[state.viewIndex].id, spellParams: 'default'}});
                     return;
                 }
 
                 if (e.key === 'p') {
-                    // Intent: open up the spellcasting menu
+                    // Intent: open up the spellcasting menu to twiddle with variables
                     return;
                 }
 
@@ -636,7 +636,8 @@ const Keyboard = () => {
                 }
 
                 if (eventObj.type === 'stat_update') {
-                    return dispatch({type: actions.UPDATE_STATS, payload: eventObj.data})
+                    dispatch({type: actions.UPDATE_STATS, payload: eventObj.data});
+                    if (!eventObj.echo) return;
                 }
 
                 if (eventObj.type === 'hide_result') {

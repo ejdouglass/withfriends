@@ -172,8 +172,10 @@ export const Reducer = (state, action) => {
             for (const statKey in action.payload) {
                 if (statKey !== 'equilibrium' && statKey !== 'stance') updatedStats[statKey] = action.payload[statKey];
             }
-            let eqlVal = action.payload.equilibrium || state.equilibrium;
-            let stanceVal = action.payload.stance === undefined ? state.stance : action.payload.stance;
+            let eqlVal = state.equilibrium;
+            if (action.payload.equilibrium !== undefined) eqlVal = action.payload.equilibrium;
+            // let eqlVal = action?.payload?.equilibrium || state.equilibrium;
+            let stanceVal = action?.payload?.stance === undefined ? state.stance : action.payload.stance;
             return {...state, stat: {...updatedStats}, equilibrium: eqlVal, stance: stanceVal};
         }
         default: {
