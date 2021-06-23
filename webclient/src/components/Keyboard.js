@@ -30,12 +30,7 @@ const Keyboard = () => {
         // Do I want a 'master switch' for whatDo? And then handle the keys from there? Possibly.
         // Ok, time to do it. WHEEBALL!
         switch (state.whatDo) {
-            case 'character_creation': {
-                // HERE: we'll add support for Arrow Keys and Enter during character creation
-                // May rejigger character creation screen for up/down selections... and then that's IT for alpha, I hope :P
-                break;
-            }
-
+ 
             case 'combat': {
                 // Let's decide on some keys to use for combat!
                 // The numbered key for shortcuts to techs/etc., definitely... oh, we should have combatShortcuts defined somewhere, huh? 
@@ -385,69 +380,70 @@ const Keyboard = () => {
                 return;
             }
 
+            case 'character_creation': {
+                if (e.key === 'ArrowDown') {
+                    return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + 1});
+                }
+                if (e.key === 'ArrowUp') {
+                    if (state.viewIndex > 0) return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});
+                    return;
+                }
+                if (e.key === 'Enter') {
+                    // Funny idea: invert the viewIndex (times -1) here to have the component handle the selection (animation, etc.)
+                    // This will indicate a 'selection' has been made and we can parse it from there!
+                    return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex * -1});
+                }
+            }
+
         }
-        
-        // if (e.key === 'Tab' && state.whatDo !== 'character_creation') {
-        //     e.preventDefault();
-        //     if (state.whatDo === 'talk') {
-        //         return dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
+
+        // if (state.whatDo === 'talk' || state.whatDo === 'character_creation') return;
+        // if (e.key === 'Enter') {
+
+        //     switch (state.viewTarget?.type) {
+        //         case 'action': {
+        //             if (state.viewTarget?.id === 'magic') dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
+        //             return console.log(`I wish to take action! :-D`);
+        //         }
+        //         case 'npc': {
+        //             dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'npcinteract', target: state.viewTarget.id}});
+        //             dispatch({type: actions.UPDATE_TARGET, payload: {...state.viewTarget}});
+        //             dispatch({type: actions.UPDATE_WHATDO, payload: 'npcinteract'});
+        //             return console.log(`Time to interact with an NPC!`);
+        //         }
+        //         case 'mob': {
+        //             return console.log(`Time to engage a mob! Possibly in MORTAL COMBAT!!`);
+        //         }
+        //         case 'player': {
+        //             return console.log(`Who dis? Let's play with another player!`);
+        //         }
+        //         case 'npcinteraction': {
+        //             return console.log(`You are viewing this: ${JSON.stringify(state.viewTarget)}`);
+        //         }
+        //         case 'portal': {
+        //             return console.log(`It would be great to enter this portal!`);
+        //         }
         //     }
-        //     return dispatch({type: actions.UPDATE_WHATDO, payload: 'talk'});
+        // }        
+
+        // if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        //     // UPDATE: context-sensitive blooping
+        //     if (state.whatDo === 'explore' && state.currentBarSelected === 'action') {
+        //         let newIndex;
+        //         let changeAmount = (e.key === 'ArrowUp') ? -1 : 1;
+        //         newIndex = state.viewIndex + changeAmount;
+        //         if (newIndex < 0) newIndex = state.currentActionBar.length - 1;
+        //         if (newIndex >= state.currentActionBar.length) newIndex = 0;
+        //         dispatch({type: actions.UPDATE_VIEW_INDEX, payload: newIndex});
+        //         return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'action', id: state.currentActionBar[newIndex].toLowerCase()}});
+        //     }
+        //     if (state.whatDo === 'explore' && state.currentBarSelected === 'entity') {
+        //         // HERE: boop along on the right side
+        //         let changeAmount = (e.key === 'ArrowUp') ? -1 : 1;
+        //         return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + changeAmount});
+        //         // normally we'd have returned the viewTarget from here, but that's handled in MainView.js, so popping over there instead
+        //     }
         // }
-        if (state.whatDo === 'talk' || state.whatDo === 'character_creation') return;
-        if (e.key === 'Enter') {
-            // HERE: basically, "do the thing that's currently selected" ... which we now can know what it is, at least between ActionBar and EntityBar! Woo!
-            // Ok, thinking it through: if it's a MOB or NPC or SHOP, bring up appropriate sub-menu to navigate around on/in
-            // Let's start with ol' Taran Wanderer. Open up a menu for him!
-
-            // console.log(`I wish to split this string: ${JSON.stringify(state.viewTarget)}`);
-
-           // we're ideally having a viewTarget object of type, id at minimum; also currently for mobs and such is description, glance, ??? 
-
-            switch (state.viewTarget?.type) {
-                case 'action': {
-                    if (state.viewTarget?.id === 'magic') dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'});
-                    return console.log(`I wish to take action! :-D`);
-                }
-                case 'npc': {
-                    dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'npcinteract', target: state.viewTarget.id}});
-                    dispatch({type: actions.UPDATE_TARGET, payload: {...state.viewTarget}});
-                    dispatch({type: actions.UPDATE_WHATDO, payload: 'npcinteract'});
-                    return console.log(`Time to interact with an NPC!`);
-                }
-                case 'mob': {
-                    return console.log(`Time to engage a mob! Possibly in MORTAL COMBAT!!`);
-                }
-                case 'player': {
-                    return console.log(`Who dis? Let's play with another player!`);
-                }
-                case 'npcinteraction': {
-                    return console.log(`You are viewing this: ${JSON.stringify(state.viewTarget)}`);
-                }
-                case 'portal': {
-                    return console.log(`It would be great to enter this portal!`);
-                }
-            }
-        }        
-
-        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-            // UPDATE: context-sensitive blooping
-            if (state.whatDo === 'explore' && state.currentBarSelected === 'action') {
-                let newIndex;
-                let changeAmount = (e.key === 'ArrowUp') ? -1 : 1;
-                newIndex = state.viewIndex + changeAmount;
-                if (newIndex < 0) newIndex = state.currentActionBar.length - 1;
-                if (newIndex >= state.currentActionBar.length) newIndex = 0;
-                dispatch({type: actions.UPDATE_VIEW_INDEX, payload: newIndex});
-                return dispatch({type: actions.UPDATE_VIEW_TARGET, payload: {type: 'action', id: state.currentActionBar[newIndex].toLowerCase()}});
-            }
-            if (state.whatDo === 'explore' && state.currentBarSelected === 'entity') {
-                // HERE: boop along on the right side
-                let changeAmount = (e.key === 'ArrowUp') ? -1 : 1;
-                return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + changeAmount});
-                // normally we'd have returned the viewTarget from here, but that's handled in MainView.js, so popping over there instead
-            }
-        }
 
         // if (e.key === 'ArrowRight') {
         //     if (state.whatDo === 'explore') {
@@ -466,66 +462,66 @@ const Keyboard = () => {
         //     }
         // }
 
-        switch (e.key) {
-            // Did a HAX below for now, but going forward, let's sort out ways to parse state.whatDo/game mode/gamestate
-            case '1': {
-                return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'interact_with_structure', index: 0}});
-            }
-            // case 'ArrowUp': {
-            //     let newIndex;
-            //     if (state.actionIndex === 0) newIndex = state.currentActionBar.length - 1
-            //     else newIndex = state.actionIndex - 1;
-            //     dispatch({type: actions.UPDATE_ACTION_INDEX, payload: newIndex});
-            //     break;
-            // }
-            // case 'ArrowDown': {
-            //     let newIndex;
-            //     if (state.actionIndex === state.currentActionBar.length - 1) newIndex = 0
-            //     else newIndex = state.actionIndex + 1;
-            //     dispatch({type: actions.UPDATE_ACTION_INDEX, payload: newIndex});
-            //     break;
-            // }
-            case 'b': {
-                if (keysDown.current['Meta']) dispatch({type: actions.TOGGLE_BACKPACK});
-                break;
-            }
-            case 'w':
-            case 'e':
-            case 'd':
-            case 'c':
-            case 'x':
-            case 'z':
-            case 'a':
-            case 'q':                
-                {
-                    // Sometimes doesn't trigger, but that's always been the case. Hm. Mostly when I save here and it reloads over there. But not always!
-                    // Might just be failure to add event listener at some step? 
-                    if (state.whatDo === 'explore') {
-                        const mover = {who: state.entityID, where: e.key};
-                        socketToMe.emit('movedir', mover); 
-                    }
-                    break;
-                    // Right now ANY connected entity is using this code to manipulate the single 'character' dummy in API...
-                    // I can think of a few ways to implement separate characters, but offhand:
-                    // Use normal axios/auth stuff to log in/select character, which can then prepare global variables to ship with these requests
-                    // Package in any crypto-signed goodies to measure validity of commands/origin of commands? 
-                    // Well, get a basic implementation down, then expand to minFR status
-                    // const mover = {who: state.name, where: e.key};
+        // switch (e.key) {
+        //     // Did a HAX below for now, but going forward, let's sort out ways to parse state.whatDo/game mode/gamestate
+        //     case '1': {
+        //         return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'interact_with_structure', index: 0}});
+        //     }
+        //     // case 'ArrowUp': {
+        //     //     let newIndex;
+        //     //     if (state.actionIndex === 0) newIndex = state.currentActionBar.length - 1
+        //     //     else newIndex = state.actionIndex - 1;
+        //     //     dispatch({type: actions.UPDATE_ACTION_INDEX, payload: newIndex});
+        //     //     break;
+        //     // }
+        //     // case 'ArrowDown': {
+        //     //     let newIndex;
+        //     //     if (state.actionIndex === state.currentActionBar.length - 1) newIndex = 0
+        //     //     else newIndex = state.actionIndex + 1;
+        //     //     dispatch({type: actions.UPDATE_ACTION_INDEX, payload: newIndex});
+        //     //     break;
+        //     // }
+        //     case 'b': {
+        //         if (keysDown.current['Meta']) dispatch({type: actions.TOGGLE_BACKPACK});
+        //         break;
+        //     }
+        //     case 'w':
+        //     case 'e':
+        //     case 'd':
+        //     case 'c':
+        //     case 'x':
+        //     case 'z':
+        //     case 'a':
+        //     case 'q':                
+        //         {
+        //             // Sometimes doesn't trigger, but that's always been the case. Hm. Mostly when I save here and it reloads over there. But not always!
+        //             // Might just be failure to add event listener at some step? 
+        //             if (state.whatDo === 'explore') {
+        //                 const mover = {who: state.entityID, where: e.key};
+        //                 socketToMe.emit('movedir', mover); 
+        //             }
+        //             break;
+        //             // Right now ANY connected entity is using this code to manipulate the single 'character' dummy in API...
+        //             // I can think of a few ways to implement separate characters, but offhand:
+        //             // Use normal axios/auth stuff to log in/select character, which can then prepare global variables to ship with these requests
+        //             // Package in any crypto-signed goodies to measure validity of commands/origin of commands? 
+        //             // Well, get a basic implementation down, then expand to minFR status
+        //             // const mover = {who: state.name, where: e.key};
                     
-                }
-            case 'h': {
-                return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'hide'}});
-            }
-            case 'f': {
-                return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'forage'}});
-            }
-            case 's': {
-                return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'search'}});                
-            }
-            case 'm': {
-                return (state.whatDo === 'explore' ? dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'}) : dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'}))
-            }
-        }
+        //         }
+        //     case 'h': {
+        //         return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'hide'}});
+        //     }
+        //     case 'f': {
+        //         return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'forage'}});
+        //     }
+        //     case 's': {
+        //         return dispatch({type: actions.PACKAGE_FOR_SERVER, payload: {action: 'search'}});                
+        //     }
+        //     case 'm': {
+        //         return (state.whatDo === 'explore' ? dispatch({type: actions.UPDATE_WHATDO, payload: 'magic'}) : dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'}))
+        //     }
+        // }
     }
 
 

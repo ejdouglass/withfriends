@@ -2,58 +2,9 @@ import React, { useContext, useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import { Context, actions } from '../context/context';
-import { CreateCharacterPage, CharacterClassSelector, CharacterClassChoiceContainer, CharacterIDSelector, CharacterIdentityDescription, CharacterAspectContainer, CreateCharacterForm, CreateCharacterButton, Title, ExpositionText, CharacterNameInput, PWInput, BackgroundContainer, BackgroundSelection, BackgroundExplanation, ContinueExpositionButton, ExpositionSnippet } from '../components/styled';
+import { CreateCharacterPage, ChoiceBox, ChoiceButton, CreateCharacterForm, CreateCharacterButton, Title, ExpositionText, CharacterNameInput, PWInput, BackgroundContainer, BackgroundSelection, BackgroundExplanation, ContinueExpositionButton, ExpositionSnippet } from '../components/styled';
 
-const charId = {
-    ROAMER: 'roamer',
-    FIGHTER: 'fighter',
-    PROVIDER: 'provider',
-    THINKER: 'thinker'
-};
 
-// Two per... but we're already off in the weeds here :P Actually, 
-// I think I'm just being silly having this extra layer. Just... have CLASS be more inclusive. 
-// And you can add 'profession' granularity later in-game. Cool? Cool.
-// Eh, let's just do an ARRAY for the stats down below, since we're setting them in the API anyway.
-const charClass = {
-    OUTLAW: {name: 'Outlaw', description: ``, stat: {}}, // thieves, bandits, con artists
-    WAYFARER: {name: 'Wayfarer', description: ``, stat: {}}, // explorers, rangers, traders
-
-    MERCENARY: {name: 'Mercenary', description: ``, stat: {}}, // a soldier for hire
-    MONK: {name: 'Monk', description: ``, stat: {}}, // some flavor of autonomous martial artist
-
-    CRAFTER: {name: 'Crafter', description: ``, stat: {}}, // blanket class for artisans, landworkers, etc.
-    MASTER: {name: 'Master', description: ``, stat: {}}, // due for rename; more like scholar/doctor/etc.
-
-    CATALYST: {name: 'Catalyst', description: ``, stat: {}}, // black mage prototype -- destroy, reveal, alter, know
-    SYMPATH: {name: 'Sympath', description: ``, stat: {}} // white mage prototype -- preserve, connect, adjust, sense
-};
-
-// Hm, makes sense to attach the classes to these already-extant objects, easier to render than doing a lot of querying down the road.
-const identities = [
-    {
-        name: 'Rogue', 
-        description: `Walls? Boundaries? Locks? Laws? These petty obstacles are negotiable in the pursuit of your goals.`,
-        class: [charClass.WAYFARER, charClass.OUTLAW]
-    },
-    {
-        name: 'Warrior', 
-        description: `Your body is strong and fast, your reflexes honed, your mind alert; ready for any threat.`,
-        class: [charClass.MONK, charClass.MERCENARY]
-    },
-    {
-        name: 'Tradesman', 
-        description: `Knowing how and working hard -- you are a creator and provider, the heart of any community.`,
-        class: [charClass.CRAFTER, charClass.MASTER]
-    },
-    {
-        name: 'Wizard', 
-        description: `You've realized a very liberating, basic truth: *any* problem can be solved if you throw enough MP at it.`,
-        class: [charClass.SYMPATH, charClass.CATALYST]
-    }
-];
-
-const backgrounds = ['Gatherer', 'Thief', 'Mercenary', 'Runner', 'Apprentice', 'Hedgewizard', 'Scribe', 'Trader', 'Laborer', 'Healer'];
 
 const backgrounds1 = ['Gatherer', 'Laborer', 'Healer'];
 const backgrounds2 = ['Mercenary', 'Hedgewizard', 'Thief'];
@@ -71,6 +22,113 @@ const backgroundsText = {
     'Apprentice': `Busy!`
 };
 
+/*
+    OK! Time to execute the Alpha character creation.
+    We'll use the scaffolding here to help out.
+
+    Make it a little more interesting, presenting choices that then inform character's attributes and strengths.
+
+    I'd also like to have 'wide' options that you scroll through up/down.
+    -- make use of whatDo === character_creation
+
+    CURRENT SKILLS: fighting, gathering, crafting, sneaking, spellcasting, sensing, medicine
+    Also, STATS. Stat seed!
+    And SWAG. Starting gear!
+
+    ... oh, it'd be really cool if there was a 'window' image in the top of what's being described...
+    ... as well as 'seeing' the stat/skill growth as choices are made. A bit of a mini-project, but probably worth.
+
+    We can either store an array of sequential keywords OR an object with each part named with its keyword saved alongside.
+
+
+    
+
+    PART ONE (NEWCHAR.BACKSTORY.FIRSTPART and NEWCHAR.BACKSTORY.SECONDPART)
+    You are ____, a wayfarer on the road to the well-known town of trade and travel called Rivercrossing. As the walls gradually rise into view, you reflect on the
+        path that has led you here, and your mind wanders back to your hometown. (...)
+
+    
+    [ You were born in a quiet, peaceful place. Growing up there was simple, and your life was stable so long a you plied a trade. ]
+    -> (+gathering, crafting)
+    -> In your youth, you were taught to skin game, forage for supplies, and create simple goods for day-to-day life.
+        [ It was a joyful time, and you lived well by working hard and relaxing with simple pleasures alongside the members of your community. ]
+        -> (+constitution, spirit)
+        -> However, the land came to yield less and less. You watched the families around you gradually become fewer with every season, until you, too,
+            were forced to leave, taking only a handful of essential reminders of the seeds of your old life as you sought anew to make a living.
+            
+        [ You hated it. It was beyond dull, much like the wits of most of the people around you. ]
+        -> (+intelligence, willpower)
+        -> As you watched the community elders manage to bring the land to the edge of infertility and ruin, you were only too grateful to leave that life behind.
+            Bringing only what useful gear you could wear or carry along with you, you took off. Those that were left behind could fend for themselves.
+
+    
+    [ You grew up in a battle-torn remote border community where the machinations of both men and monsters posed constant existential threats. ]
+    -> (+fighting, +medicine)
+    -> You were forced to quickly learn at a young age how to protect yourself in a fight and treat a wide array of injuries and afflictions to survive.
+        [ It was tough but you chose to be even tougher, embracing this conflict-filled life by building a strong mind and body. ]
+        -> (+strength, willpower, Mercenary background)
+        -> In time, your demeanor and competence were noted by a mercenary on their way through the area. They offered you the means to turn your skills 
+            into a life of self-direction. It certainly wasn't a worse outlook than staying here, and so you took to the open roads.
+
+        [ You avoided and outmaneuvered the worst of the turmoil around you, learning to defang problems before they struck. ]
+        -> (+agility, intelligence, some disarming/avoiding techs)
+        -> One eerily silent night, you found the opportunity to leave without attracting undue negative attention, and you moved swiftly with nothing on you 
+            but a pack stuffed hastily with the merest necessities. Come daybreak, your old life was buried under the horizon behind you.
+    
+    [ You came up in a small roving collective of traveling con artists, wandering between towns making an exciting but morally ambiguous living. ]
+    -> (+sneaking, sensing, Pickpocket tech)
+    -> Even as a child you found that sharp eyes, quick hands, and quiet feet were oft rewarded, and where those failed, a nimble wit and clever tongue could make do.
+        [ You embraced the freedoms offered by your physical and moral flexibility, accepting unintentional donations from almost everyone you met. ]
+        -> (+money, Thief perk, )
+        -> Your merry band of ne'er-do-wells managed to do quite well for themselves until you ran afoul of a perceptive, humorless, and unfortunately extremely 
+            vindictive magistrate. By a hair's margin, you alone return to the open road... at a rather rapid pace, toward anywhere new.
+
+        [ The lifestyle didn't quite fit you right, however, and you instead did your best to apply your dubious skillset to benevolent purposes. ]
+        -> (+??)
+        -> Despite your band's seeming unlimited good fortune, a small voice in your head urgently warned you that this fortune was due for a sudden and
+            violent shift. Your warnings unheeded, you employed a trusted contact to spirit you to the safety of the open road under a fresh identity.
+
+
+    PART TWO (NEWCHAR.BACKSTORY.THIRDPART)
+    You traveled for weeks, following road and river through sprawling countryside. At first, you passed a good number of assorted villages, farms, and the odd town 
+        here and there. Your path was never long without at least an errant horseman, trader, or some flavor of wayfarer passing by. The journey is long, but eased by 
+        the comforts of companionship and civilization.
+    
+    One day, you woke to a still world -- no birdsong to greet the morning, no other travelers, a dim sun illuminating a desolate horizon. You couldn't remember which road 
+        led you here or which path you intended to take. You noticed an unusual hut, smoke rising from one side, the striking exception to the empty world. You don't 
+        recall making the choice to approach it before finding yourself standing before it as an unusual figure turned to regard you.
+    [ You stood before a neatly-trimmed dark skinned man wearing an impeccably tailored wizard's outfit. ]
+    -> His gaze flickered across you once, up and down, and then he motioned for you to take a seat on the other side of a small fire before disappearing into the hut. 
+        You found yourself gazing into the flames, which danced merrily on their own without any fuel, twisting almost playfully in the dirt. The well-dressed man 
+        suddenly appeared at your side and wordlessly offered you a large book, which fell open in your hands as you accepted it.
+        [ magic1 ]
+
+        [ magic2 ]
+
+        [ magic3 ]
+
+    [ You were staring at a lithe huntress, her expression unreadable beneath layers of dark paint. ]
+    -> She silently disappears into the hut and emerges moments later wearing a rugged pack. She snaps and motions for you to follow her. 
+        [ combat1 ]
+
+        [ combat2 ]
+
+        [ combat3 ]
+
+    [ You beheld a shockingly slender, bespectacled man with unexpectedly rugged hands wearing a craftsman's apron. ]
+    -> He is KINDLY.
+        [ craft1 ]
+        
+        [ craft2 ]
+
+        [ craft3 ]
+
+
+    PART THREE (RiverCrossing hoooooo)
+    
+
+*/
+
 const CreateCharacterScreen = () => {
     const [state, dispatch] = useContext(Context);
     const [step, setStep] = useState(0);
@@ -79,13 +137,13 @@ const CreateCharacterScreen = () => {
         password: '',
         age: 20,
         feature: {eyes: '', hair: '', height: '', complexion: '', build: ''},
-        background: {first: '', second: '', third: ''}
+        background: {first: '', second: '', third: ''},
+        backstory: {}
     });
     const [backgroundDescription, setBackgroundDescription] = useState('(mouse over to view more details about each background)');
     const [userCredentials, setUserCredentials] = useState({charName: '', password: ''});
-    const [selectedIdentityIndex, setSelectedIdentityIndex] = useState(undefined);
-    const [selectedClass, setSelectedClass] = useState('');
     const history = useHistory();
+    const stepIndexMax = [0, 2];
 
     function login() {
         // THIS: makes sure we have a valid charname and passsword, then throws it along the same /character/login path as above
@@ -111,26 +169,11 @@ const CreateCharacterScreen = () => {
         setNewChar({...newChar, name: nameString});
     }
 
-    function handleBackgroundSelection(newBackground) {
-        if (newChar.background.first === newBackground) return setNewChar({...newChar, background: {...newChar.background, first: ''}});
-        if (newChar.background.second === newBackground) return setNewChar({...newChar, background: {...newChar.background, second: ''}});
-        if (newChar.background.third === newBackground) return setNewChar({...newChar, background: {...newChar.background, third: ''}});
-
-        if (newChar.background.first === '') return setNewChar({...newChar, background: {...newChar.background, first: newBackground}});
-        if (newChar.background.second === '') return setNewChar({...newChar, background: {...newChar.background, second: newBackground}});
-        if (newChar.background.third === '') return setNewChar({...newChar, background: {...newChar.background, third: newBackground}});
-        
-    }
-
     function parsePasswordInput(pwString) {
         pwString = pwString.split(' ').join('');
         setNewChar({...newChar, password: pwString});
     }
 
-    function identitySelectionHandler(val) {
-        setSelectedIdentityIndex(val);
-        setSelectedClass('');
-    }
 
     function tellMeMore(hoveredBackground) {
         // const backgrounds = ['Gatherer', 'Thief', 'Mercenary', 'Runner', 'Apprentice', 'Hedgewizard', 'Scribe', 'Trader', 'Laborer', 'Healer'];
@@ -235,7 +278,7 @@ const CreateCharacterScreen = () => {
                 }
                 break;
             }        
-        }
+        }        
 
         // HERE: Validation checks (also will separately be performed on backend)
         let error = ``;
@@ -269,23 +312,90 @@ const CreateCharacterScreen = () => {
 
     }
 
-    // Can add another useEffect down below to monitor changes to state.characterName and adjust accordingly
+    function advancePrologue(e) {
+        e.preventDefault();
+
+        switch (step) {
+            case 0: {
+                if (newChar.name.length >= 5 && newChar.name.length <= 12) {
+                    setStep(1);
+                    break;
+                } else {
+                    console.log(`Name is too short. Or too long! Yeah.`);
+                    break;
+                }
+            }
+            case 1: {
+                if (newChar.background.first.length > 0) {
+                    setStep(2);
+                    setTimeout(() => {
+                        setStep(3);
+                    }, 2500);
+                }
+                break;
+            }
+            case 3: {
+                if (newChar.background.second.length > 0) {
+                    setStep(4);
+                    setTimeout(() => {
+                        setStep(5);
+                    }, 2500);
+                }
+                break;
+            }
+            case 5: {
+                if (newChar.background.third.length > 0) {
+                    setStep(6);
+                    setTimeout(() => {
+                        setStep(7);
+                    }, 2500);
+                }
+                break;
+            }        
+        }
+        
+        
+    }
+
+    useEffect(() => {
+        // HERE: gotta bound the up/down selections on each choicebox situation
+        // stepIndexMax array defined with max viewIndex in each situation
+        if (state.viewIndex > stepIndexMax[step]) return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: stepIndexMax[step]});
+        if (state.viewIndex < 0) return;
+    }, [state.viewIndex]);
 
     return (
         <>
         {state.characterName ? (<></>) : (
             <CreateCharacterPage>
                 <CreateCharacterForm onSubmit={e => progressCreationProcess(e)}>
-                    <Title>Welcome to Fantastically With Friends!</Title>
+                    <Title>Character Creation {newChar.name ? `- ${newChar.name}'s Story` : ``}</Title>
                     <ExpositionText goTime={step >= 0}>
                         You are 
                         {/* Consider: disable this input when step > 0 */}
-                        <CharacterNameInput autoFocus={true} minLength={5} maxLength={10} type='text' placeholder={`(enter name)`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
-                        , a traveler who is doing some traveling, as one might expect.
+                        <CharacterNameInput autoFocus={true} minLength={5} maxLength={10} type='text' placeholder={`(name)`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
+                        , a wayfarer on the road to the well-known town of trade and travel called Rivercrossing. As the walls gradually rise into view, you reflect on the
+                        path that has led you here, and your mind wanders back to your hometown.
                         <ContinueExpositionButton buttonVisible={step === 0} onClick={e => progressCreationProcess(e)}>...</ContinueExpositionButton>
                     </ExpositionText>
-                    <ExpositionText goTime={step >= 1}>
-                        {/* SUGGESTION: change to personal experience rather than lofty description */}
+
+                    {/* <ExpositionText goTime={step >= 0}>
+                        You are {newChar.name}
+                        , a wayfarer on the road to the well-known town of trade and travel called Rivercrossing. As the walls gradually rise into view, you reflect on the
+                        path that has led you here, and your mind wanders back to your hometown.
+                        <ContinueExpositionButton buttonVisible={step === 0} onClick={e => progressCreationProcess(e)}>...</ContinueExpositionButton>
+                    </ExpositionText> */}
+
+                    {/* Need onClick to fire a handler function; 'Enter' key should do the same thing */}
+                    {/* Change hover behavior to fire a fxn that sets viewIndex */}
+                    <ChoiceBox goTime={step >= 1}>
+                        <ChoiceButton viewed={state.viewIndex === 0} onClick={e => e} >You were born in a quiet, peaceful place. Growing up there was simple, and your life was stable so long a you plied a trade.</ChoiceButton>
+                        <ChoiceButton viewed={state.viewIndex === 1}  >You grew up in a battle-torn remote border community where the machinations of both men and monsters posed constant existential threats.</ChoiceButton>
+                        <ChoiceButton viewed={state.viewIndex === 2}  >You came up in a small roving collective of traveling con artists, wandering between towns making an exciting but morally ambiguous living.</ChoiceButton>
+                    </ChoiceBox>
+
+                    {/* <ExpositionText goTime={step >= 1}>
+                        
                         You recall your first contribution to your community was as a 
                         {newChar.background.first.length > 0 ? ` ${newChar.background.first}` : '...'}.
                         <ContinueExpositionButton buttonVisible={step === 1} onClick={e => progressCreationProcess(e)}>...</ContinueExpositionButton>
@@ -300,7 +410,7 @@ const CreateCharacterScreen = () => {
                         <BackgroundExplanation goTime={step === 1}>
                             {backgroundDescription}
                         </BackgroundExplanation>
-                    </ExpositionText>
+                    </ExpositionText> */}
 
                     <ExpositionText goTime={step >= 3}>
                         As you grew older, you faced conflict, oh no! But you got by as a 

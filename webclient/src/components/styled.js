@@ -158,6 +158,40 @@ export const ContinueExpositionButton = styled.button`
     `}
 `;
 
+export const ChoiceBox = styled.form`
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    box-sizing: border-box;
+    width: 60vw;
+    padding: calc(0.5rem + 0.5vw);
+    border: 1px solid hsl(250, 90%, 95%);
+    border-radius: 0.5rem;
+    margin-left: 20vw;
+    display: none;
+    ${props => props.goTime && css`
+        animation: ${fadeIn} 1.2s linear;
+        display: flex;
+    `}    
+`;
+
+export const ChoiceButton = styled.div`
+    display: flex;
+    width: 90%;
+    box-sizing: border-box;
+    border: 1px solid hsl(250, 90%, 5%);
+    padding: calc(0.5rem + 0.5vw);
+    font-size: calc(0.5rem + 0.5vw);
+    margin: calc(0.25rem + 0.25vw) 0;
+    &:hover {
+        background-color: hsl(130, 90%, 70%);
+    }
+    ${props => props.viewed && css`
+        background-color: hsl(130, 90%, 70%);
+    `}
+`;
+
 export const Text = styled.p`
     overflow: hidden;
     text-overflow: ellipsis;
