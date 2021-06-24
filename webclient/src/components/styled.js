@@ -66,6 +66,18 @@ const flicker = keyframes`
     }
 `;
 
+const lightFlicker = keyframes`
+    0% {
+        background-color: hsl(225, 80%, 90%);
+    }
+    50% {
+        background-color: hsl(205, 85%, 60%);
+    }
+    100% {
+        background-color: hsl(225, 80%, 90%);
+    }
+`;
+
 const fadeIn = keyframes`
     from {
         opacity: 0;
@@ -184,11 +196,25 @@ export const ChoiceButton = styled.div`
     padding: calc(0.5rem + 0.5vw);
     font-size: calc(0.5rem + 0.5vw);
     margin: calc(0.25rem + 0.25vw) 0;
-    &:hover {
-        background-color: hsl(130, 90%, 70%);
-    }
     ${props => props.viewed && css`
         background-color: hsl(130, 90%, 70%);
+    `}
+`;
+
+export const PrologueProgressPrompt = styled.button`
+    padding: calc(0.2rem + 0.2vw);
+    font-size: calc(0.5rem + 0.5vw);
+    font-weight: 900;
+    margin-left: calc(0.5rem + 0.5vw);
+    background-color: hsl(225, 80%, 90%);
+    border-radius: 2px;
+    display: none;
+    animation: ${lightFlicker} 2.5s linear infinite;
+    &:hover {
+        background-color: hsl(225, 90%, 80%);
+    }
+    ${props => props.isVisible && css`
+        display: inline-block;
     `}
 `;
 
@@ -581,7 +607,7 @@ export const CharacterNameInput = styled.input`
 
 export const PWInput = styled(CharacterNameInput)``;
 
-export const CreateCharacterForm = styled.form`
+export const CreateCharacterForm = styled.div`
     display: flex;
     flex-direction: column;
 `;

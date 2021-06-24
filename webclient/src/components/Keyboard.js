@@ -391,7 +391,7 @@ const Keyboard = () => {
                 if (e.key === 'Enter') {
                     // Funny idea: invert the viewIndex (times -1) here to have the component handle the selection (animation, etc.)
                     // This will indicate a 'selection' has been made and we can parse it from there!
-                    return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex * -1});
+                    return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: (state.viewIndex + 1) * -1});
                 }
             }
 
