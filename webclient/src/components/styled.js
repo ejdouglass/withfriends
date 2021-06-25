@@ -78,6 +78,19 @@ const lightFlicker = keyframes`
     }
 `;
 
+const expositionTextFade = keyframes`
+    from {
+        // font-size: calc(0.6rem + 0.6vw);
+    }
+    to {
+        font-weight: 400;
+        // font-size: calc(0.57rem + 0.57vw);
+        opacity: 0.4;
+        // color: hsl(230, 90%, 40%);
+
+    }
+`;
+
 const fadeIn = keyframes`
     from {
         opacity: 0;
@@ -150,6 +163,9 @@ export const ExpositionText = styled.p`
     ${props => props.goTime && css`
         animation: ${fadeIn} 1.2s linear;
         display: inline-block;
+    `}
+    ${props => props.stepBack && css`
+        animation: ${expositionTextFade} 1.2s linear forwards;
     `}
 `;
 

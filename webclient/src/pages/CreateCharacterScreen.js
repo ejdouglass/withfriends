@@ -37,8 +37,27 @@ const dependentExposition = {
 const dependentChoice = {
     'caster': [`It was a joyful time, and you lived well by working hard and relaxing with simple pleasures alongside the members of your community.`, `You hated it. Your gifts were clearly beyond your peers, and your desire to move beyond the confines of these simple people and their simple magic chafed at every turn.`],
     'fighter': [`It was tough but you chose to be even tougher, embracing this conflict-filled life by building a strong mind and body.`, `You avoided and outmaneuvered the worst of the turmoil around you, learning to defang problems before they struck.`],
-    'thief': [`You embraced the freedoms offered by your physical and moral flexibility, accepting unintentional donations from almost everyone you met.`, `The lifestyle didn't quite fit you right, however, and you instead did your best to apply your dubious skillset to benevolent purposes.`]
+    'thief': [`You embraced the freedoms offered by your physical and moral flexibility, accepting unintentional donations from almost everyone you met.`, `The lifestyle didn't quite fit you right, however, and you instead did your best to apply your dubious skillset to benevolent purposes.`],
+    'sorcerer': [`FIREMAGIC!`],
+    'huntress': [],
+    'artisan': []
 }
+
+/*
+
+    ... ok, rethinking, because this is a bit much.
+    The character you meet is based on the choices you made earlier. Cool? Cool. They're a 'mirror' of your choices.
+    That character can then drift you ATTACK or DEFENSE. 
+    We have six options. 
+    CASTER-ACCEPT: `You stood before a neatly-trimmed dark-skinned man wearing impeccably tailored robes of blue and white, a simple mahogany magus's staff resting in one hand.`
+    CASTER-REJECT: `You stood before a wild-haired dark-skinned man wearing gold-threaded robes of red and black, an ornage golden sorcerer's staff grasped in one hand.`
+    FIGHTER-ACCEPT: `You were staring at a massive monolith of a man, scars like country roads wandering his body. Aside from a rugged loincloth, his only apparel seemed to be the small arsenal of weapons strapped to him.`
+    FIGHTER-REJECT: `You were staring at a `
+    THIEF-ACCEPT: `You beheld `
+    THIEF-REJECT: `You beheld `
+
+*/
+
 
 /*
     OK! Time to execute the Alpha character creation.
@@ -107,9 +126,7 @@ const dependentChoice = {
     One day, you woke to a still world -- no birdsong to greet the morning, no other travelers, a dim sun illuminating a desolate horizon. You couldn't remember which road led you here or which path you intended to take. You noticed an unusual hut, smoke rising from one side, the striking exception to the empty world. You don't recall making the choice to approach it before finding yourself standing before it as an unusual figure turned to regard you.
 
     [ You stood before a neatly-trimmed dark skinned man wearing an impeccably tailored wizard's outfit. ]
-    -> His gaze flickered across you once, up and down, and then he motioned for you to take a seat on the other side of a small fire before disappearing into the hut. 
-        You found yourself gazing into the flames, which danced merrily on their own without any fuel, twisting almost playfully in the dirt. The well-dressed man 
-        suddenly appeared at your side and wordlessly offered you a large book, which fell open in your hands as you accepted it.
+    -> His gaze flickered across you once, up and down, and then he motioned for you to take a seat on the other side of a small fire before disappearing into the hut. You found yourself gazing into the flames, which danced merrily on their own without any fuel, twisting almost playfully in the dirt. The well-dressed man suddenly appeared at your side and wordlessly offered you a large book, which fell open in your hands as you accepted it.
         [ magic1 ]
 
         [ magic2 ]
@@ -265,26 +282,23 @@ const CreateCharacterScreen = () => {
                 if (selectedIndex === 1) setNewChar({...newChar, backstory: {first: 'fighter'}});
                 if (selectedIndex === 2) setNewChar({...newChar, backstory: {first: 'thief'}});
                 setStep(2);
-                // setStep(2);
-                // setTimeout(() => {
-                //     setStep(3);
-                // }, 1500);
                 break;
             }
             case 3: {
                 if (selectedIndex === 0) setNewChar({...newChar, backstory: {...newChar.backstory, second: 'accept'}});
                 if (selectedIndex === 1) setNewChar({...newChar, backstory: {...newChar.backstory, second: 'reject'}});
                 setStep(4);
-                // setStep(4);
-                // setTimeout(() => {
-                //     setStep(5);
-                // }, 1500);
-                // setTimeout(() => {
-                //     setStep(6);
-                // }, 3000);
-                // setTimeout(() => {
-                //     setStep(7);
-                // }, 4500);
+                break;
+            }
+            case 7: {
+                if (selectedIndex === 0) setNewChar({...newChar, backstory: {...newChar.backstory, third: 'sorcerer'}});
+                if (selectedIndex === 1) setNewChar({...newChar, backstory: {...newChar.backstory, third: 'huntress'}});
+                if (selectedIndex === 2) setNewChar({...newChar, backstory: {...newChar.backstory, third: 'artisan'}});
+                setStep(8);
+                break;
+            }
+            case 9: {
+                // Three choices: power, control, ???
                 break;
             }
             default: {
@@ -316,7 +330,7 @@ const CreateCharacterScreen = () => {
             <CreateCharacterPage>
                 <CreateCharacterForm>
                     <Title>Character Creation {newChar.name ? `- ${newChar.name}'s Prologue` : ``}</Title>
-                    <ExpositionText goTime={step >= 0}>
+                    <ExpositionText goTime={step >= 0} stepBack={step > 0}>
                         You are 
                         {/* Blur when step !== 0 */}
                         <CharacterNameInput autoFocus={step === 0} minLength={5} maxLength={10} type='text' placeholder={`(name)`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
@@ -333,7 +347,7 @@ const CreateCharacterScreen = () => {
                         <ChoiceButton viewed={state.viewIndex === 2} onClick={e => advancePrologue(e)} onMouseEnter={() => updateViewIndex(2)} >You came up in a small roving collective of traveling con artists, wandering between towns making an exciting but morally ambiguous living.</ChoiceButton>
                     </ChoiceBox>
 
-                    <ExpositionText goTime={step >= 2}>
+                    <ExpositionText goTime={step >= 2} stepBack={step > 2}>
                         {newChar.backstory.first === 'caster' && `You were born in a quiet, peaceful place among a small group of natural spellcasters who gently and harmoniously plied the land with their gifts. `}
                         {newChar.backstory.first === 'fighter' && `You grew up in a battle-torn remote border community where the machinations of both men and monsters posed constant existential threats. `}
                         {newChar.backstory.first === 'thief' && `You came up in a small roving collective of traveling con artists, wandering between towns making an exciting but morally ambiguous living. `}
@@ -365,7 +379,7 @@ const CreateCharacterScreen = () => {
                     </ExpositionText>     */}
 
 
-                    <ExpositionText goTime={step >= 4}>
+                    <ExpositionText goTime={step >= 4} stepBack={step > 4}>
                         {(newChar.backstory.first === 'caster' && newChar.backstory.second === 'accept') && `It was a joyful time, and you lived well by working hard and relaxing with simple pleasures alongside the members of your community. `}
                         {(newChar.backstory.first === 'caster' && newChar.backstory.second === 'reject') && `You hated it. Your gifts were clearly beyond your peers, and your desire to move beyond the confines of these simple people and their simple magic chafed at every turn. `}
                         {(newChar.backstory.first === 'fighter' && newChar.backstory.second === 'accept')  && `It was tough but you chose to be even tougher, embracing this conflict-filled life by building a strong mind and body. `}
@@ -376,23 +390,33 @@ const CreateCharacterScreen = () => {
                         <PrologueProgressPrompt isVisible={step === 4} onClick={e => advancePrologue(e)}>continue</PrologueProgressPrompt>
                     </ExpositionText>
 
-                    <ExpositionText goTime={step >= 5}>
+                    <ExpositionText goTime={step >= 5} stepBack={step > 5}>
                         You traveled for weeks, following road and river through sprawling countryside. At first, you passed a good number of assorted villages, farms, and the odd town here and there. Your path was never long without a trading caravan, troupe, or errant wayfarer passing by. The journey was long, but eased by the comforts of companionship and civilization.
                         <PrologueProgressPrompt isVisible={step === 5} onClick={e => advancePrologue(e)}>continue</PrologueProgressPrompt>
                     </ExpositionText>
 
-                    <ExpositionText goTime={step >= 6}>
+                    <ExpositionText goTime={step >= 6} stepBack={step > 6}>
                         One day, you woke to a still world -- no birdsong to greet the morning, no other travelers, a dim sun illuminating a desolate horizon. You couldn't remember which road led you here or which path you intended to take. You noticed an unusual hut, smoke rising from one side, a striking exception to an otherwise empty world. You don't recall making the choice to approach it, yet the next memory you recall is of your standing next to a small roaring fire, near the hut's entrance, as an unusual figure emerged to regard you.
                         <PrologueProgressPrompt isVisible={step === 6} onClick={e => advancePrologue(e)}>continue</PrologueProgressPrompt>
                     </ExpositionText>
 
-                    <ChoiceBox goTime={step === 7}>
-                        <ChoiceButton viewed={state.viewIndex === 0} onClick={e => advancePrologue(e)} onMouseEnter={() => updateViewIndex(0)} >You stood before a neatly-trimmed dark-skinned man wearing an impeccably tailored outfit, an ornate golden mage's staff resting in one hand.</ChoiceButton>
-                        <ChoiceButton viewed={state.viewIndex === 1} onClick={e => advancePrologue(e)} onMouseEnter={() => updateViewIndex(1)} >You were staring at a lithe huntress clad in rugged animal hides, her expression unreadable beneath layers of dark paint.</ChoiceButton>
-                        <ChoiceButton viewed={state.viewIndex === 2} onClick={e => advancePrologue(e)} onMouseEnter={() => updateViewIndex(2)} >You beheld a shockingly slender, bespectacled man with unexpectedly rugged hands wearing a craftsman's apron. His eyes met yours with a warm smile.</ChoiceButton>                        
+                    <ChoiceBox goTime={step === 7} stepBack={step > 7}>
+                        <ChoiceButton viewed={state.viewIndex === 0} onClick={e => advancePrologue(e)} onMouseEnter={() => updateViewIndex(0)} >You stood before a neatly-trimmed dark-skinned man wearing an impeccably tailored outfit, an ornate golden sorcerer's staff resting in one hand.</ChoiceButton>
+                        <ChoiceButton viewed={state.viewIndex === 1} onClick={e => advancePrologue(e)} onMouseEnter={() => updateViewIndex(1)} >You were staring at a lithe woman clad in makeshift armor of rugged animal hides, her expression unreadable beneath layers of dark paint.</ChoiceButton>
+                        <ChoiceButton viewed={state.viewIndex === 2} onClick={e => advancePrologue(e)} onMouseEnter={() => updateViewIndex(2)} >You beheld a shockingly slender, bespectacled man wearing a craftsman's apron, his hands unexpectedly rugged. His eyes met yours with a warm smile.</ChoiceButton>                     
                     </ChoiceBox>
 
+                    <ExpositionText goTime={step >= 8} stepBack={step > 8}>
+                        {newChar.backstory.third === 'sorcerer' && `You stood before a neatly-trimmed dark-skinned man wearing an impeccably tailored outfit, an ornate golden sorcerer's staff resting in one hand. His gaze flickered across you once, up and down, and then he motioned for you to take a seat on the other side of a small fire before disappearing into the hut. You found yourself gazing into the flames, which danced merrily on their own without any fuel, twisting almost playfully in the dirt. The well-dressed man suddenly appeared at your side and wordlessly offered you a large book, which fell open in your hands as you accepted it.`}
+                        {newChar.backstory.third === 'huntress' && `You were staring at a lithe woman clad in makeshift armor of rugged animal hides, her expression unreadable beneath layers of dark paint. She silently disappeared into the hut and emerged moments later carrying a rough leather sack, which she tossed unceremoniously at your feet, causing it to fall open.`}
+                        {newChar.backstory.third === 'artisan' && `You beheld a shockingly slender, bespectacled man wearing a craftsman's apron, his hands unexpectedly rugged. His eyes met yours with a warm smile. Struck by a sudden thought and a mischievous smile, he held a finger up to you as he vanished into the hut. An absurd torrent of assorted tools came flying out, one after another. After a pause, one last tool sailed out gracefully, nearly crushing your foot.`}
+                    </ExpositionText>
 
+                    <ChoiceBox goTime={step === 9}>
+                        {newChar.backstory.third && dependentChoice[newChar.backstory.third].map((choice, index) => (
+                            <ChoiceButton key={index} viewed={state.viewIndex === index} onClick={e => advancePrologue(e)} onMouseEnter={() => updateViewIndex(index)} >{choice}</ChoiceButton>
+                        ))}                        
+                    </ChoiceBox>
 
                     {/* <ExpositionText goTime={step >= 7}>
                         <PWInput type='text' placeholder={`(password)`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
@@ -411,12 +435,17 @@ export default CreateCharacterScreen;
 
 /*
 
-    LAYOUT IDEA: Name, ID, Class at the top, pick it all, have it described in text, PASSWORD at the bottom to submit when it's all ready!
+    IDEA: shrinkytext, separate animation that lowers contrast and size somewhat for non-current texposition
 
-    Did some testing and this ONLY appears when you're in the "/" path. Interesting!
-    ... all the other compnents just mount on up regardless of whatever nonsense path I put. Whoops? Maybe not whoops? We'll see.. :P
-    ... that DOES open up the interesting option to have the characterName be present in the URL, though obviously we can't require that config.
 
-    We can have some other app-wide component check to see if we're in the proper URL and push us around if not?
+    You stood before a neatly-trimmed dark-skinned man wearing an impeccably tailored outfit, an ornate golden sorcerer's staff resting in one hand.
+
+
+    You were staring at a lithe woman clad in makeshift armor of rugged animal hides, her expression unreadable beneath layers of dark paint.
+
+
+    You beheld a shockingly slender, bespectacled man wearing a craftsman's apron, his hands unexpectedly rugged. His eyes met yours with a warm smile.
+
+
 
 */
