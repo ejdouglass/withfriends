@@ -48,14 +48,26 @@ const dependentChoice = {
     ... ok, rethinking, because this is a bit much.
     The character you meet is based on the choices you made earlier. Cool? Cool. They're a 'mirror' of your choices.
     That character can then drift you ATTACK or DEFENSE. 
-    We have six options. 
-    CASTER-ACCEPT: `You stood before a neatly-trimmed dark-skinned man wearing impeccably tailored robes of blue and white, a simple mahogany magus's staff resting in one hand.`
-    CASTER-REJECT: `You stood before a wild-haired dark-skinned man wearing gold-threaded robes of red and black, an ornage golden sorcerer's staff grasped in one hand.`
-    FIGHTER-ACCEPT: `You were staring at a massive monolith of a man, scars like country roads wandering his body. Aside from a rugged loincloth, his only apparel seemed to be the small arsenal of weapons strapped to him.`
-    FIGHTER-REJECT: `You were staring at a `
-    THIEF-ACCEPT: `You beheld `
-    THIEF-REJECT: `You beheld `
+    We have six options. You get your accessory here? And your 'main' perks/techs.
 
+    CASTER-ACCEPT: `You stood before a neatly-trimmed dark-skinned man wearing impeccably tailored robes of blue and white, a simple mahogany magus's staff resting in one hand.`
+        YANG: buffs, some attack, mostly ST = __ -- ``
+        YIN: defensive, debuff, restoration heavy = __  -- ``
+    CASTER-REJECT: `You stood before a wild-haired dark-skinned man wearing gold-threaded robes of red and black, an ornage golden sorcerer's staff grasped in one hand.`
+        YANG: pure explosive madness, AoE, DPS heavy = __  -- ``
+        YIN: misdirection, illusion, control = __  -- ``
+    FIGHTER-ACCEPT: `You were staring at a massive monolith of a man, scars like country roads wandering his body. Aside from scraps of leather and bone, his only apparel seemed to be the small arsenal of weapons strapped to him.`
+        YANG: melee damage, AoE/barrage, burst/finisher w/stance debuffs = __  -- 
+        YIN: 'voke, heavy armor spec, counter = __  -- 
+    FIGHTER-REJECT: `You were staring at a lithe man with a hawk-like countenance. He wore form-fitting armor from head to toe, his only other adornment a pair of blades, one long across his back, one short at his hip.`
+        YANG: melee damage, ST, sustained DPS w/ debuffs = __   -- 
+        YIN: evade, light armor spec, stance mastery, ATK/ACC debuffs = __  -- 
+    THIEF-ACCEPT: `You beheld a pale man dressed in flashy clothing, jewels at every turn, ___. His merry eyes met yours with a bright and inviting smile.`
+        YANG: mug-master, force of personality, crits, wealth boost = __  -- 
+        YIN: stalk/sneak-master, misdirection, chaos, wealth boost2 = __  -- 
+    THIEF-REJECT: `You beheld a slim man garbed in simple clothing, unassumingly accented with a few traveler's pouches. His steady gaze met yours with a sincere smile.`
+        YANG: steal and share buffs, twist of fate, frugality = __  -- 
+        YIN: hide & steal mastery, undermine, frugality2 = __  -- 
 */
 
 
