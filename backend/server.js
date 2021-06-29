@@ -60,10 +60,10 @@ const perks = {
         - Trainers? 
         - Some roads and shape to the place, and a river that is present in some sense
     WEST FIELDS:
-        - Orchard (goblins!)
+        - Orchard (muglins!)
         - Farmlands
     
-    -- Swampy Area (bog rats)
+    -- Coastal Area (giant crabs, swarming crabs, boss crabs)
     -- Wooded Area (trolls)
         
 */
@@ -1229,10 +1229,27 @@ class orchardGoblin {
 }
 
 function calcStats(entity) {
-    // THIS: pass in an entity, calculate their derived and secondary stats based on their skills, stats, equipment, buffs, debuffs, injuries, etc.
-    //  so, this SHOULD spit out a viable derivedStats object, meaning we can just go ahead and choose either to
-    //  A) modify the entity directly, or B) RETURN the object and have any calling function do that for us
-    // Hmm... for now, I think I'll go with (A). Pass in the entity and set its stats on the fly using the same criteria regardless of entity.
+    /*
+        Final alpha push:
+        ... let's do a final definition of stats and their SIMPLE functionality.
+        - ALL gear can define flat stats to add.
+        - HEAD, TRINKET gear can also add AMP (% boost, applied after all flat mods).
+        - Gear can also add effective skill.
+        - Effective FIGHTING skill raises all combat stats by 1 each per rank by default (perks can boost the rate)
+
+        ALL CURRENT EFFECTIVE SKILLS TO DEFINE:
+        - sword, axe, polearm, dagger, shield
+        - hiding, sneaking, stealing
+        - spellweaving, elemental, psychic, nature, space
+
+        'BASE' MODS:
+        - spellslots
+
+        BONUS MODS: 
+        - swordATK, swordACC, etc.
+        - every stat AMP (innate plus gear plus effects)
+        - stanceAMP (bonus gain on good stance maneuvers), staggerAMP (bonus loss caused by stance-damaging moves)
+    */
 
     /*
         Times to run this:
@@ -1324,7 +1341,6 @@ function calcStats(entity) {
             SPELLCASTING: artificing, targeting, channeling,  
             SCHOLARSHIP: teaching, learning, tomelore, 
             SENSING: searching, appraising, trading, 
-            BUILDING: ???
             MEDICINE: healing, 
             ... starting to think BUILDING can scoot into CRAFTING? ok, yeah, let's do that
     */
@@ -1336,7 +1352,7 @@ function calcStats(entity) {
     eFSkill.climbing = Math.floor(eSkill.traversal);
     eFSkill.swimming = Math.floor(eSkill.traversal);
 
-    // HERE: Iterate through perks to add stats, fSkills
+    // HERE: Iterate through perks to add stats, effectiveSkills
 
 
     // Node-specific silliness seems to be the reason I have to check BOTH of these variables below for everything

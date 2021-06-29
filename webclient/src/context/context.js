@@ -247,7 +247,7 @@ const initialState = {
     viewIndex: 0,
     stance: 0,
     equilibrium: 100,
-    currentBarSelected: 'action',
+    currentBarSelected: 'enterName',
     currentActionBar: ['(M)agic', '(I)nventory', '(S)earch Area', 'S(t)ats'],
     hidden: 0,
     alert: undefined,

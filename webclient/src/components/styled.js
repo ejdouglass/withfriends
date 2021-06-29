@@ -153,13 +153,15 @@ export const Title = styled.h1`
 `;
 
 export const ExpositionText = styled.p`
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 80vw;
     padding: 0 10vw 0 10vw;
-    margin: 0.5rem 0 0.5rem 0;
+    margin: 1.2rem 0;
     font-size: calc(0.6rem + 0.6vw);
     line-height: 2rem;
     text-align: justify;
-    display: none;
     ${props => props.goTime && css`
         animation: ${fadeIn} 1.2s linear;
         display: inline-block;
@@ -186,33 +188,44 @@ export const ContinueExpositionButton = styled.button`
     `}
 `;
 
-export const ChoiceBox = styled.form`
+export const ChoiceBox = styled.div`
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: space-around;
     align-items: center;
     box-sizing: border-box;
     width: 60vw;
     padding: calc(0.5rem + 0.5vw);
-    border: 1px solid hsl(250, 90%, 95%);
+    border: 3px solid hsl(250, 90%, 95%);
     border-radius: 0.5rem;
     margin-left: 20vw;
-    display: none;
     ${props => props.goTime && css`
         animation: ${fadeIn} 1.2s linear;
         display: flex;
-    `}    
+    `}
+    ${props => props.viewed && css`
+        border: 3px solid hsl(250, 90%, 20%);
+    `}
 `;
 
 export const ChoiceButton = styled.div`
     display: flex;
-    width: 90%;
+    width: 30%;
     box-sizing: border-box;
-    border: 1px solid hsl(250, 90%, 5%);
+    justify-content: center;
+    border: 1px solid hsl(250, 90%, 95%);
+    border-radius: 5px;
     padding: calc(0.5rem + 0.5vw);
     font-size: calc(0.5rem + 0.5vw);
     margin: calc(0.25rem + 0.25vw) 0;
+    align-text: center;
     ${props => props.viewed && css`
+        border: 1px solid hsl(250, 90%, 5%);
+        font-weight: 600;
+    `}
+    ${props => props.selected && css`
+        border-radius: 0;
+        border: 1px solid hsl(130, 95%, 10%);
         background-color: hsl(130, 90%, 70%);
     `}
 `;
@@ -638,6 +651,11 @@ export const CreateCharacterButton = styled.button`
     &:hover {
         transform: translateY(-1px);
     }
+    ${props => props.viewed && css`
+        background-color: #0AF;
+        color: white;
+        font-weight: 900;
+    `}
 `;
 
 export const CharacterAspectContainer = styled.div`

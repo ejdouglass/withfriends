@@ -381,16 +381,60 @@ const Keyboard = () => {
             }
 
             case 'character_creation': {
-                if (e.key === 'ArrowDown') {
+                if (e.key === 'Tab') e.preventDefault();
+                if (e.key === 'ArrowRight') {
+                    if (state.viewIndex >= 2) return;
                     return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + 1});
                 }
-                if (e.key === 'ArrowUp') {
+                if (e.key === 'ArrowLeft') {
                     if (state.viewIndex > 0) return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex - 1});
                     return;
                 }
+                if (e.key === 'ArrowDown') {
+                    // dispatch({type: actions.UPDATE_VIEW_INDEX});
+                    // console.log(`Boop, arrow down.`)
+                    switch (state.currentBarSelected) {
+                        case 'enterName': {
+                            // console.log(`Switching to chooseHomeTown...`);
+                            return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'chooseHometown'});
+                        }
+                        case 'chooseHometown': {
+                            return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'chooseClass'});
+                        }
+                        case 'chooseClass': {
+                            // console.log(`current bar should be enterPassword`)
+                            return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'enterPassword'});
+                        }
+                        case 'enterPassword': {
+                            return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'createCharacter'});
+                        }
+                        default: {
+                            return;
+                        }
+                    }
+                }
+                if (e.key === 'ArrowUp') {
+                    // dispatch({type: actions.UPDATE_VIEW_INDEX});
+                    switch (state.currentBarSelected) {
+                        case 'chooseClass': {
+                            return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'chooseHometown'});
+                        }
+                        case 'chooseHometown': {
+                            return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'enterName'});
+                        }
+                        case 'enterPassword': {
+                            return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'chooseClass'});
+                        }
+                        case 'createCharacter': {
+                            return dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'enterPassword'});
+                        }
+                        default: {
+                            return;
+                        }
+                    }
+                }
                 if (e.key === 'Enter') {
-                    // Funny idea: invert the viewIndex (times -1) here to have the component handle the selection (animation, etc.)
-                    // This will indicate a 'selection' has been made and we can parse it from there!
+                    // Outdated mode; change to 'select' whatever is currently viewed on charCreation page
                     return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: (state.viewIndex + 1) * -1});
                 }
             }

@@ -2,25 +2,25 @@ import React, { useContext, useState, useEffect, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import { Context, actions } from '../context/context';
-import { CreateCharacterPage, ChoiceBox, ChoiceButton, CreateCharacterForm, PrologueProgressPrompt, Title, ExpositionText, CharacterNameInput, PWInput, BackgroundContainer, BackgroundSelection, BackgroundExplanation, ContinueExpositionButton, ExpositionSnippet } from '../components/styled';
+import { CreateCharacterPage, ChoiceBox, ChoiceButton, CreateCharacterForm, PrologueProgressPrompt, CreateCharacterButton, Title, ExpositionText, CharacterNameInput, PWInput, BackgroundContainer, BackgroundSelection, BackgroundExplanation, ContinueExpositionButton, ExpositionSnippet } from '../components/styled';
 
 
 
-const backgrounds1 = ['Gatherer', 'Laborer', 'Healer'];
-const backgrounds2 = ['Mercenary', 'Hedgewizard', 'Thief'];
-const backgrounds3 = ['Trader', 'Scribe', 'Runner', 'Apprentice'];
-const backgroundsText = {
-    'Gatherer': `You went out into the wilderness to hunt and forage for food and supplies, and to this day you still keep your trusty outdoors knife at hand.`,
-    'Laborer': `You helped build, repair, dig, and tend to the difficult manual labor that kept everything intact.`,
-    'Healer': `You studied herbs and medicines, healing the wounded and sick.`,
-    'Mercenary': `You got good at staying alive in a scrap, and offering your strong arms and stronger attitude to the right interests.`,
-    'Hedgewizard': `You learned that there was no problem that ultimately couldn't be solved by throwing more MP at it.`,
-    'Thief': `You learned that you almost nobody remained a threat with an empty purse, a broken reputation, and maybe occasionally a knife to their throat.`,
-    'Scribe': `Nerdy!`,
-    'Trader': `Wealthy?`,
-    'Runner': `Sweaty...`,
-    'Apprentice': `Busy!`
-};
+// const backgrounds1 = ['Gatherer', 'Laborer', 'Healer'];
+// const backgrounds2 = ['Mercenary', 'Hedgewizard', 'Thief'];
+// const backgrounds3 = ['Trader', 'Scribe', 'Runner', 'Apprentice'];
+// const backgroundsText = {
+//     'Gatherer': `You went out into the wilderness to hunt and forage for food and supplies, and to this day you still keep your trusty outdoors knife at hand.`,
+//     'Laborer': `You helped build, repair, dig, and tend to the difficult manual labor that kept everything intact.`,
+//     'Healer': `You studied herbs and medicines, healing the wounded and sick.`,
+//     'Mercenary': `You got good at staying alive in a scrap, and offering your strong arms and stronger attitude to the right interests.`,
+//     'Hedgewizard': `You learned that there was no problem that ultimately couldn't be solved by throwing more MP at it.`,
+//     'Thief': `You learned that you almost nobody remained a threat with an empty purse, a broken reputation, and maybe occasionally a knife to their throat.`,
+//     'Scribe': `Nerdy!`,
+//     'Trader': `Wealthy?`,
+//     'Runner': `Sweaty...`,
+//     'Apprentice': `Busy!`
+// };
 
 const dependentExposition = {
     'caster': `You, too, proved naturally adept at weaving simple spells from a young age, and life was a gentle affair, living communally with the magic of the land.`,
@@ -42,6 +42,31 @@ const dependentChoice = {
     'huntress': [],
     'artisan': []
 }
+
+const classDescription = {
+    'fighter': `You hit things.`,
+    'thief': `You steal things.`,
+    'sorcerer': `You throw MP at things.`
+}
+
+const hometownDescription = {
+    'border': `You had a tough life.`,
+    'nomad': `You had a wandering life.`,
+    'naturalist': `You had a magical life.`
+}
+
+/*
+    Slimming rejigger once more. Cool character creation is great, but way beyond the scope of what we're doing here. 
+    -- Pick class (fighter, thief, sorcerer)
+    -- Pick 'remote life' background (secluded villager, nomad, border villager)
+
+    Slap 'em with gear and techs.
+
+    Add NPC's, mobs, and stuff to acquire around Rivercrossing, enough for a little bit of play without being too dull.
+
+    Update the GUI as we go, call it good for alpha zero.
+
+*/
 
 /*
 
@@ -174,12 +199,17 @@ const CreateCharacterScreen = () => {
         name: '',
         password: '',
         age: 20,
+        class: `fighter`,
+        hometown: `border`,
         feature: {eyes: '', hair: '', height: '', complexion: '', build: ''},
         background: {first: '', second: '', third: ''},
         backstory: {}
     });
     const history = useHistory();
-    const stepIndexMax = [0, 2, 0, 1, 0, 0, 0, 2, 2];
+    // const stepIndexMax = [0, 2, 0, 1, 0, 0, 0, 2, 2];
+    const nameInputRef = useRef(null);
+    const pwInputRef = useRef(null);
+    const createCharacterButtonRef = useRef(null);
 
     function parseCharNameInput(nameString) {
         // Capitalizes the character name and prevents spaces as user types
@@ -188,10 +218,10 @@ const CreateCharacterScreen = () => {
         setNewChar({...newChar, name: nameString});
     }
 
-    // function parsePasswordInput(pwString) {
-    //     pwString = pwString.split(' ').join('');
-    //     setNewChar({...newChar, password: pwString});
-    // }
+    function parsePasswordInput(pwString) {
+        pwString = pwString.split(' ').join('');
+        setNewChar({...newChar, password: pwString});
+    }
 
     function progressCreationProcess(e) {
         e.preventDefault();
@@ -268,59 +298,99 @@ const CreateCharacterScreen = () => {
 
     }
 
-    function advancePrologue(e) {
-        if (e) e.preventDefault();
-        // if (stepIndexMax[step] === 0) {
-        //     console.log(`Your current step #${step} is dialogue-only. Beepity.`);
-        //     setStep(step + 1);
-        //     return dispatch({type: actions.UPDATE_VIEW_INDEX});
-        // }
-        const selectedIndex = state.viewIndex < 0 ? (state.viewIndex * -1) - 1 : state.viewIndex;
+    function chooseBackgroundAttribute(index) {
+        switch (state.currentBarSelected) {
+            case ('chooseHometown'): {
+                switch (index) {
+                    case 0: {
+                        return setNewChar({...newChar, hometown: 'border'});
+                    }
+                    case 1: {
+                        return setNewChar({...newChar, hometown: 'nomad'});
+                    }
+                    case 2: {
+                        return setNewChar({...newChar, hometown: 'naturalist'});
+                    }
+                }             
+                break;
+            }
 
-
-        // We'll set up stats down below, as well, as we go
-        switch (step) {
-            case 0: {
-                if (newChar.name.length >= 5 && newChar.name.length <= 12) {
-                    setStep(1);
-                    break;
-                } else {
-                    console.log(`Name is too short. Or too long! Yeah.`);
-                    break;
+            case ('chooseClass'): {
+                switch (index) {
+                    case 0: {
+                        return setNewChar({...newChar, class: 'fighter'});
+                    }
+                    case 1: {
+                        return setNewChar({...newChar, class: 'thief'});
+                    }
+                    case 2: {
+                        return setNewChar({...newChar, class: 'sorcerer'});
+                    }
                 }
-            }
-            case 1: {
-                if (selectedIndex === 0) setNewChar({...newChar, backstory: {first: 'caster'}});
-                if (selectedIndex === 1) setNewChar({...newChar, backstory: {first: 'fighter'}});
-                if (selectedIndex === 2) setNewChar({...newChar, backstory: {first: 'thief'}});
-                setStep(2);
                 break;
-            }
-            case 3: {
-                if (selectedIndex === 0) setNewChar({...newChar, backstory: {...newChar.backstory, second: 'accept'}});
-                if (selectedIndex === 1) setNewChar({...newChar, backstory: {...newChar.backstory, second: 'reject'}});
-                setStep(4);
-                break;
-            }
-            case 7: {
-                if (selectedIndex === 0) setNewChar({...newChar, backstory: {...newChar.backstory, third: 'sorcerer'}});
-                if (selectedIndex === 1) setNewChar({...newChar, backstory: {...newChar.backstory, third: 'huntress'}});
-                if (selectedIndex === 2) setNewChar({...newChar, backstory: {...newChar.backstory, third: 'artisan'}});
-                setStep(8);
-                break;
-            }
-            case 9: {
-                // Three choices: power, control, ???
-                break;
-            }
-            default: {
-                setStep(step + 1);
             }
         }
-        
-        dispatch({type: actions.UPDATE_VIEW_INDEX});
-        
+
     }
+    
+    function createCharacter() {
+        // Remember to set state.currentActionBar to 'action' and state.whatDo to 'explore' ... assuming that's not handled from backend's process
+        console.log(`I make new character? Maybe!`);
+    }
+
+    // function advancePrologue(e) {
+    //     if (e) e.preventDefault();
+    //     // if (stepIndexMax[step] === 0) {
+    //     //     console.log(`Your current step #${step} is dialogue-only. Beepity.`);
+    //     //     setStep(step + 1);
+    //     //     return dispatch({type: actions.UPDATE_VIEW_INDEX});
+    //     // }
+    //     const selectedIndex = state.viewIndex < 0 ? (state.viewIndex * -1) - 1 : state.viewIndex;
+
+
+    //     // We'll set up stats down below, as well, as we go
+    //     switch (step) {
+    //         case 0: {
+    //             if (newChar.name.length >= 5 && newChar.name.length <= 12) {
+    //                 setStep(1);
+    //                 break;
+    //             } else {
+    //                 console.log(`Name is too short. Or too long! Yeah.`);
+    //                 break;
+    //             }
+    //         }
+    //         case 1: {
+    //             if (selectedIndex === 0) setNewChar({...newChar, backstory: {first: 'caster'}});
+    //             if (selectedIndex === 1) setNewChar({...newChar, backstory: {first: 'fighter'}});
+    //             if (selectedIndex === 2) setNewChar({...newChar, backstory: {first: 'thief'}});
+    //             setStep(2);
+    //             break;
+    //         }
+    //         case 3: {
+    //             if (selectedIndex === 0) setNewChar({...newChar, backstory: {...newChar.backstory, second: 'accept'}});
+    //             if (selectedIndex === 1) setNewChar({...newChar, backstory: {...newChar.backstory, second: 'reject'}});
+    //             setStep(4);
+    //             break;
+    //         }
+    //         case 7: {
+    //             if (selectedIndex === 0) setNewChar({...newChar, backstory: {...newChar.backstory, third: 'sorcerer'}});
+    //             if (selectedIndex === 1) setNewChar({...newChar, backstory: {...newChar.backstory, third: 'huntress'}});
+    //             if (selectedIndex === 2) setNewChar({...newChar, backstory: {...newChar.backstory, third: 'artisan'}});
+    //             setStep(8);
+    //             break;
+    //         }
+    //         case 9: {
+    //             // Three choices: power, control, ???
+    //             break;
+    //         }
+    //         default: {
+    //             setStep(step + 1);
+    //         }
+    //     }
+        
+    //     dispatch({type: actions.UPDATE_VIEW_INDEX});
+        
+    // }
 
     function updateViewIndex(index) {
         return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: index});
@@ -329,30 +399,84 @@ const CreateCharacterScreen = () => {
     useEffect(() => {
         // HERE: gotta bound the up/down selections on each choicebox situation
         // stepIndexMax array defined with max viewIndex in each situation
-        if (state.viewIndex > stepIndexMax[step] && stepIndexMax[step] !== 0) return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: stepIndexMax[step]});
+        // if (state.viewIndex > stepIndexMax[step] && stepIndexMax[step] !== 0) return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: stepIndexMax[step]});
         if (state.viewIndex < 0) {
-            return advancePrologue();
+            let normalizedIndex = state.viewIndex * -1 - 1;
+            if (state.currentBarSelected === 'chooseHometown' || state.currentBarSelected === 'chooseClass') {
+                chooseBackgroundAttribute(normalizedIndex);
+            }
+            if (state.currentBarSelected === 'createCharacter' || state.currentBarSelected === 'enterPassword') {
+                createCharacter();
+            }
+            if (state.currentBarSelected === 'enterName') {
+                dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'chooseHometown'})
+            }
+            return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: normalizedIndex});
+
+
         }
     }, [state.viewIndex]);
 
-    // ADD: image box; stat/skill grid; user-directed text-advancement
+    useEffect(() => {
+        if (state.currentBarSelected === 'enterName') {
+            return nameInputRef.current.focus();
+        }
+        if (state.currentBarSelected === 'enterPassword') {
+            return pwInputRef.current.focus();
+        }
+        pwInputRef.current.blur();
+        return nameInputRef.current.blur();
+    }, [state.currentBarSelected]);
+
     return (
         <>
         {state.characterName ? (<></>) : (
             <CreateCharacterPage>
                 <CreateCharacterForm>
-                    <Title>Character Creation {newChar.name ? `- ${newChar.name}'s Prologue` : ``}</Title>
+                    <Title>Character Creation {newChar.name ? `- ${newChar.name}'s Background` : ``}</Title>
                     <ExpositionText goTime={step >= 0} stepBack={step > 0}>
                         You are 
                         {/* Blur when step !== 0 */}
-                        <CharacterNameInput autoFocus={step === 0} minLength={5} maxLength={10} type='text' placeholder={`(name)`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
-                        , a wayfarer on the road to the well-known town of trade and travel called Rivercrossing. As its high walls slowly rise above the horizon, you reflect on the
-                        path that has led you here, and your mind wanders back to your hometown.
-                        <PrologueProgressPrompt type='button' isVisible={step === 0 && newChar.name.length >= 5} onClick={e => advancePrologue(e)}>continue</PrologueProgressPrompt>
+                        <CharacterNameInput ref={nameInputRef} autoFocus={state.currentBarSelected === 'enterName'} minLength={5} maxLength={10} type='text' placeholder={`(name)`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
+                        , a wayfarer on the road to the well-known town of trade and travel called Rivercrossing.
+                    </ExpositionText>
+
+                    <ExpositionText>
+                        YOUR STATS & SKILLS GO HERE    
+                    </ExpositionText>                    
+
+
+                    <ChoiceBox viewed={state.currentBarSelected === 'chooseHometown'}>
+                        <ChoiceButton viewed={state.viewIndex === 0 && state.currentBarSelected === 'chooseHometown'} selected={newChar.hometown === 'border'} onClick={() => chooseBackgroundAttribute(0)} onMouseEnter={() => updateViewIndex(0)} >Border Colony</ChoiceButton>
+                        <ChoiceButton viewed={state.viewIndex === 1 && state.currentBarSelected === 'chooseHometown'} selected={newChar.hometown === 'nomad'} onClick={() => chooseBackgroundAttribute(1)} onMouseEnter={() => updateViewIndex(1)} >Nomadic Tribe</ChoiceButton>
+                        <ChoiceButton viewed={state.viewIndex === 2 && state.currentBarSelected === 'chooseHometown'} selected={newChar.hometown === 'naturalist'} onClick={() => chooseBackgroundAttribute(2)} onMouseEnter={() => updateViewIndex(2)} >Naturalist Sanctuary</ChoiceButton>                        
+                    </ChoiceBox>        
+                    
+                    <ExpositionText>
+                        {hometownDescription[newChar.hometown]}
+                    </ExpositionText>                                
+
+                    <ChoiceBox viewed={state.currentBarSelected === 'chooseClass'}>
+                        <ChoiceButton viewed={state.viewIndex === 0 && state.currentBarSelected === 'chooseClass'} selected={newChar.class === 'fighter'} onClick={() => chooseBackgroundAttribute(0)} onMouseEnter={() => updateViewIndex(0)} >Fighter</ChoiceButton>
+                        <ChoiceButton viewed={state.viewIndex === 1 && state.currentBarSelected === 'chooseClass'} selected={newChar.class === 'thief'} onClick={() => chooseBackgroundAttribute(1)} onMouseEnter={() => updateViewIndex(1)} >Thief</ChoiceButton>
+                        <ChoiceButton viewed={state.viewIndex === 2 && state.currentBarSelected === 'chooseClass'} selected={newChar.class === 'sorcerer'} onClick={() => chooseBackgroundAttribute(2)} onMouseEnter={() => updateViewIndex(2)} >Sorcerer</ChoiceButton>                        
+                    </ChoiceBox>
+
+                    <ExpositionText>
+                        {classDescription[newChar.class]}
+                    </ExpositionText>
+
+                    <ExpositionText>
+                        <PWInput ref={pwInputRef} type='text' placeholder={`(password)`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
+                    </ExpositionText>
+                    
+                    <ExpositionText>
+                        <CreateCharacterButton ref={createCharacterButtonRef} viewed={state.currentBarSelected === 'createCharacter'} onClick={() => createCharacter()}>Create Character!</CreateCharacterButton>
                     </ExpositionText>
 
 
 
+{/* 
                     <ChoiceBox goTime={step === 1}>
                         <ChoiceButton viewed={state.viewIndex === 0} onClick={e => advancePrologue(e)} onMouseEnter={() => updateViewIndex(0)} >You were born in a quiet, peaceful place among a small group of natural spellcasters who gently and harmoniously plied the land with their gifts.</ChoiceButton>
                         <ChoiceButton viewed={state.viewIndex === 1} onClick={e => advancePrologue(e)} onMouseEnter={() => updateViewIndex(1)} >You grew up in a battle-torn remote border community where the machinations of both men and monsters posed constant existential threats.</ChoiceButton>
@@ -373,24 +497,7 @@ const CreateCharacterScreen = () => {
                         ))}
                     </ChoiceBox>
 
-                    {/* <ExpositionText goTime={step >= 3}>
-                        As you grew older, you faced conflict, oh no! But you got by as a 
-                        {newChar.background.second.length > 0 ? ` ${newChar.background.second}` : '...'}.
-                        <ContinueExpositionButton buttonVisible={step === 3} onClick={e => progressCreationProcess(e)}>...</ContinueExpositionButton>
-                        {step >= 4 && 
-                            <ExpositionSnippet>{` ${backgroundsText[newChar.background.second]}`}</ExpositionSnippet>
-                        }
-                        <BackgroundContainer goTime={step === 3}>
-                            {backgrounds2.map((thisBackground, index) => (
-                                <BackgroundSelection key={index} onMouseEnter={() => tellMeMore(thisBackground)} onMouseLeave={tellMeNothing} selected={(newChar.background.second === thisBackground)} onClick={() => setNewChar({...newChar, background: {...newChar.background, second: thisBackground}})}>{thisBackground}</BackgroundSelection>
-                            ))}
-                        </BackgroundContainer>
-                        <BackgroundExplanation goTime={step === 3}>
-                            {backgroundDescription}
-                        </BackgroundExplanation>
-                    </ExpositionText>     */}
-
-
+            
                     <ExpositionText goTime={step >= 4} stepBack={step > 4}>
                         {(newChar.backstory.first === 'caster' && newChar.backstory.second === 'accept') && `It was a joyful time, and you lived well by working hard and relaxing with simple pleasures alongside the members of your community. `}
                         {(newChar.backstory.first === 'caster' && newChar.backstory.second === 'reject') && `You hated it. Your gifts were clearly beyond your peers, and your desire to move beyond the confines of these simple people and their simple magic chafed at every turn. `}
@@ -430,11 +537,11 @@ const CreateCharacterScreen = () => {
                         ))}                        
                     </ChoiceBox>
 
-                    {/* <ExpositionText goTime={step >= 7}>
+                    <ExpositionText goTime={step >= 7}>
                         <PWInput type='text' placeholder={`(password)`} minLength={4} value={newChar.password} onChange={e => parsePasswordInput(e.target.value)}></PWInput>
                         <CreateCharacterButton>Create Character!</CreateCharacterButton>
-                    </ExpositionText> */}
-
+                    </ExpositionText>
+ */}
 
                 </CreateCharacterForm>
             </CreateCharacterPage>
