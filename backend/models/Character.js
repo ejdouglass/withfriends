@@ -93,6 +93,16 @@ const CharacterSchema = new Schema({
         building: {general: 0},
         medicine: {general: 0}
     }},
+    skillPointsSpent: {type: Object, default: {
+        fighting: 0,
+        gathering: 0,
+        sneaking: 0,
+        traversal: 0,
+        crafting: 0,
+        spellcasting: 0,
+        sensing: 0,
+        medicine: 0 
+    }},
     effectiveSkill: {type: Object, default: {}},
     flags: {type: Object, default: {}},
     spellcast: Object, // Anchor

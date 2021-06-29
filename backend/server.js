@@ -1237,18 +1237,28 @@ function calcStats(entity) {
         - Gear can also add effective skill.
         - Effective FIGHTING skill raises all combat stats by 1 each per rank by default (perks can boost the rate)
 
-        ALL CURRENT EFFECTIVE SKILLS TO DEFINE:
-        - sword, axe, polearm, dagger, shield
-        - hiding, sneaking, stealing
-        - spellweaving, elemental, psychic, nature, space
 
-        'BASE' MODS:
+        GEAR PONDER
+        -- 
+
+
+        ALL CURRENT EFFECTIVE SKILLS TO DEFINE:
+        - sword, axe, polearm, dagger, block, dodge
+        - hide, sneak, steal
+        - spellweave, elemental, psychic, nature, 'space'
+        - destroy, restore, transform, enchant, comprehend, protect (gonna have to sift through this a little)
+
+        'BASE' FIGURES:
         - spellslots
 
-        BONUS MODS: 
+        BONUS/MODS: 
         - swordATK, swordACC, etc.
         - every stat AMP (innate plus gear plus effects)
         - stanceAMP (bonus gain on good stance maneuvers), staggerAMP (bonus loss caused by stance-damaging moves)
+
+        Thinking just let Fighting bonus stats, let the stats do all the heavy lifting, and then set a 'monster level' that determines Fighting gain.
+            - monsterLevel will be the base, and then might add bonusExp later
+
     */
 
     /*
