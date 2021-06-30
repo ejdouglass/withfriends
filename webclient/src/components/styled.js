@@ -198,6 +198,7 @@ export const ChoiceBox = styled.div`
     padding: calc(0.5rem + 0.5vw);
     border: 3px solid hsl(250, 90%, 95%);
     border-radius: 0.5rem;
+    margin-top: 1.2rem;
     margin-left: 20vw;
     ${props => props.goTime && css`
         animation: ${fadeIn} 1.2s linear;
@@ -648,9 +649,6 @@ export const CreateCharacterButton = styled.button`
     margin: 0.5rem;
     font-weight: 600;
     border-radius: 6px;
-    &:hover {
-        transform: translateY(-1px);
-    }
     ${props => props.viewed && css`
         background-color: #0AF;
         color: white;

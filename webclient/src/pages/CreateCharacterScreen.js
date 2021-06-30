@@ -336,6 +336,30 @@ const CreateCharacterScreen = () => {
     function createCharacter() {
         // Remember to set state.currentActionBar to 'action' and state.whatDo to 'explore' ... assuming that's not handled from backend's process
         console.log(`I make new character? Maybe!`);
+        let error = ``;
+        if (newChar.name.length < 5 || newChar.name.length > 12) error += `Enter a valid character name between 5 and 12 characters long. `;
+        if (newChar.password.length < 4) error += `Enter a proper password (4+ characters). `;
+
+        if (error) {
+            console.log(error);
+            return alert(error);            
+        } else {
+            console.log(`Connecting to API to create this new character...`);
+            let myChar = {...newChar}
+            axios.post('/character/create', { newChar: myChar })
+                .then(res => {
+                    console.log(res.data);
+                    // HERE: load up the received res.data.character into LIVE MEMORY
+                    dispatch({type: actions.LOAD_CHAR, payload: {character: res.data.payload.character}});
+                    
+                    // This sets the header for all subsequent axios requests; might consider using HTTP-only instead?
+                    // Also just realized setting axios headers is kinda meaningless to the socket, whoops :P
+                    // axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.payload.token}`;
+                    localStorage.setItem('withFriendsJWT', res.data.payload.token);
+                    history.push('/play');
+                })
+                .catch(err => console.log(err));
+        }        
     }
 
     // function advancePrologue(e) {
@@ -442,11 +466,11 @@ const CreateCharacterScreen = () => {
                     </ExpositionText>
 
                     <ExpositionText>
-                        YOUR STATS & SKILLS GO HERE    
+                        Eh, describe the stuff they get below, get fancy with showing stats here later.
                     </ExpositionText>                    
 
 
-                    <ChoiceBox viewed={state.currentBarSelected === 'chooseHometown'}>
+                    <ChoiceBox viewed={state.currentBarSelected === 'chooseHometown'} onMouseEnter={() => dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'chooseHometown'})}>
                         <ChoiceButton viewed={state.viewIndex === 0 && state.currentBarSelected === 'chooseHometown'} selected={newChar.hometown === 'border'} onClick={() => chooseBackgroundAttribute(0)} onMouseEnter={() => updateViewIndex(0)} >Border Colony</ChoiceButton>
                         <ChoiceButton viewed={state.viewIndex === 1 && state.currentBarSelected === 'chooseHometown'} selected={newChar.hometown === 'nomad'} onClick={() => chooseBackgroundAttribute(1)} onMouseEnter={() => updateViewIndex(1)} >Nomadic Tribe</ChoiceButton>
                         <ChoiceButton viewed={state.viewIndex === 2 && state.currentBarSelected === 'chooseHometown'} selected={newChar.hometown === 'naturalist'} onClick={() => chooseBackgroundAttribute(2)} onMouseEnter={() => updateViewIndex(2)} >Naturalist Sanctuary</ChoiceButton>                        
@@ -456,7 +480,7 @@ const CreateCharacterScreen = () => {
                         {hometownDescription[newChar.hometown]}
                     </ExpositionText>                                
 
-                    <ChoiceBox viewed={state.currentBarSelected === 'chooseClass'}>
+                    <ChoiceBox viewed={state.currentBarSelected === 'chooseClass'} onMouseEnter={() => dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'chooseClass'})}>
                         <ChoiceButton viewed={state.viewIndex === 0 && state.currentBarSelected === 'chooseClass'} selected={newChar.class === 'fighter'} onClick={() => chooseBackgroundAttribute(0)} onMouseEnter={() => updateViewIndex(0)} >Fighter</ChoiceButton>
                         <ChoiceButton viewed={state.viewIndex === 1 && state.currentBarSelected === 'chooseClass'} selected={newChar.class === 'thief'} onClick={() => chooseBackgroundAttribute(1)} onMouseEnter={() => updateViewIndex(1)} >Thief</ChoiceButton>
                         <ChoiceButton viewed={state.viewIndex === 2 && state.currentBarSelected === 'chooseClass'} selected={newChar.class === 'sorcerer'} onClick={() => chooseBackgroundAttribute(2)} onMouseEnter={() => updateViewIndex(2)} >Sorcerer</ChoiceButton>                        

@@ -30,8 +30,9 @@ const CharacterSchema = new Schema({
         default: {
             seed: {HPmax: 100, MPmax: 15, strength: 10, agility: 10, constitution: 10, willpower: 10, intelligence: 10, wisdom: 10, spirit: 10},
             strength: undefined, agility: undefined, constitution: undefined, willpower: undefined, intelligence: undefined, wisdom: undefined, spirit: undefined, 
-            HP: undefined, HPmax: undefined, MP: undefined, MPmax: undefined, 
-            ATK: undefined, MAG: undefined, DEF: undefined, RES: undefined, ACC: undefined, EVA: undefined, FOC: undefined, LUK: undefined
+            HP: undefined, baseHPmax: undefined, HPmax: undefined, MP: undefined, baseMPmax: undefined, MPmax: undefined, 
+            baseATK: undefined, ATK: undefined, baseMAG: undefined, MAG: undefined, baseDEF: undefined, DEF: undefined, baseRES: undefined, RES: undefined, 
+            baseACC: undefined, ACC: undefined, baseEVA: undefined, EVA: undefined, baseFOC: undefined, FOC: undefined, baseLUK: undefined, LUK: undefined
         }
     },
     injuries: Object, // thinking adding key=type, and other stats... 
