@@ -453,8 +453,8 @@ const CurrentFocusBox = ({ state, dispatch }) => {
                         <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 1}>Left Hand: {state.equipped?.leftHand?.glance || '(Nothing)'}</EquippedItem>
                         <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 2}>Head: {state.equipped?.head?.glance || '(Nothing)'}</EquippedItem>
                         <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 3}>Body: {state.equipped?.body?.glance || '(Nothing)'}</EquippedItem>
-                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 4}>Accessory: {state.equipped?.accessory1?.glance || '(Nothing)'}</EquippedItem>
-                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 5}>Accessory: {state.equipped?.accessory2?.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 4}>Accessory: {state.equipped?.accessory?.glance || '(Nothing)'}</EquippedItem>
+                        <EquippedItem viewed={state?.currentBarSelected === 'equipment' && state?.viewTarget?.id === 5}>Accessory: {state.equipped?.trinket?.glance || '(Nothing)'}</EquippedItem>
                         <EquippedItem>Money: {state?.wallet?.crystals || 'none :('}</EquippedItem>
                     </EquippedContainer>
                     <BackpackContainer>

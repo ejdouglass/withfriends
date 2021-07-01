@@ -24,7 +24,8 @@ export const actions = {
     EQUIPMENT_CHANGE: 'equipment_change',
     UPDATE_HIDING: 'update_hiding',
     UPDATE_SKILL_RANKS: 'update_skill_ranks',
-    UPDATE_SPELLS: 'update_spells'
+    UPDATE_SPELLS: 'update_spells',
+    UPDATE_EQL: 'update_eql'
 }
 
 export const Reducer = (state, action) => {
@@ -174,9 +175,13 @@ export const Reducer = (state, action) => {
             }
             let eqlVal = state.equilibrium;
             if (action.payload.equilibrium !== undefined) eqlVal = action.payload.equilibrium;
+            console.log(`Hi! Reducer received an EQL value of ${eqlVal}.`);
             // let eqlVal = action?.payload?.equilibrium || state.equilibrium;
             let stanceVal = action?.payload?.stance === undefined ? state.stance : action.payload.stance;
             return {...state, stat: {...updatedStats}, equilibrium: eqlVal, stance: stanceVal};
+        }
+        case actions.UPDATE_EQL: {
+            return {...state, equilibrium: action.payload};
         }
         default: {
             return state;
@@ -200,16 +205,16 @@ const initialState = {
     name: undefined,
     // Gonna reconfig ABOVE and AROUND and BELOW to be information contained in LOCATION data
     above: {
-        type: 'sky',
-        imgsrc: '../assets/skyboxes/bluesky.jpg',
-        color: 'hsla(215, 90%, 75%, 0.3)'
+        // type: 'sky',
+        // imgsrc: '../assets/skyboxes/bluesky.jpg',
+        color: 'hsl(215, 90%, 5%)'
     },
     around: {
         type: 'field'
     },
     below: {
-        type: 'grass',
-        color: 'hsl(125, 80%, 30%)'
+        // type: 'grass',
+        color: 'hsl(125, 80%, 5%)'
     },
     backpack: {
         open: false,
@@ -246,8 +251,8 @@ const initialState = {
     actionIndex: 0,
     viewIndex: 0,
     stance: 0,
-    equilibrium: 100,
-    currentBarSelected: 'enterName',
+    equilibrium: 5,
+    currentBarSelected: 'action',
     currentActionBar: ['(M)agic', '(I)nventory', '(S)earch Area', 'S(t)ats'],
     hidden: 0,
     alert: undefined,

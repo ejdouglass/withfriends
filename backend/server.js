@@ -546,6 +546,16 @@ let orchardGoblinSpawn = new SpawnMap(
 );
 */
 
+/*
+let orchardGoblinSpawn = new SpawnMap(
+    [{mobClass: orchardGoblin, mobLevelRange: '4-7', frequency: 1}], 
+    10, 
+    ['400,575,0','400,550,0', '400,600,0', '375,550,0', '375,575,0', '375,600,0', '425,550,0', '425,575,0', '425,600,0'], 
+    {spawnPerRoom: 1, groupSize: 1, playerSpawnPreference: 1, baseSpawn: 1, extraPlayerSpawn: 1, maxSpawn: 6}  
+);
+orchardGoblinSpawn.init();
+*/
+
 class SpawnMap {
     constructor(mobArray, tickRate, spawnRooms, spawnRules) {
         this.mobArray = mobArray; // array of objects: class of mob to use, level range, frequency (for weighting)
@@ -570,7 +580,7 @@ class SpawnMap {
         // set first variables that you don't want to re-set each time, like maybe distilling a frequency grid for mob spawn?
         // HERE: initial spawn, if applicable -- we're doing a "single mob array spawn" here, can extrapolate later for more robustness and flexibility
         // ADD: spawn up to the baseSpawn rate
-        this.spawn(this.mobArray[0].mobClass);
+        this.spawn(this.mobArray[0].mobClass, this.mobArray[0].mobLevelRange);
         // HERE: set first timeout
         setTimeout(() => this.run(), this.tickRate);
     }
@@ -585,13 +595,15 @@ class SpawnMap {
         if (this.mobs.length < this.spawnRules.maxSpawn) {
             // ADD: check all rooms for players to see if it's time to pop more mobs into existence
             //  ... currently, just kinda keeps going until maxSpawn willy-nilly
-            this.spawn(this.mobArray[0].mobClass);
+            this.spawn(this.mobArray[0].mobClass, this.mobArray[0].mobLevelRange);
         }
         setTimeout(() => this.run(), this.tickRate);
     }
 
-    spawn(classMob) {
+    spawn(classMob, levelRangeString) {
         // obey all spawn rules while dropping this new classMob(spawnLocation)... might do a 'quick' loop instead?
+        const levelRangeArray = levelRangeString.split('-');
+        const spawnedLevel = rando(levelRangeArray[0], levelRangeArray[1]);
         let spawnLocation;
         let obeyingSpawnRules = false;
         do {
@@ -602,9 +614,8 @@ class SpawnMap {
             }
         } while (obeyingSpawnRules === false);
 
-        // console.log(`The room at ${spawnLocation} looks good. Let's plop down a mob!`);
-        // Ohhhhhh ok so let's track it back here. Make sure the entityID is working properly...
-        const newMob = new classMob(spawnLocation);
+        // Now have the ability to slap a level in there! Let's try it out.
+        const newMob = new classMob(spawnLocation, 100);
         newMob.init();
         // console.log(`A new mob has been created! Its ID is ${newMob.entityID}`);
         mobs[newMob.entityID] = newMob; // do I have to do a deep copy, or will this be sufficient?
@@ -935,14 +946,30 @@ class orchardGoblin {
 
     /*
         Final Thoughts to Alpha:
-        -- gotta determine mobLevel and its implications, both broadly and specifically 
+        -- gotta determine mobLevel and its implications, both broadly and specifically (i.e. per mob)
+        -- mob level mainly determines scaling of threat, skill access maybe later on, and importantly for now: skill gain for thwackin' em
+
+        -- mob level 1: should be 1v1 doable with minimal/foraged gear, no particular support
+            fighting ~0, stats ~10, tier 1 equivalent equipment
+        -- mob level 5: ramping up a bit
+            fighting ~10, stats ~15
+        -- mob level 10: 
+            fighting ~20, stats ~20, tier 2 equivalent equipment with relevant boosts and capabilities
+        -- mob level 20:
+            fighting ~40, stats ~30, tier 3 equivalent equipment
+
+        ... ok, so we'll try this pattern: mobLevel*2 fighting/sensing, mobLevel/10 tier gear equivalence (can establish 'lucky' round-ups pre floor)
+
+        The SpawnMaps can contain all the relevant data. For now, we'll define these 'mob' classes in their level 1 form, and 'scale up' from there.
+        ... this should probably contain some 'scalingLogic' to apply how to apply 'level ups' in the future?
+
     */
 
-    constructor(location) {
-        this.location = {RPS: 0, GPS: location}; // The only outside variable needed to successfully spawn this fella currently...
+    constructor(location, level, variant) {
+        this.location = {RPS: 0, GPS: location}; // The only outside variable needed to successfully spawn this fella currently
         // Might add 'monsterLevel' and such 
         this.glance = `an orchard muglin`;
-        this.description = `Basically a field golbin, but acutally a muglin, which is quite a bit more likely to want to mug you for fruit, in this case.`;
+        this.description = `Basically a goblin, but acutally a muglin, which is quite a bit more likely to want to mug you for fruit, in this case.`;
         this.entityID = undefined;
         this.entityType = 'mob';
         this.mobType = {meta: 'humanoid', race: 'muglin'};
@@ -955,18 +982,22 @@ class orchardGoblin {
             unarmed: {ATK: 10}
         };
         this.skill = {
-            fighting: 10,
-            gathering: 10,
+            fighting: 0,
+            gathering: 0,
             sneaking: 0,
             traversal: 0,
             crafting: 0,
             spellcasting: 0,
             scholarship: 0,
-            sensing: 10,
+            sensing: 0,
             building: 0,
             medicine: 0
         };
         this.effectiveSkill = {};
+        this.scalingLogic = {
+            stat: {HPmax: 2, MPmax: 0.5, strength: 0.5, agility: 0.75, constitution: 0.5, willpower: 0.25, intelligence: 0.25, wisdom: 0.25, spirit: 0.5}, 
+            skill: {fighting: 2, sensing: 2, gathering: 2}
+        }
         this.hidden = 0;
         this.backpack = {contents: []}; // stealable goodies? ... let's say yes! We can populate some fruit in here on future iterations
         this.wallet = {gems: [], coins: [0, 0, 0, 0]}; // thinking this will be 'stealable' money/gems
@@ -980,9 +1011,10 @@ class orchardGoblin {
         this.flags = {dead: false}; // for later-- mark when they've been stolen from, or other sundry attributes we need to slap on
         this.tagged = {}; // thinking using this for 'spotted' entities, base key is their entityID, contains also the time of tagging and tag quality/duration metric
         this.actInterval = undefined;
-        this.level = 1; // hrmmm, might set this up to be a constructor variable, and then pop stats and values up from there
+        this.level = level || 1; // hrmmm, might set this up to be a constructor variable, and then pop stats and values up from there
         this.fighting = {main: undefined, others: []};
         this.loot = undefined; // hm, how to define loot... table-style, or individually?
+        this.variant = variant || 'common';
     }
 
     init() {
@@ -1067,9 +1099,18 @@ class orchardGoblin {
             {stackingSize: 100, size: 6, weight: 8, durability: 8, materials: {leather: {quantity: 4, quality: 1}}, value: 15},
             undefined
         )
+        
+        console.log(`Pre-level muglin attack stats: ${this.stat.strength} strength, ${this.stat.ATK} attack`);
+        for (const statToBoost in this.scalingLogic.stat) {
+            this.stat.seed[statToBoost] = Math.floor(this.stat.seed[statToBoost] + this.scalingLogic.stat[statToBoost] * this.level);
+        }
+        for (const skillToBoost in this.scalingLogic.skill) {
+            this.skill[skillToBoost] += Math.floor(this.scalingLogic.skill[skillToBoost] * this.level);
+        }
+        
 
         calcStats(this);
-        // console.log(`Let's look at this new muglin's stats now! They've got: ${JSON.stringify(this.stat)}`)
+        console.log(`NEW MUGLIN ATTACK STATS: ${this.stat.strength} strength, ${this.stat.ATK} attack`);
 
         this.actInterval = 8000;
         setTimeout(() => this.actOut(), this.actInterval);
@@ -1271,6 +1312,24 @@ function calcStats(entity) {
     /*
         Final alpha push, BASICS:
         ... no scaling, no perks, basic spells, ok GUI, GO
+        [x] figure out monster level
+        [_] implement monster level for muggies
+        [_] HP damage (injuries), MP damage (exhaustion)
+        [_] add skill gain to all relevant activities, tweak skillgain formulae to 100
+        [_] adjust this fxn to grant basic derived stats from core stats
+        [_] change HP regen logic (no HP regen by default; add resting state; add creation/use of medicine)
+        [_] adjust HP/MP params based on testing once we have some new critters
+        [_] fix EQL to be 5 pips with new regen logic; add stancelike effects; remove stance
+        [_] add CHAR_SAVE to rank-up, other scenarios potentially (buying something, dying, etc.)
+        [_] add most basic crafting/breakdown
+        [_] ensure button presses work properly at all GUI points
+        [_] ensure proper actionBar action prompts (i.e. currently equipment doesn't seem to be swapping properly)
+        [_] tweak up buy/sell mechanics a bit
+        [_] corpse creation, corpse looting
+        [_] basic gathering (stuff can be gathered from rooms, possibly using tools, depending on the room's data vs relevant gathering subskill)
+        [_] GUI: add some icons, basic images
+        [_] world: few more levels of mobs, some stuff to find
+        [_] DONE! (enough)
         
 
     Adjust? -- 
@@ -1403,13 +1462,14 @@ function calcStats(entity) {
     const eFSkill = entity.effectiveSkill;
 
     // FIRST SECTION: 'base' substats
-    entity.stat.HPmax = entity.stat.seed.HPmax;
+    // Edited out setting HPmax from seed due to mob spawning logic; might have to 'fix' PC's
+    eStat.HPmax = eStat.seed.HPmax + eStat.constitution;
     // Might have to set HP and MP, too, around here
-    entity.stat.MPmax = entity.stat.seed.MPmax;
-    if (!entity.stat.HP) entity.stat.HP = entity.stat.HPmax;
-    if (!entity.stat.MP) entity.stat.MP = entity.stat.MPmax;
+    eStat.MPmax = eStat.seed.MPmax;
+    if (!eStat.HP) eStat.HP = eStat.HPmax;
+    if (!eStat.MP) eStat.MP = eStat.MPmax;
 
-    // Will ultimately need to calc perks and such on top of these, and maybe modifiers as well
+    
     eStat.strength = entity.stat.seed.strength;
     eStat.agility = entity.stat.seed.agility;
     eStat.constitution = entity.stat.seed.constitution;
@@ -1418,10 +1478,10 @@ function calcStats(entity) {
     eStat.wisdom = entity.stat.seed.wisdom;
     eStat.spirit = entity.stat.seed.spirit;
 
-    eStat.ATK = eStat.unarmed.ATK;
-    eStat.MAG = 5;
-    eStat.DEF = 5;
-    eStat.RES = 5;
+    eStat.ATK = Math.floor(eStat.strength / 4 + eStat.agility / 4);
+    eStat.MAG = Math.floor(eStat.willpower / 2);
+    eStat.DEF = Math.floor(eStat.constitution / 2);
+    eStat.RES = Math.floor(eStat.wisdom / 2);
     eStat.ACC = eSkill.fighting;
     eStat.EVA = eSkill.fighting;
     eStat.FOC = eSkill.spellcasting;
@@ -1462,17 +1522,17 @@ function calcStats(entity) {
             eStat[fiteStat] += entity.equipped.rightHand.equipped.fightStat[fiteStat];
         }
         for (const castStat in entity.equipped.rightHand.equipped.magicStat) {
-            eStat[castStat] += entity.equipped.rightHand.equipped.fightStat[castStat];
+            eStat[castStat] += entity.equipped.rightHand.equipped.magicStat[castStat];
         }
         for (const statBoost in entity.equipped.rightHand.equipped.statContribution) {
             eStat[statBoost.statToBoost] += Math.floor(eStat[statBoost] * statBoost.boostFactor);
         }
         for (const statToAdd in entity.equipped.rightHand.equipped.statBonus) {
-            eStat[statToAdd] += entity.equipped.rightHand.mod.statBonus[statToAdd];
+            eStat[statToAdd] += entity.equipped.rightHand.equipped.statBonus[statToAdd];
         }
     } else {
         // HERE: barehand calculations... which are total nonsense right now, because SAITAMA :P (or Claw Troll, to a lesser degree)
-        eStat.ATK = eStat.unarmed.ATK;
+        // eStat.ATK = eStat.unarmed.ATK;
     }
 
     if (entity.equipped.leftHand !== undefined && entity.equipped.leftHand.type !== undefined) {
@@ -1494,13 +1554,13 @@ function calcStats(entity) {
             eStat[fiteStat] += entity.equipped.leftHand.equipped.fightStat[fiteStat];
         }
         for (const castStat in entity.equipped.leftHand.equipped.magicStat) {
-            eStat[castStat] += entity.equipped.leftHand.equipped.fightStat[castStat];
+            eStat[castStat] += entity.equipped.leftHand.equipped.magicStat[castStat];
         }
-        for (const statBoost in entity.equipped.rightHand.equipped.statContribution) {
+        for (const statBoost in entity.equipped.leftHand.equipped.statContribution) {
             eStat[statBoost.statToBoost] += Math.floor(eStat[statBoost] * statBoost.boostFactor);
         }
         for (const statToAdd in entity.equipped.leftHand.equipped.statBonus) {
-            eStat[statToAdd] += entity.equipped.leftHand.mod.statBonus[statToAdd];
+            eStat[statToAdd] += entity.equipped.leftHand.equipped.statBonus[statToAdd];
         }
     } else {
         // HERE: barehand calculations
@@ -1510,13 +1570,13 @@ function calcStats(entity) {
             eStat[fiteStat] += entity.equipped.head.equipped.fightStat[fiteStat];
         }
         for (const castStat in entity.equipped.head.equipped.magicStat) {
-            eStat[castStat] += entity.equipped.head.equipped.fightStat[castStat];
+            eStat[castStat] += entity.equipped.head.equipped.magicStat[castStat];
         }
-        for (const statBoost in entity.equipped.rightHand.equipped.statContribution) {
+        for (const statBoost in entity.equipped.head.equipped.statContribution) {
             eStat[statBoost.statToBoost] += Math.floor(eStat[statBoost] * statBoost.boostFactor);
         }
         for (const statToAdd in entity.equipped.head.equipped.statBonus) {
-            eStat[statToAdd] += entity.equipped.head.mod.statBonus[statToAdd];
+            eStat[statToAdd] += entity.equipped.head.equipped.statBonus[statToAdd];
         }
     } else {
         // HERE: barehead calculations :P
@@ -1527,13 +1587,13 @@ function calcStats(entity) {
             eStat[fiteStat] += entity.equipped.body.equipped.fightStat[fiteStat];
         }
         for (const castStat in entity.equipped.body.equipped.magicStat) {
-            eStat[castStat] += entity.equipped.body.equipped.fightStat[castStat];
+            eStat[castStat] += entity.equipped.body.equipped.magicStat[castStat];
         }
-        for (const statBoost in entity.equipped.rightHand.equipped.statContribution) {
+        for (const statBoost in entity.equipped.body.equipped.statContribution) {
             eStat[statBoost.statToBoost] += Math.floor(eStat[statBoost] * statBoost.boostFactor);
         }
         for (const statToAdd in entity.equipped.body.equipped.statBonus) {
-            eStat[statToAdd] += entity.equipped.body.mod.statBonus[statToAdd];
+            eStat[statToAdd] += entity.equipped.body.equipped.statBonus[statToAdd];
         }
     } else {
         // ohhhh myyyyyy
@@ -1545,13 +1605,13 @@ function calcStats(entity) {
             eStat[fiteStat] += entity.equipped.accessory.equipped.fightStat[fiteStat];
         }
         for (const castStat in entity.equipped.accessory.equipped.magicStat) {
-            eStat[castStat] += entity.equipped.accessory.equipped.fightStat[castStat];
+            eStat[castStat] += entity.equipped.accessory.equipped.magicStat[castStat];
         }
-        for (const statBoost in entity.equipped.rightHand.equipped.statContribution) {
+        for (const statBoost in entity.equipped.accessory.equipped.statContribution) {
             eStat[statBoost.statToBoost] += Math.floor(eStat[statBoost] * statBoost.boostFactor);
         }
         for (const statToAdd in entity.equipped.accessory.equipped.statBonus) {
-            eStat[statToAdd] += entity.equipped.accessory.mod.statBonus[statToAdd];
+            eStat[statToAdd] += entity.equipped.accessory.equipped.statBonus[statToAdd];
         }
         // ADD: skill bonusing factors
     }
@@ -1561,13 +1621,13 @@ function calcStats(entity) {
             eStat[fiteStat] += entity.equipped.trinket.equipped.fightStat[fiteStat];
         }
         for (const castStat in entity.equipped.trinket.equipped.magicStat) {
-            eStat[castStat] += entity.equipped.trinket.equipped.fightStat[castStat];
+            eStat[castStat] += entity.equipped.trinket.equipped.magicStat[castStat];
         }
-        for (const statBoost in entity.equipped.rightHand.equipped.statContribution) {
+        for (const statBoost in entity.equipped.trinket.equipped.statContribution) {
             eStat[statBoost.statToBoost] += Math.floor(eStat[statBoost] * statBoost.boostFactor);
         }
         for (const statToAdd in entity.equipped.trinket.equipped.statBonus) {
-            eStat[statToAdd] += entity.equipped.trinket.mod.statBonus[statToAdd];
+            eStat[statToAdd] += entity.equipped.trinket.equipped.statBonus[statToAdd];
         }
     }
 
@@ -2230,10 +2290,10 @@ app.post('/character/create', (req, res, next) => {
             newChar.skill.gathering += 5;
             newChar.skill.medicine += 5;
             newChar.equipped.accessory = new Item(
-                {},
-                ``,
-                ``,
-                {statBonus: {}},
+                {mainType: 'accessory', buildType: 'scarf', slot: 'accessory'},
+                `Crimson Scarf`,
+                `A blood-hued scarf, tattered and frayed. Faded stitching at one end suggests this is a memento of some sort.`,
+                {statBonus: {ATK: 5, DEF: 5, HPmax: 15}},
                 {stackingSize: 100, size: 1, durability: -3.14159, materials: {}, quality: 1, enhancements: [], value: 1},
                 undefined
             );
@@ -2244,10 +2304,10 @@ app.post('/character/create', (req, res, next) => {
             newChar.skill.sensing += 5;
             newChar.skill.fighting += 5;
             newChar.equipped.accessory = new Item(
-                {},
-                ``,
-                ``,
-                {statBonus: {}},
+                {mainType: 'accessory', buildType: 'boots', slot: 'accessory'},
+                `Roaming Boots`,
+                `A sturdy pair of boots that have seen many trails.`,
+                {statBonus: {ATK: 3, DEF: 3, HPmax: 10, MPmax: 5}},
                 {stackingSize: 100, size: 1, durability: -3.14159, materials: {}, quality: 1, enhancements: [], value: 1},
                 undefined
             );
@@ -2258,10 +2318,10 @@ app.post('/character/create', (req, res, next) => {
             newChar.skill.gathering += 5;
             newChar.skill.crafting += 5;
             newChar.equipped.accessory = new Item(
-                {},
-                ``,
-                ``,
-                {statBonus: {}},
+                {mainType: 'accessory', buildType: 'pendant', slot: 'accessory'},
+                `Aboreal Pendant`,
+                `An oval-cut topaz etched with the image of an elm tree rests in a simple wooden setting, which itself hangs from a simple length of twine.`,
+                {statBonus: {MAG: 5, RES: 5, MPmax: 10}},
                 {stackingSize: 100, size: 1, durability: -3.14159, materials: {}, quality: 1, enhancements: [], value: 1},
                 undefined
             );
@@ -2333,7 +2393,7 @@ app.post('/character/create', (req, res, next) => {
                 {mainType: 'weapon', buildType: 'polearm', subType: 'staff', range: 'melee', slot: 'rightHand', hands: 1},
                 `Spellwood Staff`,
                 `A very simple staff of sturdy wood, often seen being carried by less-skilled or less-wealthy spellcasters.`,
-                {statBonus: {}, weaponProperty: {}, fightStat: {ATK: 6}, magicStat: {MAG: 12}, statContribution: {}},
+                {statBonus: {}, weaponProperty: {}, fightStat: {ATK: 6}, magicStat: {MAG: 12}, statContribution: {willpower: {statToBoost: 'MAG', boostFactor: 0.5}, intelligence: {statToBoost: 'FOC', boostFactor: 0.5}}},
                 {stackingSize: 100, size: 1, durability: -3.14159, materials: {}, quality: 1, enhancements: [], value: 1},
                 undefined
             );
@@ -2341,7 +2401,7 @@ app.post('/character/create', (req, res, next) => {
                 {mainType: 'bodyarmor', buildType: 'robes', subType: 'cloth', slot: 'body'},
                 `Apprentice Robes`,
                 `Simple lightly-colored robes.`,
-                {statBonus: {}, fightStat: {DEF: 4}, magicStat: {MAG: 4, RES: 8}, statContribution: {}},
+                {statBonus: {}, fightStat: {DEF: 4}, magicStat: {MAG: 4, RES: 8}, statContribution: {wisdom: {statToBoost: 'RES', boostFactor: 0.5}, intelligence: {statToBoost: 'LUK', boostFactor: 0.5}}},
                 {stackingSize: 100, size: 1, durability: -3.14159, materials: {}, quality: 1, enhancements: [], value: 1},
                 undefined
             );
@@ -2678,9 +2738,9 @@ io.on('connection', (socket) => {
                 myCharacter.stat.MP += 1;
                 if (myCharacter.stat.MP > myCharacter.stat.MPmax) myCharacter.stat.MP = myCharacter.stat.MPmax;
             }
-            if (myCharacter.equilibrium < 100) {
-                myCharacter.equilibrium += 10;
-                if (myCharacter.equilibrium > 100) myCharacter.equilibrium = 100;
+            if (myCharacter.equilibrium < 5) {
+                myCharacter.equilibrium += 1;
+                if (myCharacter.equilibrium > 5) myCharacter.equilibrium = 5;
             }
             // For some odd reason it hits around 20ish and then just kinda... stops? Or doesn't display anymore? It's a little odd.
             // Ok, so it will 'tick' at 20 and theoretically it'll be down to 10.
@@ -2983,7 +3043,8 @@ io.on('connection', (socket) => {
                 let hideResult = {
                     type: 'hide_result',
                     echo: hideEcho,
-                    hidden: myCharacter.hidden
+                    hidden: myCharacter.hidden,
+                    eql: myCharacter.equilibrium
                 }
                 io.to(myCharacter.name).emit('character_data', hideResult);
                 
@@ -2998,7 +3059,8 @@ io.on('connection', (socket) => {
                 let hideResult = {
                     type: 'hide_result',
                     echo: `You step out of your hiding spot and into plain view.`,
-                    hidden: 0
+                    hidden: 0,
+                    eql: myCharacter.equilibrium
                 }
                 io.to(myCharacter.name).emit('character_data', hideResult);
                 break;
@@ -3193,7 +3255,7 @@ function removeCharacterFromGame(character) {
 const GameMaster = {};
 
 let orchardGoblinSpawn = new SpawnMap(
-    [{mobClass: orchardGoblin, mobLevelRange: '1-1', frequency: 1}], 
+    [{mobClass: orchardGoblin, mobLevelRange: '4-7', frequency: 1}], 
     10, 
     ['400,575,0','400,550,0', '400,600,0', '375,550,0', '375,575,0', '375,600,0', '425,550,0', '425,575,0', '425,600,0'], 
     {spawnPerRoom: 1, groupSize: 1, playerSpawnPreference: 1, baseSpawn: 1, extraPlayerSpawn: 1, maxSpawn: 6}  
@@ -3202,6 +3264,19 @@ orchardGoblinSpawn.init();
 
 
 // THIS SECTION: basic abilities/actions/techs
+
+function basicAttack(attackingEntity, defendingEntity) {
+    if (defendingEntity === undefined) return `A cloud of dust picks up from nowhere, obscuring battle for a moment!`;
+
+    let attackerName;
+    if (attackingEntity.name !== undefined) attackerName = attackingEntity.name
+    else attackerName = attackingEntity.glance;
+    let defenderName;
+    if (defendingEntity.name !== undefined && defendingEntity !== undefined) defenderName = defendingEntity.name
+    else defenderName = defendingEntity.glance;
+
+
+}
 
 function strike(attackingEntity, defendingEntity) {
     // NOTE: probably can 'fix' the below by checking the fighting.others and scoot any entity in there into the primo spot
@@ -3253,12 +3328,12 @@ function strike(attackingEntity, defendingEntity) {
     if (defendingEntity.name !== undefined && defendingEntity !== undefined) defenderName = defendingEntity.name
     else defenderName = defendingEntity.glance;
 
-    if (attackingEntity.equilibrium < 30) return `${attackerName[0] + attackerName.slice(1)} can't attack due to being off-balance!`;
+    if (attackingEntity.equilibrium < 1) return `${attackerName[0] + attackerName.slice(1)} can't attack due to being off-balance!`;
     // HERE: calculate stance mods first before deducting EQL
-    attackingEntity.stance += (attackingEntity.equilibrium - 50);
-    if (attackingEntity.stance > 599) attackingEntity.stance = 599;
-    if (attackingEntity.stance < -599) attackingEntity.stance = -599;
-    attackingEntity.equilibrium -= 30;
+    // attackingEntity.stance += (attackingEntity.equilibrium - 50);
+    // if (attackingEntity.stance > 599) attackingEntity.stance = 599;
+    // if (attackingEntity.stance < -599) attackingEntity.stance = -599;
+    attackingEntity.equilibrium -= 1;
 
     let startString, midString, endString = '';
     // BELOW: crashes when attempting to NAME the muglin(s), so set the defending/attacking entity's identities at the beginning and use them from there
@@ -3269,15 +3344,15 @@ function strike(attackingEntity, defendingEntity) {
     // At 500+ stance, 100-125
     // At -500 stance, 0-75
     // HERE: Modify and roll variance on all ATK/DEF/ACC/EVA for both parties, set effectiveStats for each
-    const attackerStanceNum = Math.floor(attackingEntity.stance / 10);
-    const defenderStanceNum = Math.floor(defendingEntity.stance / 10);
-    const attackerStanceModifier = rando(50 + attackerStanceNum,100 + (attackerStanceNum / 2));
-    const defenderStanceModifier = rando(50 + defenderStanceNum,100 + (defenderStanceNum / 2));
+    // const attackerStanceNum = Math.floor(attackingEntity.stance / 10);
+    // const defenderStanceNum = Math.floor(defendingEntity.stance / 10);
+    // const attackerStanceModifier = rando(50 + attackerStanceNum,100 + (attackerStanceNum / 2));
+    // const defenderStanceModifier = rando(50 + defenderStanceNum,100 + (defenderStanceNum / 2));
 
-    const modAttackerATK = Math.floor(attackingEntity.stat.ATK * (attackerStanceModifier / 100));
-    const modAttackerACC = Math.floor(attackingEntity.stat.ACC * (attackerStanceModifier / 100));
-    const modDefenderDEF = Math.floor(defendingEntity.stat.DEF * (defenderStanceModifier / 100));
-    const modDefenderEVA = Math.floor(defendingEntity.stat.EVA * (defenderStanceModifier / 100));
+    const modAttackerATK = attackingEntity.stat.ATK;
+    const modAttackerACC = attackingEntity.stat.ACC;
+    const modDefenderDEF = defendingEntity.stat.DEF;
+    const modDefenderEVA = defendingEntity.stat.EVA;
 
     // console.log(`AttackerStanceNum: ${attackerStanceNum}, defender's: ${defenderStanceNum}, modAttackerATK: ${modAttackerATK}, ACC: ${modAttackerACC}`);
 
@@ -3310,8 +3385,8 @@ function strike(attackingEntity, defendingEntity) {
 
     // We're contesting ATK vs DEF here, modifying both by their respective guiding stat slightly.
     // Doing just a massive multiplier on the rawDamage is probably a bit much? Well, for this super attack, anyway. We'll modify later.
-    let rawDamage = 5 + modAttackerATK + attackingEntity.stat.strength / 5 * (1 + attackingEntity.stat.strength / 10);
-    let rawMitigation = modDefenderDEF / 3 + defendingEntity.stat.constitution / 10;
+    let rawDamage = modAttackerATK;
+    let rawMitigation = modDefenderDEF / 2;
     const totalDamage = Math.floor((rawDamage - rawMitigation) * baseAccuracy);
 
     // console.log(`Our attacker ${attackerName} uses their ${attackingEntity.stat.ATK} ATK and ${attackingEntity.stat.strength} strength with a stance of 
@@ -3422,7 +3497,7 @@ function hideMe(hider) {
     // ADD: more nuanced messaging scaffolding -- let players know how 'good' their hiding spot is relative to their skill/potential hiding to avoid wasting hide attempts
     // ADD: call to skillUp fxn (this hideMe fxn *should* contest and determine difficulty of hiding, so ultimately we'll call it here, not in myCharacter axns)
 
-    if (hider.equilibrium < 50) return false;
+    if (hider.equilibrium < 3) return false;
 
     let hideDifficulty = 0;
 
@@ -3437,7 +3512,7 @@ function hideMe(hider) {
         ... calcStats has its work cut out for it! But once done, this function can take a rest with a simpler hideMin and hideMax
     */
 
-    let EQLmod = hider.equilibrium / 100;
+    let EQLmod = hider.equilibrium / 5;
     let hideMin = hider.hidden > 0 ? hider.hidden : Math.floor(hider.effectiveSkill.hiding / 4);
     let hideMax = hider.effectiveSkill.hiding;
     if (hideMin > hideMax) hideMax = hideMin;
@@ -3466,10 +3541,10 @@ function hideMe(hider) {
 
 }
 
-function skillUp(entity, skillName, successRate, baseEXP, actionType) {
+function skillUp(entity, skillName, successRate, baseEXP) {
     
     if (!baseEXP) baseEXP = 100;
-    let expGain, expMod;
+    let expGain, expMod, rankUp;
     let feedbackMessage;
  
     // Should consider expMod; also consider the 'difficulty vs skill check roll' relationship and how it translates to this fxn
@@ -3486,29 +3561,120 @@ function skillUp(entity, skillName, successRate, baseEXP, actionType) {
     // Big boost for testing purposes :P 
     expGain = 100000;
 
-    if (entity.skill[skillName] < 10) {
-        // We might have to bound with && here if we don't right returning code so we don't hit every single range on the way up
-        entity.skillProgress[skillName].general += expGain;
+    // Can optimize the equation(s) below later and adjust learning/difficulty/ramp-up of exp reqs
+    // Having a much more gradual increase makes sense to me, with break-points every 5 or 10 ranks that accelerate the reqs a little
+    // Just multiplying by 1000 means that, currently, at 100 exp gain as a 'base' rank 9 would take 90 successful actions. That seems like a lot.
+    // It'd be fine for a 'full' game, potentially, with more exp gain sources, but for a fun dip and dive, smooth it out, esp. at the lower levels
 
-        // 'Quick and dirty' for now -- more nuance will make sense later, when each skill has its own specific actionTypes and such to check on
+    entity.skillProgress[skillName].general += expGain;
+
+    if (entity.skill[skillName] < 10) {
         if (entity.skillProgress[skillName].general >= (entity.skill[skillName] + 1) * 1000) {
+            rankUp = true;
             feedbackMessage = `You've gained a new rank in ${skillName}!`
             entity.skill[skillName] += 1;
             calcStats(entity);
             entity.skillProgress[skillName] = {general: 0};
         }
-        io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
+        if (rankUp) return io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
     }
-    if (entity.skill[skillName] >= 10 && entity.skill[skillName] < 20) {
-        // Caps at 20 for now :P
-        entity.skillProgress[skillName].general += expGain;
+    if (entity.skill[skillName] >= 10 && entity.skill[skillName] < 20) {        
         if (entity.skillProgress[skillName].general >= (entity.skill[skillName] + 1) * 2500) {
+            rankUp = true;
             feedbackMessage = `You've gained a new rank in ${skillName}!`
             entity.skill[skillName] += 1;
             calcStats(entity);
             entity.skillProgress[skillName] = {general: 0};
         }
-        io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
+        if (rankUp) return io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
+
+    }
+    if (entity.skill[skillName] >= 20 && entity.skill[skillName] < 30) {        
+        if (entity.skillProgress[skillName].general >= (entity.skill[skillName] + 1) * 4500) {
+            rankUp = true;
+            feedbackMessage = `You've gained a new rank in ${skillName}!`
+            entity.skill[skillName] += 1;
+            calcStats(entity);
+            entity.skillProgress[skillName] = {general: 0};
+        }
+        if (rankUp) return io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
+
+    }
+    if (entity.skill[skillName] >= 30 && entity.skill[skillName] < 40) {        
+        if (entity.skillProgress[skillName].general >= (entity.skill[skillName] + 1) * 7000) {
+            rankUp = true;
+            feedbackMessage = `You've gained a new rank in ${skillName}!`
+            entity.skill[skillName] += 1;
+            calcStats(entity);
+            entity.skillProgress[skillName] = {general: 0};
+        }
+        if (rankUp) return io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
+
+    }
+    if (entity.skill[skillName] >= 40 && entity.skill[skillName] < 50) {        
+        if (entity.skillProgress[skillName].general >= (entity.skill[skillName] + 1) * 10000) {
+            rankUp = true;
+            feedbackMessage = `You've gained a new rank in ${skillName}!`
+            entity.skill[skillName] += 1;
+            calcStats(entity);
+            entity.skillProgress[skillName] = {general: 0};
+        }
+        if (rankUp) return io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
+
+    }
+    if (entity.skill[skillName] >= 50 && entity.skill[skillName] < 60) {        
+        if (entity.skillProgress[skillName].general >= (entity.skill[skillName] + 1) * 13500) {
+            rankUp = true;
+            feedbackMessage = `You've gained a new rank in ${skillName}!`
+            entity.skill[skillName] += 1;
+            calcStats(entity);
+            entity.skillProgress[skillName] = {general: 0};
+        }
+        if (rankUp) return io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
+
+    }
+    if (entity.skill[skillName] >= 60 && entity.skill[skillName] < 70) {        
+        if (entity.skillProgress[skillName].general >= (entity.skill[skillName] + 1) * 17500) {
+            rankUp = true;
+            feedbackMessage = `You've gained a new rank in ${skillName}!`
+            entity.skill[skillName] += 1;
+            calcStats(entity);
+            entity.skillProgress[skillName] = {general: 0};
+        }
+        if (rankUp) return io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
+
+    }
+    if (entity.skill[skillName] >= 70 && entity.skill[skillName] < 80) {        
+        if (entity.skillProgress[skillName].general >= (entity.skill[skillName] + 1) * 22000) {
+            rankUp = true;
+            feedbackMessage = `You've gained a new rank in ${skillName}!`
+            entity.skill[skillName] += 1;
+            calcStats(entity);
+            entity.skillProgress[skillName] = {general: 0};
+        }
+        if (rankUp) return io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
+
+    }
+    if (entity.skill[skillName] >= 80 && entity.skill[skillName] < 90) {        
+        if (entity.skillProgress[skillName].general >= (entity.skill[skillName] + 1) * 27000) {
+            rankUp = true;
+            feedbackMessage = `You've gained a new rank in ${skillName}!`
+            entity.skill[skillName] += 1;
+            calcStats(entity);
+            entity.skillProgress[skillName] = {general: 0};
+        }
+        if (rankUp) return io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
+
+    }
+    if (entity.skill[skillName] >= 90 && entity.skill[skillName] < 100) {        
+        if (entity.skillProgress[skillName].general >= (entity.skill[skillName] + 1) * 32500) {
+            rankUp = true;
+            feedbackMessage = `You've gained a new rank in ${skillName}!`
+            entity.skill[skillName] += 1;
+            calcStats(entity);
+            entity.skillProgress[skillName] = {general: 0};
+        }
+        if (rankUp) return io.to(entity.name).emit('character_data', {type: 'skill_up', echo: feedbackMessage, skill: {...entity.skill}});
 
     }
 
@@ -3609,7 +3775,7 @@ function castSparkles(caster, target, castParams) {
 
 function castHealMeAll(caster, castParams) {
     // Set default cast params
-    const defaultParams = {castMP: 15, castTime: 5, castEQL: 100};
+    const defaultParams = {castMP: 15, castTime: 5, castEQL: 5};
     if (castParams === 'default') castParams = {...defaultParams};
 
     if (caster.equilibrium < castParams.castEQL) return `You can't gather your focus enough to cast this spell without a greater sense of equilibrium.`;

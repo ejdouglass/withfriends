@@ -314,7 +314,7 @@ const Keyboard = () => {
                                 break;
                             }
                             case 4: {
-                                equipmentTarget = 'accessory1';
+                                equipmentTarget = 'accessory';
                                 break;
                             }
                         }
@@ -352,11 +352,11 @@ const Keyboard = () => {
                                 break;
                             }
                             case 4: {
-                                equipmentTarget = 'accessory1';
+                                equipmentTarget = 'accessory';
                                 break;
                             }
                             case 5: {
-                                equipmentTarget = 'accessory2';
+                                equipmentTarget = 'trinket';
                                 break;
                             }
                         }
@@ -381,7 +381,7 @@ const Keyboard = () => {
             }
 
             case 'character_creation': {
-                if (e.key === 'Tab') e.preventDefault();
+                if (e.key === 'Tab' && state.currentBarSelected !== 'action') e.preventDefault();
                 if (e.key === 'ArrowRight') {
                     if (state.viewIndex >= 2) return;
                     return dispatch({type: actions.UPDATE_VIEW_INDEX, payload: state.viewIndex + 1});
@@ -682,6 +682,7 @@ const Keyboard = () => {
 
                 if (eventObj.type === 'hide_result') {
                     dispatch({type: actions.UPDATE_HIDING, payload: eventObj.hidden});
+                    dispatch({type: actions.UPDATE_EQL, payload: eventObj.eql});
                 }
 
                 if (eventObj.type === 'equipment_change') {

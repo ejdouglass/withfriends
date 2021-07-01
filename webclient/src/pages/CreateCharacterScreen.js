@@ -356,6 +356,8 @@ const CreateCharacterScreen = () => {
                     // Also just realized setting axios headers is kinda meaningless to the socket, whoops :P
                     // axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.payload.token}`;
                     localStorage.setItem('withFriendsJWT', res.data.payload.token);
+                    dispatch({type: actions.UPDATE_SELECTED_BAR, payload: 'action'});
+                    dispatch({type: actions.UPDATE_WHATDO, payload: 'explore'});
                     history.push('/play');
                 })
                 .catch(err => console.log(err));
@@ -442,7 +444,7 @@ const CreateCharacterScreen = () => {
     }, [state.viewIndex]);
 
     useEffect(() => {
-        if (state.currentBarSelected === 'enterName') {
+        if (state.currentBarSelected === 'enterName' || state.currentBarSelected === 'action') {
             return nameInputRef.current.focus();
         }
         if (state.currentBarSelected === 'enterPassword') {
@@ -461,7 +463,7 @@ const CreateCharacterScreen = () => {
                     <ExpositionText goTime={step >= 0} stepBack={step > 0}>
                         You are 
                         {/* Blur when step !== 0 */}
-                        <CharacterNameInput ref={nameInputRef} autoFocus={state.currentBarSelected === 'enterName'} minLength={5} maxLength={10} type='text' placeholder={`(name)`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
+                        <CharacterNameInput ref={nameInputRef} autoFocus={true} minLength={5} maxLength={10} type='text' placeholder={`(name)`} value={newChar.name} onChange={e => parseCharNameInput(e.target.value)}></CharacterNameInput>
                         , a wayfarer on the road to the well-known town of trade and travel called Rivercrossing.
                     </ExpositionText>
 

@@ -14,7 +14,7 @@ const CharacterSchema = new Schema({
     class: {type: String, default: 'Wayfarer'},
     salt: {type: String, required: true},
     hash: {type: String, required: true},
-    equilibrium: {type: Number, default: 100},
+    equilibrium: {type: Number, default: 5},
     stance: {type: Number, default: 0},
     regenerating: {type: Boolean, default: false},
     regen: Object, // Wouldn't allow definition as Function, so.... let's see how this flies :P
@@ -32,7 +32,8 @@ const CharacterSchema = new Schema({
             strength: undefined, agility: undefined, constitution: undefined, willpower: undefined, intelligence: undefined, wisdom: undefined, spirit: undefined, 
             HP: undefined, baseHPmax: undefined, HPmax: undefined, MP: undefined, baseMPmax: undefined, MPmax: undefined, 
             baseATK: undefined, ATK: undefined, baseMAG: undefined, MAG: undefined, baseDEF: undefined, DEF: undefined, baseRES: undefined, RES: undefined, 
-            baseACC: undefined, ACC: undefined, baseEVA: undefined, EVA: undefined, baseFOC: undefined, FOC: undefined, baseLUK: undefined, LUK: undefined
+            baseACC: undefined, ACC: undefined, baseEVA: undefined, EVA: undefined, baseFOC: undefined, FOC: undefined, baseLUK: undefined, LUK: undefined,
+            unarmed: {ATK: undefined}
         }
     },
     injuries: Object, // thinking adding key=type, and other stats... 

@@ -7,7 +7,7 @@ const Below = () => {
     const [state] = useContext(Context);
 
     return (
-        <GroundBox color={state.below.color} bg={basicGrass}>
+        <GroundBox color={'hsl(240,15%,30%)'}>
         </GroundBox>
     )
 }

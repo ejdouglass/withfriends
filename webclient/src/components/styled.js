@@ -334,16 +334,16 @@ export const SkyBox = styled.div`
     width: 100vw;
     height: 70vh;
     background-color: ${props => props.color};
-    &:before {
-        content: "";
-        background-image: url(${props => props.bg});
-        background-size: contain no-repeat;
-        background-position: middle;
-        animation: ${floatingClouds} 300s linear 0s infinite;
-        width: 100%;
-        height: 100%;
-        opacity: 0.4;
-    }
+    // &:before {
+    //     content: "";
+    //     background-image: url(${props => props.bg});
+    //     background-size: contain no-repeat;
+    //     background-position: middle;
+    //     animation: ${floatingClouds} 300s linear 0s infinite;
+    //     width: 100%;
+    //     height: 100%;
+    //     opacity: 0.4;
+    // }
 `;
 
 export const AroundBox = styled.div`
@@ -360,17 +360,17 @@ export const GroundBox = styled.div`
     width: 110vw;
     height: 30vh;
     background-color: ${props => props.color};
-    background-image: linear-gradient(hsla(130, 85%, 15%, 0.8), hsla(110, 45%, 65%, 0.5));
-    &:before {
-        content: "";
-        background-image: url(${props => props.bg});
-        background-size: contain no-repeat;
-        background-position: 50% 99%;
-        animation: ${swayingGrass} 10s linear 0s infinite;
-        width: 100%;
-        height: 100%;
-        opacity: 0.5;
-    }
+    // background-image: linear-gradient(hsla(130, 85%, 15%, 0.8), hsla(110, 45%, 65%, 0.5));
+    // &:before {
+    //     content: "";
+    //     background-image: url(${props => props.bg});
+    //     background-size: contain no-repeat;
+    //     background-position: 50% 99%;
+    //     animation: ${swayingGrass} 10s linear 0s infinite;
+    //     width: 100%;
+    //     height: 100%;
+    //     opacity: 0.5;
+    // }
 `;
 
 export const MainScreen = styled.div`
