@@ -580,6 +580,7 @@ class SpawnMap {
         // set first variables that you don't want to re-set each time, like maybe distilling a frequency grid for mob spawn?
         // HERE: initial spawn, if applicable -- we're doing a "single mob array spawn" here, can extrapolate later for more robustness and flexibility
         // ADD: spawn up to the baseSpawn rate
+        console.log(`Initial spawn: mob level range string is: ${this.mobArray[0].mobLevelRange}`)
         this.spawn(this.mobArray[0].mobClass, this.mobArray[0].mobLevelRange);
         // HERE: set first timeout
         setTimeout(() => this.run(), this.tickRate);
@@ -603,7 +604,11 @@ class SpawnMap {
     spawn(classMob, levelRangeString) {
         // obey all spawn rules while dropping this new classMob(spawnLocation)... might do a 'quick' loop instead?
         const levelRangeArray = levelRangeString.split('-');
-        const spawnedLevel = rando(levelRangeArray[0], levelRangeArray[1]);
+        console.log(`In spawn fxn, levelRangeString is ${levelRangeString}`);
+        console.log(`Splitting that gives min level of ${levelRangeArray[0]} and max level of ${levelRangeArray[1]}`)
+        // So it all works and then RANDO messes it up for some reason
+        const spawnedLevel = rando(parseInt(levelRangeArray[0]), parseInt(levelRangeArray[1]));
+        console.log(`Making a new mob of level ${spawnedLevel}`);
         let spawnLocation;
         let obeyingSpawnRules = false;
         do {
@@ -615,7 +620,7 @@ class SpawnMap {
         } while (obeyingSpawnRules === false);
 
         // Now have the ability to slap a level in there! Let's try it out.
-        const newMob = new classMob(spawnLocation, 100);
+        const newMob = new classMob(spawnLocation, spawnedLevel);
         newMob.init();
         // console.log(`A new mob has been created! Its ID is ${newMob.entityID}`);
         mobs[newMob.entityID] = newMob; // do I have to do a deep copy, or will this be sufficient?
@@ -1102,15 +1107,17 @@ class orchardGoblin {
         
         console.log(`Pre-level muglin attack stats: ${this.stat.strength} strength, ${this.stat.ATK} attack`);
         for (const statToBoost in this.scalingLogic.stat) {
+            // console.log(`Updating muglin stats to level. Boosting ${this.stat.seed[statToBoost]} now by ${this.scalingLogic.stat[statToBoost]}`)
             this.stat.seed[statToBoost] = Math.floor(this.stat.seed[statToBoost] + this.scalingLogic.stat[statToBoost] * this.level);
         }
         for (const skillToBoost in this.scalingLogic.skill) {
             this.skill[skillToBoost] += Math.floor(this.scalingLogic.skill[skillToBoost] * this.level);
         }
         
+        this.stat.HP = this.stat.seed.HPmax;
+        this.stat.MP = this.stat.seed.MPmax;
 
         calcStats(this);
-        console.log(`NEW MUGLIN ATTACK STATS: ${this.stat.strength} strength, ${this.stat.ATK} attack`);
 
         this.actInterval = 8000;
         setTimeout(() => this.actOut(), this.actInterval);
@@ -1229,6 +1236,7 @@ class orchardGoblin {
 
     ouch(damageTaken, damageType) {
         // use this method to apply damage taken, apply injuries, and possibly amend behavior
+        console.log(`Muglin just received ${damageTaken} damage! Their HP was ${this.stat.HP} before this attack.`)
         this.stat.HP -= damageTaken;
         if (this.stat.HP <= 0) return this.ded(damageTaken);
 
@@ -1313,7 +1321,9 @@ function calcStats(entity) {
         Final alpha push, BASICS:
         ... no scaling, no perks, basic spells, ok GUI, GO
         [x] figure out monster level
-        [_] implement monster level for muggies
+        [x] implement monster level for muggies (the actual level, not level 100 :P)
+        [_] decide briefly on scaling influence (right now level 100 mob isn't THAT scary) - ACC vs EVA primary?
+        [_] add level indicator on mobs (right side/view)
         [_] HP damage (injuries), MP damage (exhaustion)
         [_] add skill gain to all relevant activities, tweak skillgain formulae to 100
         [_] adjust this fxn to grant basic derived stats from core stats
@@ -1326,10 +1336,17 @@ function calcStats(entity) {
         [_] ensure proper actionBar action prompts (i.e. currently equipment doesn't seem to be swapping properly)
         [_] tweak up buy/sell mechanics a bit
         [_] corpse creation, corpse looting
+        [_] player death effect
         [_] basic gathering (stuff can be gathered from rooms, possibly using tools, depending on the room's data vs relevant gathering subskill)
         [_] GUI: add some icons, basic images
         [_] world: few more levels of mobs, some stuff to find
         [_] DONE! (enough)
+    
+        IDEA: for crafting/alchemy
+        -- SCORPID MUSH... but I want paste! MUSH + MUSH + WATER = PASTE
+        -- items found can be 'joined' (mushroom found could be 'cap' + 'stem' that are bonded in a way that 'cut' would separate them)
+        -- intrinsic qualities of items/materials to make diverse results
+        -- this is more involved, so it's an idea for later versions, not early Alpha
         
 
     Adjust? -- 
@@ -1466,7 +1483,7 @@ function calcStats(entity) {
     eStat.HPmax = eStat.seed.HPmax + eStat.constitution;
     // Might have to set HP and MP, too, around here
     eStat.MPmax = eStat.seed.MPmax;
-    if (!eStat.HP) eStat.HP = eStat.HPmax;
+    if (!eStat.HP || eStat.HP === NaN) eStat.HP = eStat.HPmax;
     if (!eStat.MP) eStat.MP = eStat.MPmax;
 
     
@@ -3285,15 +3302,13 @@ function strike(attackingEntity, defendingEntity) {
     // Final Alpha Rejigger! ... raw stats, and how do skills factor in? This will be an imporant part of skilling up!
     // MODULAR PARTS OF STRIKE (and other attacks)
 
-    // Also we're dealing NaN damage to each other now. Whoopsie-doodle. :P
-
     /*
-        OK! This is our most basic physical attack. What do we want to (re)define real quick?
-        -- STANCE and its effect(s) (a modular concept - different techs rely on and modify stance differently for attack, but stance's effect on defense should be fairly
-            universal)
-        -- The basic accuracy of the maneuver (can be modified by STANCE substantially above)
-        -- The basic power of the maneuver (this is where STATS come into play most substantially... same with ACC above)
-        -- Generally a move should be either stance-boosting or stance-consuming
+        ALPHA FINAL COMBAT CONCEPT
+        -- eschewing % based boosts/comparions in favor of flat or mostly-flat comparisons (the core needs to be flat to not break everything as it scales, though)
+        -- fighting skill awards straight ACC and EVA...currently +1, can consider going to +2, OR a ramping-up scale (+1, total contribution + fighting% as well)
+            ... this would just be to help the extreme slowing of fighting skill in mid to late range still feel impactful when it levels
+        -- AGI and other contributors to ACC (weapon suitability) would have to be scrutinized more carefully, buuut...
+            ... if we assume a 'level' of difference accounts for both fighting and expected suitability/agility factors, we can keep things in an 'expected' arc
     */
 
     // THIS: the most basic attack, just whack 'em with your weapon

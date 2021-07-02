@@ -132,7 +132,7 @@ const EntityBox = ({ type, entity, index }) => {
     switch (type) {
         case 'mob': {
             return (
-                <EntityGlancer mob viewed={(state.viewTarget?.id === entity?.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target?.id === entity?.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)}>{entity?.glance}</EntityGlancer>
+                <EntityGlancer mob viewed={(state.viewTarget?.id === entity?.id && state.whatDo === 'explore' && state.currentBarSelected === 'entity') || state.target?.id === entity?.id || (state.currentBarSelected === 'entity' && state.whatDo === 'explore' && state.viewIndex === index)}>{entity?.glance} ({entity?.level})</EntityGlancer>
             )
         }
         case 'npc': {
